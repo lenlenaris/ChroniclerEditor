@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Chronicler Editor</title>
+   <style>
+    .arrow-icon {
+    font-size: 0 !important;
+    text-indent: -9999px !important;
+    }
+    </style>
+   <link rel="stylesheet" href="css/style.css">
+   <link rel="stylesheet" href="css/foundation.css">
+   <link rel="stylesheet" href="css/layout.css">
+   <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/features.css">
+    <link rel="stylesheet" href="css/responsive.css">
+   <link rel="stylesheet" href="css/themes.css">
+   <!-- 載入翻譯系統 -->
+    <script src="translations/index.js"></script>
+    <!-- 載入主要腳本 -->
+    <script src="src/modules/token-counter.js"></script>
+    <script src="src/modules/stats-system.js"></script>
+    <script src="src/modules/setting.js"></script>
+    <script src="src/modules/compare-edit.js"></script>
+    <script src="src/modules/drag-sort-manager.js"></script>
+    <script src="src/modules/importExport.js"></script>
+    <script src="src/modules/tagmanager.js"></script>
+    <script src="src/modules/ui-render.js"></script>
+    <script src="src/modules/storage.js"></script>
+    <script src="src/modules/lorebook.js"></script>
+    <script src="src/modules/loveydovey-renderer.js"></script>
+    <script src="src/modules/theme-manager.js"></script>
+    <script src="src/modules/image.js"></script>
+    <script src="src/script.js"></script>
+    <script src="src/modules/timestamp.js"></script>
+    <script src="src/modules/icons.js"></script>
+    <!-- SortableJS CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+   <div class="app-container">
+       <!-- 側邊欄 -->
+       <div class="sidebar" id="sidebar">
+           <!-- 側邊欄標題區 -->
+           <div class="sidebar-header">
+    <div class="sidebar-title-group">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-icon" onclick="toggleSidebar()"><script>document.write(IconManager.panelLeft({width: 16, height: 16, style: 'color: var(--text-muted);'}))</script></button>
+        <h1 class="sidebar-app-title" onclick="goToHomePage()">Chronicler Editor🌙</h1>
+    </div>
+    <div class="sidebar-title-container">
+        <span class="sidebar-app-version">v 0.1.0 beta</span>
+    </div>
+</div>
+
+<!-- 收合狀態的圖示列表 -->
+<div class="sidebar-collapsed-icons" id="sidebar-collapsed-icons" style="display: none;">
+    <!-- 儲存 -->
+    <button class="collapsed-icon-btn" onclick="saveData()" title="Save">
+        <script>document.write(IconManager.save({width: 16, height: 16}))</script>
+    </button>
+    
+    <!-- 搜尋內容 -->
+    <button class="collapsed-icon-btn" onclick="ContentSearchManager.openSearchModal()" title="Search">
+        <script>document.write(IconManager.search({width: 16, height: 16}))</script>
+    </button>
+    
+    <!-- 雙屏編輯 -->
+    <button class="collapsed-icon-btn" onclick="openCrossTypeCompare()" title="Dual Screen">
+        <script>document.write(IconManager.edit({width: 16, height: 16}))</script>
+    </button>
+    
+    <!-- 標籤管理 -->
+    <button class="collapsed-icon-btn" style="margin-bottom: 15px;" onclick="TagAdminManager.openTagManager()" title="Tag Management">
+        <script>document.write(IconManager.bookmark({width: 16, height: 16}))</script>
+    </button>
+    
+    <!-- 角色卡 -->
+    <button class="collapsed-icon-btn" onclick="enterListPage('character')" title="Character">
+        <script>document.write(IconManager.user({width: 16, height: 16}))</script>
+    </button>
+    
+    <!-- 卿卿我我 -->
+    <button class="collapsed-icon-btn" onclick="enterListPage('loveydovey')" title="LoveyDovey">
+        <script>document.write(IconManager.heart({width: 16, height: 16}))</script>
+    </button>
+    
+    <!-- 玩家角色 -->
+    <button class="collapsed-icon-btn" onclick="enterListPage('userpersona')" title="Persona">
+        <script>document.write(IconManager.smile({width: 16, height: 16}))</script>
+    </button>
+    
+    <!-- 世界書 -->
+    <button class="collapsed-icon-btn" onclick="enterListPage('worldbook')" title="Lorebook">
+        <script>document.write(IconManager.book({width: 16, height: 16}))</script>
+    </button>
+    
+    <!-- 筆記本 -->
+    <button class="collapsed-icon-btn" onclick="enterListPage('custom')" title="Notebook">
+        <script>document.write(IconManager.file({width: 16, height: 16}))</script>
+    </button>
+
+        <!-- 設定 -->
+    <button class="collapsed-icon-btn" onclick="toggleFunctionMenu(event)" title="Setting">
+    <script>document.write(IconManager.gear({width: 16, height: 16}))</script>
+</button>
+</div>
+
+<!-- 儲存 -->
+<div class="sidebar-section" style="border-bottom: 0px solid var(--border-color); padding-bottom: 0px; margin-bottom: 0px;">
+    <div class="sidebar-section-header" onclick="saveData()" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+        <script>document.write(IconManager.save({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0;'}))</script>
+        <span class="sidebar-section-title" style="margin-left: 0;">儲存</span>
+    </div>
+</div>
+
+<!-- 搜尋區域 -->
+<div class="sidebar-section" style="border-bottom: 0px solid var(--border-color); padding-bottom: 0px; margin-bottom: 0px;">
+    <div class="sidebar-section-header" onclick="ContentSearchManager.openSearchModal()" style="display: flex; align-items: center; gap: 12px;">
+        <script>document.write(IconManager.search({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0;'}))</script>
+        <span class="sidebar-section-title search-content-title" style="margin-left: 0;">搜尋內容</span>
+    </div>
+</div>
+
+<!-- 雙屏編輯區域 -->
+<div class="sidebar-section" style="border-bottom: 0px solid var(--border-color); padding-bottom: 0px; margin-bottom: 0px;">
+    <div class="sidebar-section-header" onclick="openCrossTypeCompare()" style="display: flex; align-items: center; gap: 12px;">
+        <script>document.write(IconManager.edit({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0;'}))</script>
+        <span class="sidebar-section-title dual-screen-title" style="margin-left: 0;">雙屏編輯</span>
+    </div>
+</div>
+
+<!-- 標籤管理區域 -->
+<div class="sidebar-section" style="border-bottom: 0px solid var(--border-color); padding-bottom: 8px; margin-bottom: 5px;">
+    <div class="sidebar-section-header" onclick="TagAdminManager.openTagManager()" style="display: flex; align-items: center; gap: 12px;">
+        <script>document.write(IconManager.bookmark({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0;'}))</script>
+        <span class="sidebar-section-title tag-management-title" style="margin-left: 0;">標籤管理</span>
+    </div>
+</div>
+           
+           <!-- 側邊欄內容 -->
+           <div class="sidebar-content" id="sidebar-main-content">
+               <!-- 角色列表區塊 -->
+<div class="sidebar-section">
+    <div class="sidebar-section-header" onclick="enterListPage('character')" style="display: flex; align-items: center; gap: 12px;">
+        <span id="characters-icon">
+            <script>document.write(IconManager.user({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0; vertical-align: middle;'}))</script>
+        </span>
+        <span class="sidebar-section-title" style="margin-left: 0;">角色卡</span>
+    </div>
+                   <div class="sidebar-section-content collapsed" id="characters-content">
+                       <div id="sidebarContent">
+                           <!-- 角色列表會在這裡生成 -->
+                       </div>
+                   </div>
+               </div>
+
+               <!-- 卿卿我我區塊 -->
+<div class="sidebar-section">
+    <div class="sidebar-section-header" onclick="enterListPage('loveydovey')" style="display: flex; align-items: center; gap: 12px;">
+        <span id="loveydovey-icon">
+            <script>document.write(IconManager.heart({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0; vertical-align: middle;'}))</script>
+        </span>
+        <span class="sidebar-section-title" style="margin-left: 0;">卿卿我我</span>
+    </div>
+    <div class="sidebar-section-content collapsed" id="loveydovey-content">
+        <div id="loveyDoveyContent">
+            <!-- 卿卿我我列表會在這裡生成 -->
+        </div>
+    </div>
+</div>
+
+               <!-- 玩家角色區塊 -->
+<div class="sidebar-section">
+    <div class="sidebar-section-header" onclick="enterListPage('userpersona')" style="display: flex; align-items: center; gap: 12px;">
+        <span id="userpersona-icon">
+            <script>document.write(IconManager.smile({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0; vertical-align: middle;'}))</script>
+        </span>
+        <span class="sidebar-section-title" style="margin-left: 0;">玩家角色</span>
+    </div>
+    <div class="sidebar-section-content collapsed" id="userpersona-content">
+        <div id="userPersonaContent">
+            <!-- 玩家角色列表會在這裡生成 -->
+        </div>
+    </div>
+</div>
+
+              <!-- 世界書區塊 -->
+<div class="sidebar-section">
+    <div class="sidebar-section-header" onclick="enterListPage('worldbook')" style="display: flex; align-items: center; gap: 12px;">
+        <span id="worldbook-icon">
+            <script>document.write(IconManager.book({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0; vertical-align: middle;'}))</script>
+        </span>
+        <span class="sidebar-section-title" style="margin-left: 0;">世界書</span>
+    </div>
+                   <div class="sidebar-section-content collapsed" id="worldbook-content">
+                       <div id="worldBookContent">
+                           <!-- 世界書列表會在這裡生成 -->
+                       </div>
+                   </div>
+               </div>
+
+               <!-- 自定義欄位區塊 -->
+<div class="sidebar-section">
+    <div class="sidebar-section-header" onclick="enterListPage('custom')" style="display: flex; align-items: center; gap: 12px;">
+        <span id="custom-icon">
+            <script>document.write(IconManager.file({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0; vertical-align: middle;'}))</script>
+        </span>
+        <span class="sidebar-section-title" style="margin-left: 0;">筆記本</span>
+    </div>
+                   <div class="sidebar-section-content collapsed" id="custom-content">
+                       <div id="customSectionContent">
+                           <!-- 自定義區塊列表會在這裡生成 -->
+                       </div>
+                   </div>
+               </div>
+           </div>
+
+           <!-- 側邊欄底部 -->
+         <div class="sidebar-footer">
+    <div class="sidebar-action-bar" style="display: flex; justify-content: flex-start; gap: 10px; padding: 12px 16px;">
+        <button class="top-control-btn" onclick="showHelp()" title="FAQ">
+            <script>document.write(IconManager.question())</script>
+        </button>
+
+        <button class="top-control-btn" onclick="showContact()" title="Feedback">
+            <script>document.write(IconManager.mail())</script>
+        </button>
+        
+        <div class="function-menu-container" style="position: relative;">
+            <button id="function-toggle" class="top-control-btn" onclick="toggleFunctionMenu(event)" title="Setting">
+    <script>document.write(IconManager.gear())</script>
+</button>
+
+        </div>
+        
+  
+    </div>
+</div>
+       </div>
+
+       <!-- 主要區域包裝 -->
+<div class="main-wrapper">
+    <!-- 頂部控制欄 -->
+    <div class="top-header">
+       
+
+   
+           </div>
+
+           <!-- 主要內容 -->
+           <div class="main-content">
+               <div class="content-area" id="contentArea">
+                   <!-- 內容會在這裡生成 -->
+               </div>
+           </div>
+       </div>
+   </div>
+
+<div id="function-menu" style="display: none; position: absolute; z-index: 10000;"></div>
+
+</body>
+</html>

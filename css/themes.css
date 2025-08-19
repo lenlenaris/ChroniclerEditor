@@ -1,0 +1,80 @@
+/* themes.css - 主題配色管理 */
+
+/* 預設主題 */
+:root {
+    --primary-color: #4E5E79;
+    --secondary-color: #fafafa;
+    --accent-color: #8b7355;
+    --bg-color: #ebf2fa;
+    --surface-color: #ffffff;
+    --text-color: #2d3748;
+    --text-muted: #718096;
+    --border-color: #e2e8f0;
+    --success-color: #4b9b9a;
+    --warning-color: #7e98b9;
+    --danger-color: #c07272;
+    --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --header-bg: #f1f5f9;
+    --sidebar-bg: #f8fafc;
+    --main-content-bg: #fafbfc;
+    --content-bg: #ffffff;
+} 
+
+/* 夜間 */
+.theme-eyecare {
+    --primary-color: #487e99;
+    --secondary-color: #487e99;
+    --accent-color: #86734b;
+    --bg-color: #121417;
+    --surface-color: #262624;
+    --text-color: #dedede;
+    --text-muted: #5d7e89;
+    --border-color: #4d4d4c;
+    --header-bg: #2b2b29;
+    --sidebar-bg: #262624;
+    --main-content-bg: #292929;
+    --content-bg: #212121;
+    --success-color: #4a9b93;
+    --warning-color: #86734b;
+    --danger-color: #c07272;
+}
+
+/* 藍月 */
+.theme-bluemoon {
+    --primary-color: #775343;
+    --secondary-color: #1b2841;
+    --accent-color: #c89967;
+    --bg-color: #143b8b;
+    --surface-color: #1e2533;
+    --text-color: #d2cec6;
+    --text-muted: #7e93b0;
+    --border-color: #5b4f48;
+    --header-bg: #0c1e3c;
+    --sidebar-bg: #071226;
+    --main-content-bg: #0c1e3c;
+    --content-bg: #071226;
+    --success-color: #557f53;
+    --warning-color: #7e98b9;
+    --danger-color: #9f5e5e;
+}
+
+/* 淺紫 */
+.theme-purple {
+    --primary-color: #835d98;
+    --secondary-color: #dce0ea;
+    --accent-color: #7f68a1;
+    --bg-color: #ececf4;
+    --surface-color: #f2f2f2;
+    --text-color: #475366;
+    --text-muted: #85849f;
+    --border-color: #b9b5c5;
+    --header-bg: #e9e7ee;
+    --sidebar-bg: #e8e1ea;
+    --main-content-bg: #ececf4;
+    --content-bg: #f2f2f2;
+    --success-color: #52906c;
+    --warning-color: #167eb7;
+    --danger-color: #c07272;
+}

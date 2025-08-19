@@ -1,0 +1,146 @@
+/* 第1區塊：大螢幕響應式 */
+/* 響應式設計 */
+@media (max-width: 1400px) {
+    .versions-container.single-view,
+    .character-header-bar.single-mode {
+        max-width: 70%;
+    }
+    
+    .versions-container.compare-view,
+    .character-header-bar.compare-mode {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 1200px) {
+    .versions-container.single-view,
+    .character-header-bar.single-mode {
+        max-width: 80%;
+    }
+    
+    .versions-container.compare-view,
+    .character-header-bar.compare-mode {
+        max-width: 100%;
+    }
+    
+    .fullscreen-editor-container {
+        width: 70vw;
+        max-width: 70vw;
+    }
+}
+
+/* 第2區塊：平板響應式 */
+@media (max-width: 1024px) {
+    .character-header-bar {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+        align-items: stretch;
+    }
+    
+    .character-title-section {
+        text-align: center;
+    }
+    
+    .character-controls {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 992px) {
+    .versions-container.single-view,
+    .character-header-bar.single-mode {
+        max-width: 90%;
+    }
+    
+    .versions-container.compare-view,
+    .character-header-bar.compare-mode {
+        max-width: 100%;
+    }
+}
+
+/* 第3區塊：手機響應式  */
+@media (max-width: 768px) {
+    .bottom-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        max-height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .versions-container.compare-view {
+        grid-template-columns: 1fr;
+    }
+    
+    .content-area {
+        padding: var(--spacing-lg);
+    }
+    
+    .character-header-bar {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+        align-items: stretch;
+    }
+    
+    .character-title-section {
+        text-align: center;
+    }
+    
+    .character-controls {
+        justify-content: center;
+    }
+    
+    .versions-container.single-view,
+    .versions-container.compare-view,
+    .character-header-bar.single-mode,
+    .character-header-bar.compare-mode {
+        max-width: 100%;
+    }
+    
+    .fullscreen-editor-container {
+        width: 95vw;
+        height: 90vh;
+    }
+    
+    .fullscreen-editor-header {
+        padding: 30px 30px;
+    }
+    
+    .fullscreen-editor-content {
+        padding: 0 20px;
+    }
+    
+    .fullscreen-editor-footer {
+        padding: var(--spacing-lg) 20px;
+    }
+}
+
+/* 第4區塊：響應式匯出區域 */
+/* 響應式匯出區域 */
+@media (max-width: 1400px) {
+    .versions-container.single-view + .export-section {
+        max-width: 70%;
+    }
+}
+
+@media (max-width: 1200px) {
+    .versions-container.single-view + .export-section {
+        max-width: 80%;
+    }
+}
+
+@media (max-width: 992px) {
+    .versions-container.single-view + .export-section {
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+    .versions-container.single-view + .export-section,
+    .versions-container.compare-view + .export-section {
+        max-width: 100%;
+    }
+}
