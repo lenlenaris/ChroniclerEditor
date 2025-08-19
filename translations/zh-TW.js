@@ -99,15 +99,15 @@ window.ChroniclerTranslations['zh-TW'] = {
     createOrImport: '點擊創建<br>or<br>拖曳匯入',
     
     // 角色欄位佔位符
-    creatorPlaceholder: '創作者名稱（可選）...',
-    versionPlaceholder: '版本號碼或描述（可選）...',
-    notesPlaceholder: '創作備註或說明（可選）...',
-    tagsPlaceholder: '標籤，用逗號分隔（可選）...',
-    descPlaceholder: '描述角色的外貌、背景、設定等...',
-    personalityPlaceholder: '角色的性格特徵、行為模式、說話方式等...',
-    scenarioPlaceholder: '角色所處的情境、環境、當前狀況等...',
+    creatorPlaceholder: '創作者名稱',
+    versionPlaceholder: '版本號碼或描述',
+    notesPlaceholder: '創作備註或說明',
+    tagsPlaceholder: '標籤，用逗號分隔',
+    descPlaceholder: '角色定義主要欄位',
+    personalityPlaceholder: '角色性格的簡要描述',
+    scenarioPlaceholder: '互動情形與聊天背景',
     dialoguePlaceholder: '{{user}}: 你好！\n{{char}}: 你好呀！很高興見到你～',
-    firstMsgPlaceholder: '角色的第一句話或開場白...',
+    firstMsgPlaceholder: '聊天開始時角色的第一則訊息',
     
     // ========================================
     // 4. 世界書管理
