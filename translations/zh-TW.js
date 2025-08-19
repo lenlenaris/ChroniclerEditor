@@ -765,13 +765,13 @@ window.ChroniclerTranslations['zh-TW'] = {
 
 
     // 說明
-    helpTitle: '使用說明',
+    helpTitle: '使用說明（施工中）',
     helpUsageTitle: '重要必讀',
-    helpUsageContent: '目前為beta測試版，有資料丟失、匯出匯入失敗、欄位缺漏等風險，請另行備份內容以防遺失！<br><br>所有資料僅儲存在瀏覽器中，備份請點擊側邊欄底下的齒輪選單：<br>• 點選「匯出完整備份」保存整個網站資料。<br>• 在編輯頁面匯出單獨檔案。',
+    helpUsageContent: '目前為beta測試版，有資料丟失、匯出匯入失敗、欄位缺漏等風險，請另行備份內容以防遺失！<br><br>資料僅儲存在瀏覽器中，備份請點擊側邊欄底下的齒輪選單：<br>• 點選「匯出完整備份」保存整個網站資料。<br>• 在編輯頁面匯出單獨檔案。',
     helpFeaturesTitle: '雙頁面同步編輯',
     helpFeaturesContent: '• 同項目：進入編輯頁面後點擊右上角的「對比」選擇項目。<br>• 跨類別／跨項目同步編輯：點擊側邊欄的「雙屏編輯」按鈕。',
     helpTipsTitle: '其他',
-    helpTipsContent: '• 齒輪選單中的「其他設定」可以隱藏「卿卿我我」類別。<br>• 世界書只有「自訂排序」模式。<br>• 沒有自動儲存功能，請愛用Crtl+S或側邊欄的儲存按鈕儲存進度。<br>• 沒有手機版，請用ipad或電腦瀏覽。<br>• 英文版全靠Gemini翻譯，可能會很怪。',
+    helpTipsContent: '• 齒輪選單中的「其他設定」可以隱藏「卿卿我我」類別。<br>• 世界書只有「自訂排序」模式。<br>• 沒有自動儲存功能，請愛用Crtl+S或側邊欄的儲存按鈕儲存進度。<br>• 手機端會嚴重跑板，請使用電腦瀏覽。<br>• 英文版全靠Gemini翻譯，可能會很怪。',
 
     //聯絡
     contactTitle: 'Feedback',
