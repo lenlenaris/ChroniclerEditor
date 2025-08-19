@@ -45,7 +45,7 @@ static createBuiltinThemes() {
         name: 'Dark',
         colors: {
             primary: '#487e99',
-            secondary: '#487e99',
+            secondary: '#2b2b29',
             accent: '#86734b',
             bg: '#121417',
             surface: '#262624',
@@ -212,7 +212,7 @@ static getCurrentColors() {
             // 夜間主題
             this.themes.get('night').colors = {
                 primary: '#487e99',
-                secondary: '#487e99',
+                secondary: '#2b2b29',
                 accent: '#86734b',
                 bg: '#121417',
                 surface: '#262624',
