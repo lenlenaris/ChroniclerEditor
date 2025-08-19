@@ -130,7 +130,6 @@ async function switchLanguage(newLang) {
 
 function selectLanguage(lang) {
     switchLanguage(lang);
-    document.getElementById('lang-menu').style.display = 'none';
     
     const langToggle = document.getElementById('lang-toggle');
     if (langToggle) {
@@ -2208,7 +2207,9 @@ static getItemStats(item, type) {
                 onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
                 <div style="color: var(--text-muted); font-size: 2em; margin-bottom: 4px;">+</div>
                 <div style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 8px;">
-     ${type === 'worldbook' ? t('clickToAddWorldBookOrImport') : `${t('clickToAdd')}${t(typeKeyMap[type] || 'item')}`}
+     ${type === 'worldbook' ? t('clickToAddWorldBookOrImport') : 
+  type === 'custom' ? t('clickToAddNotebook') : 
+  `${t('clickToAdd')} ${t(typeKeyMap[type] || 'item')}`}
 </div>
             </div>
         `;

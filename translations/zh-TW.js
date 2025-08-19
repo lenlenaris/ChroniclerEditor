@@ -56,6 +56,16 @@ window.ChroniclerTranslations['zh-TW'] = {
     sortTokensDesc: 'Token量（多→少）',
     sortTokensAsc: 'Token量（少→多）',
     customSort: '自定義排序',
+    tooltipAddCharacter: '新增角色',
+    tooltipAddUserPersona: '新增玩家角色', 
+    tooltipAddLoveydovey: '新增卿卿我我角色',
+    tooltipAddWorldbook: '新增世界書',
+    tooltipAddCustom: '新增筆記本',
+    tooltipImportCharacter: '匯入角色卡',
+    tooltipImportWorldbook: '匯入世界書',
+    tooltipBatchEdit: '批量刪除',
+    tooltipTagFilter: '以標籤篩選顯示項目',
+    tooltipSortDropdown: '項目排序方式\n拖曳卡片可自定義排序',
     
     // 雙屏編輯
     dualScreenSelector: '雙屏編輯選擇器',
@@ -247,6 +257,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     // 筆記本基本
     customSection: '自定義區塊',
     sectionName: '筆記本名稱',
+    clickToAddNotebook: '點擊新增筆記本',
     
     // 筆記本操作
     copySection: '複製筆記本',

@@ -97,14 +97,14 @@ static renderLoveyDoveyOverview(container) {
             
             <div class="overview-controls" style="display: flex; gap: 12px; align-items: center; padding: 16px 32px; background: transparent; border-radius: 8px; margin-bottom: 16px; border: 0px solid var(--border-color); min-height: 48px; margin-top: 0px;">    
                <!-- 新增按鈕 -->
-    <button class="overview-btn hover-primary" onclick="ItemCRUD.add('loveydovey')">
-        ${IconManager.plus()}
-    </button>
-    
-    <!-- 批量編輯按鈕 -->
-    <button class="overview-btn hover-primary" onclick="toggleBatchEditMode()">
-        ${IconManager.selectAll()}
-    </button>
+<button class="overview-btn hover-primary" onclick="ItemCRUD.add('loveydovey')" title="${t('tooltipAddLoveydovey')}">
+    ${IconManager.plus()}
+</button>
+
+<!-- 批量編輯按鈕 -->
+<button class="overview-btn hover-primary" onclick="toggleBatchEditMode())" title="${t('tooltipBatchEdit')}">
+    ${IconManager.selectAll()}
+</button>
     
     <!-- 搜尋框 -->
     <div class="search-container">
@@ -113,7 +113,7 @@ static renderLoveyDoveyOverview(container) {
     </div>
     
     <!-- 排序下拉 -->
-    <select class="overview-sort-dropdown hover-primary" onchange="OverviewManager.applySorting(this.value)">
+    <select class="overview-sort-dropdown hover-primary" onchange="OverviewManager.applySorting(this.value)" title="${t('tooltipSortDropdown')}">
         <option value="created-desc" selected>${t('sortNewestFirst')}</option>
         <option value="created-asc">${t('sortOldestFirst')}</option>
         <option value="name-asc">${t('sortNameAsc')}</option>
@@ -126,9 +126,9 @@ static renderLoveyDoveyOverview(container) {
     </select>
 
     <!-- 標籤篩選按鈕 -->
-    <button class="overview-btn hover-primary" onclick="OverviewManager.showTagSelector(event)">
-        ${t('tagFilter')}
-    </button>
+    <button class="overview-btn hover-primary" onclick="OverviewManager.showTagSelector(event)" title="${t('tooltipTagFilter')}">
+    ${t('tagFilter')}
+</button>
 
     <!-- 已選標籤顯示區域 -->
     <div id="selected-tags" style="display: flex; gap: 4px; flex: 1;"></div>
@@ -1444,22 +1444,22 @@ static renderListPage(container) {
             
     <!-- 統一控制列 -->
     <div class="overview-controls" style="display: flex; gap: 12px; align-items: center; padding: 16px 32px; background: transparent; border-radius: 8px; margin-bottom: 16px; border: 0px solid var(--border-color); min-height: 48px; margin-top: 0px; justify-content: flex-start;">   
-        <!-- 新增按鈕 -->
-    <button class="overview-btn hover-primary" onclick="ItemCRUD.add('${listPageType}')">
-        ${IconManager.plus()}
-    </button>
+       <!-- 新增按鈕 -->
+<button class="overview-btn hover-primary" onclick="ItemCRUD.add('${listPageType}')" title="${listPageType === 'worldbook' ? t('tooltipAddWorldbook') : listPageType === 'custom' ? t('tooltipAddCustom') : t('tooltipAddUserPersona')}">
+    ${IconManager.plus()}
+</button>
 
-    ${listPageType === 'worldbook' ? `
-    <!-- 匯入按鈕（只有世界書有） -->
-    <button class="overview-btn hover-primary" onclick="importWorldBook()">
-        ${IconManager.upload()}
-    </button>
-    ` : ''}
+${listPageType === 'worldbook' ? `
+<!-- 匯入按鈕（只有世界書有） -->
+<button class="overview-btn hover-primary" onclick="importWorldBook()" title="${t('tooltipImportWorldbook')}">
+    ${IconManager.upload()}
+</button>
+` : ''}
 
-    <!-- 批量編輯按鈕 -->
-    <button class="overview-btn hover-primary" onclick="toggleBatchEditMode()">
-        ${IconManager.selectAll()}
-    </button>
+<!-- 批量編輯按鈕 -->
+<button class="overview-btn hover-primary" onclick="toggleBatchEditMode()" title="${t('tooltipBatchEdit')}">
+    ${IconManager.selectAll()}
+</button>
 
     <!-- 搜尋輸入框 -->
     <div class="search-container">
@@ -1468,7 +1468,7 @@ static renderListPage(container) {
     </div>
 
     <!-- 排序下拉 -->
-    <select class="overview-sort-dropdown hover-primary" onchange="OverviewManager.applySorting(this.value)">
+    <select class="overview-sort-dropdown hover-primary" onchange="OverviewManager.applySorting(this.value)" title="${t('tooltipSortDropdown')}">
 <option value="created-desc" selected>${t('sortNewestFirst')}</option>
 <option value="created-asc">${t('sortOldestFirst')}</option>
 <option value="name-asc">${t('sortNameAsc')}</option>
@@ -1481,9 +1481,9 @@ static renderListPage(container) {
     </select>
 
         <!-- 標籤篩選按鈕 -->
-    <button class="overview-btn hover-primary" onclick="OverviewManager.showTagSelector(event)">
-        ${t('tagFilter')}
-    </button>
+<button class="overview-btn hover-primary" onclick="OverviewManager.showTagSelector(event)" title="${t('tooltipTagFilter')}">
+    ${t('tagFilter')}
+</button>
 
     <!-- 已選標籤顯示區域 -->
     <div id="selected-tags" style="display: flex; gap: 4px; flex: 1;"></div>
@@ -1557,14 +1557,14 @@ static renderUserPersonaOverview(container) {
             <div class="overview-controls" style="display: flex; gap: 12px; align-items: center; padding: 16px 32px; background: transparent; border-radius: 8px; margin-bottom: 16px; border: 0px solid var(--border-color); min-height: 48px; margin-top: 0px;">
 
             <!-- 新增按鈕 -->
-            <button class="overview-btn hover-primary" onclick="ItemCRUD.add('userpersona')">
-                ${IconManager.plus()}
-            </button>
-                            
-            <!-- 批量編輯按鈕 -->
-            <button class="overview-btn hover-primary" onclick="toggleBatchEditMode()">
-                ${IconManager.selectAll()}
-            </button>
+<button class="overview-btn hover-primary" onclick="ItemCRUD.add('userpersona')" title="${t('tooltipAddUserPersona')}">
+    ${IconManager.plus()}
+</button>
+                        
+<!-- 批量編輯按鈕 -->
+<button class="overview-btn hover-primary" onclick="toggleBatchEditMode()" title="${t('tooltipBatchEdit')}">
+    ${IconManager.selectAll()}
+</button>
                 
             <!-- 其他控制項：搜尋、排序、標籤篩選 -->
                 <div class="search-container">
@@ -1572,7 +1572,7 @@ static renderUserPersonaOverview(container) {
     <input type="text" id="search-input" class="search-input" placeholder="${t('searchPlaceholder')}" oninput="handleSearchInput(this.value)">
 </div>
                 
-                <select class="sort-dropdown hover-primary" onchange="OverviewManager.applySorting(this.value)" style="
+                <select class="sort-dropdown hover-primary" onchange="OverviewManager.applySorting(this.value)" title="${t('tooltipSortDropdown')}" style="
                     padding: 4px 8px; 
                     border: 1px solid var(--border-color); 
                     border-radius: 4px; 
@@ -1595,7 +1595,7 @@ static renderUserPersonaOverview(container) {
 <option value="custom">${t('customSort')}</option>
                 </select>
 
-                <button class="overview-btn hover-primary" onclick="OverviewManager.showTagSelector(event)" style="padding: 4px 8px; line-height: 1.2;">
+                <button class="overview-btn hover-primary" onclick="OverviewManager.showTagSelector(event)" title="${t('tooltipTagFilter')}" style="padding: 4px 8px; line-height: 1.2;">
     ${t('tagFilter')}
 </button>
 
@@ -2263,18 +2263,18 @@ function renderHomePage() {
        <!-- 控制列（使用統一樣式） -->
 <div class="overview-controls" style="display: flex; gap: 12px; align-items: center; padding: 16px 32px; background: transparent; border-radius: 8px; margin-bottom: 16px; border: 0px solid var(--border-color); min-height: 48px; margin-top: 0px;">
                 
-    <!-- 新增按鈕 -->
-    <button class="overview-btn hover-primary" onclick="ItemCRUD.add('character')">
+   <!-- 新增按鈕 -->
+    <button class="overview-btn hover-primary" onclick="ItemCRUD.add('character')" title="${t('tooltipAddCharacter')}">
         ${IconManager.plus()}
     </button>
-    
+
     <!-- 匯入按鈕 -->
-    <button class="overview-btn hover-primary" onclick="importCharacter()">
+    <button class="overview-btn hover-primary" onclick="importCharacter()" title="${t('tooltipImportCharacter')}">
         ${IconManager.upload()}
     </button>
-    
+
     <!-- 批量編輯按鈕 -->
-    <button class="overview-btn hover-primary" onclick="toggleBatchEditMode()">
+    <button class="overview-btn hover-primary" onclick="toggleBatchEditMode()" title="${t('tooltipBatchEdit')}">
         ${IconManager.selectAll()}
     </button>
     
@@ -2285,7 +2285,7 @@ function renderHomePage() {
     </div>
     
     <!-- 排序下拉 -->
-<select class="overview-sort-dropdown hover-primary" onchange="OverviewManager.applySorting(this.value)">
+<select class="overview-sort-dropdown hover-primary" onchange="OverviewManager.applySorting(this.value)" title="${t('tooltipSortDropdown')}">
 <option value="created-desc" selected>${t('sortNewestFirst')}</option>
 <option value="created-asc">${t('sortOldestFirst')}</option>
 <option value="name-asc">${t('sortNameAsc')}</option>
@@ -2298,9 +2298,9 @@ function renderHomePage() {
     </select>
 
     <!-- 標籤篩選按鈕 -->
-    <button class="overview-btn hover-primary" onclick="OverviewManager.showTagSelector(event)">
-        ${t('tagFilter')}
-    </button>
+<button class="overview-btn hover-primary" onclick="OverviewManager.showTagSelector(event)" title="${t('tooltipTagFilter')}">
+    ${t('tagFilter')}
+</button>
 
     <!-- 已選標籤顯示區域 -->
     <div id="selected-tags" style="display: flex; gap: 4px; flex: 1;"></div>

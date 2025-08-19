@@ -56,6 +56,16 @@ window.ChroniclerTranslations['en-US'] = {
     sortTokensDesc: 'Tokens (High to Low)',
     sortTokensAsc: 'Tokens (Low to High)',
     customSort: 'Custom Sort',
+    tooltipAddCharacter: 'New Character',
+    tooltipAddUserPersona: 'New Persona',
+    tooltipAddLoveydovey: 'New LoveyDovey Character', 
+    tooltipAddWorldbook: 'New Lorebook',
+    tooltipAddCustom: 'New Notebook',
+    tooltipImportCharacter: 'Import Character Card',
+    tooltipImportWorldbook: 'Import Lorebook', 
+    tooltipBatchEdit: 'Batch Delete',
+    tooltipTagFilter: 'Tag Filter',
+    tooltipSortDropdown: 'Item Sorting Method\nDrag to customize order',
     
     // Dual Screen Editing
     dualScreenSelector: 'Dual Screen Selector', 
@@ -247,6 +257,7 @@ window.ChroniclerTranslations['en-US'] = {
     // Notebook Basic
     customSection: 'Custom Section',
     sectionName: 'Notebook Name',
+    clickToAddNotebook: 'Click to add Notebook',
     
     // Notebook Operations
     copySection: 'Duplicate Notebook',
