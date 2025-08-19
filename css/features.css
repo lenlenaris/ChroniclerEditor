@@ -613,3 +613,14 @@
     height: 10px;
     border-width: 2px;
 }
+
+/* 版本項目統計文字的基本樣式 */
+.version-item div[style*="font-style: italic"] {
+    color: var(--text-muted) !important;
+    transition: color 0.2s ease;
+}
+
+/* 選中狀態的版本統計文字 */
+.version-item.active div[style*="font-style: italic"] {
+    color: var(--accent-color) !important;
+}
