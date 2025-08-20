@@ -2636,11 +2636,6 @@ setTimeout(() => {
         NotificationManager.success(t('saved'));
     }
 
-    // ===== 渲染 =====
-    function renderContent() {
-        ContentRenderer.renderMainContent();
-    }
-
 
     // ===== 橋接到新的 ExportManager =====
     function exportAllData() {

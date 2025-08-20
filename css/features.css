@@ -506,17 +506,17 @@
     min-width: 0 !important;
     flex-shrink: 0 !important;
 }
-/* 讓所有控制按鈕能夠適當縮小 */
+/* 控制按鈕適當縮小 */
 .character-controls > * {
     flex-shrink: 1 !important;
 }
-/* 🆕 但圖示按鈕保持固定大小 */
+/* 圖示按鈕保持固定大小 */
 .btn-edit-header {
     flex-shrink: 0 !important;
     min-width: 36px !important;
 }
 
-/* 編輯頁世界書選擇器 */
+/* 世界書選擇器 */
 .select-edit-header {
     padding: 8px 12px; 
     border: 1px solid var(--border-color); 
@@ -536,7 +536,7 @@
     flex-shrink: 1 !important; 
 }
 
-/* 🆕 視圖切換開關的完整樣式 */
+/* 視圖切換開關 */
 .view-toggle-switch {
     position: relative;
     border: 0px solid color-mix(in srgb, var(--accent-color) 60%, transparent);

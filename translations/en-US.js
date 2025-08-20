@@ -594,7 +594,7 @@ window.ChroniclerTranslations['en-US'] = {
     confirmClearData: 'I understand the risk, clear all data',
     cancelClear: 'Cancel',
     cancelOperation: 'Cancel Operation',
-    exportBeforeClear: 'Export Backup First',
+    exportBeforeClear: 'Export Full Backup',
     dataCleared: 'All data has been cleared.',
     pageResetToInitial: 'The application has been reset.',
     clearDataError: 'An error occurred while clearing data. Please refresh the page and try again.',
