@@ -86,14 +86,14 @@ window.ChroniclerTranslations['en-US'] = {
     description: 'Description',
     personality: 'Personality Summary',
     scenario: 'Scenario',
-    dialogue: 'Example Dialogue',
+    dialogue: 'Examples of Dialogue',
     firstMessage: 'First Message',
     
     // Alternate Greetings
     alternateGreetings: 'Alternate Greetings',
     alternateGreeting: 'Alternate Greeting',
     manageAlternateGreetings: 'Manage Alternate Greetings',
-    addAlternateGreeting: 'Add Greeting',
+    addAlternateGreeting: 'Add a New Greeting',
     alternateGreetingPlaceholder: 'Enter an alternate first message...',
     noAlternateGreetings: 'No alternate greetings have been added.',
     maxAlternateGreetingsReached: 'You can add a maximum of 10 alternate greetings.',

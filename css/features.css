@@ -527,7 +527,7 @@
     width: auto !important; 
     min-width: 100px !important; 
     max-width: 280px !important; 
-    flex: 0 1 200px !important;
+    flex: 0 1 280px !important;
     height: 36px;
     cursor: pointer;
     outline: none;
