@@ -781,12 +781,9 @@ async function handleLoveyDoveyImageUpload(itemId, versionId, file = null) {
     });
 }
 
-// 卿卿我我專用欄位更新函數
 function updateLoveyDoveyField(itemType, itemId, versionId, fieldName, value, maxLength = 0) {
-    // 更新資料
-    updateField(itemType, itemId, versionId, fieldName, value);
-    
-    // 更新字數統計顯示
+    updateField(itemType, itemId, versionId, fieldName, value, 'programmatic');
+
     if (maxLength > 0) {
         updateLoveyDoveyCharCount(itemId, versionId, fieldName, value, maxLength);
     }
@@ -1039,7 +1036,6 @@ function renderAdditionalInfoList(characterId, versionId) {
     }, 50);
 }
 
-// 支援路徑更新的卿卿我我欄位更新函數
 function updateLoveyDoveyFieldWithPath(itemType, itemId, versionId, fieldPath, value, maxLength = 0) {
     // 如果是附加資訊欄位，使用專門的函數
     if (fieldPath.startsWith('additionalInfo.')) {

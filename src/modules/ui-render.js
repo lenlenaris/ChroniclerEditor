@@ -57,7 +57,6 @@ static renderMainContent() {
     ${versionsHTML}
     `;
         
-    updateAllPageStats();
 initAutoResize();
 if (currentItem && currentItem.id) {
     const currentVersionId = ItemManager.getCurrentVersionId();

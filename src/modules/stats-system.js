@@ -101,15 +101,13 @@ function countTokensBasic(text) {
     return Math.ceil(tokenCount);
 }
 
-// ===== ç°¡åŒ–ç‰ˆTokenè¨ˆç®—ï¼ˆæ”¯æ´å¤§æ–‡æœ¬ç•°æ­¥ï¼‰=====
 function countTokens(text) {
     if (!text) return 0;
     
-    // å¤§æ–‡æœ¬ï¼šå…ˆè¿”å›žä¼°ç®—å€¼ï¼Œç•°æ­¥è¨ˆç®—çœŸå¯¦å€¼
-    if (text.length > 10000) {
+    if (text.length > 20000) {
         const estimated = Math.ceil(text.length * 0.75);
         
-        // ç•°æ­¥è¨ˆç®—çœŸå¯¦å€¼ä¸¦æ›´æ–°é¡¯ç¤º
+
         setTimeout(() => {
             const realTokens = originalCountTokens(text);
             updateLargeTextTokenDisplay(text, realTokens);
@@ -519,19 +517,14 @@ function handleFieldUpdateComplete(itemType, itemId, versionId) {
     }, 10);
 }
 
-// ===== å¿å¿æˆ‘æˆ‘å°ˆç”¨çµ±è¨ˆå‡½æ•¸ï¼ˆæ–°å¢žï¼‰ =====
 
-// åˆ¤æ–·æ˜¯å¦ç‚ºå¿å¿æˆ‘æˆ‘æ¬„ä½
 function isLoveyDoveyField(textareaId) {
-    // æª¢æŸ¥æ˜¯å¦æœ‰é™åˆ¶æ ¼å¼çš„çµ±è¨ˆå…ƒç´ 
     const statsElement = document.querySelector(`[data-target="${textareaId}"]`);
     if (!statsElement) return false;
     
-    // å¿å¿æˆ‘æˆ‘çš„æ ¼å¼ï¼šã€Œæ•¸å­— / æ•¸å­— å­—ã€
     return statsElement.textContent.match(/^\d+\s*\/\s*\d+\s*å­—$/);
 }
 
-// å¿å¿æˆ‘æˆ‘å°ˆç”¨çµ±è¨ˆæ›´æ–°
 function updateLoveyDoveyFieldStats(textareaId) {
     const textarea = document.getElementById(textareaId);
     const statsElement = document.querySelector(`[data-target="${textareaId}"]`);
@@ -546,10 +539,8 @@ function updateLoveyDoveyFieldStats(textareaId) {
         const currentLength = textarea.value.length;
         const isOverLimit = currentLength > maxLength;
         
-        // æ›´æ–°æ–‡å­—å…§å®¹
         statsElement.textContent = `${currentLength} / ${maxLength} ${t('chars')}`;
-        
-        // æ›´æ–°æ¨£å¼
+
         if (isOverLimit) {
             statsElement.style.color = '#e74c3c';
             statsElement.style.fontWeight = 'bold';
@@ -564,33 +555,28 @@ function updateLoveyDoveyFieldStats(textareaId) {
     }
 }
 
-// ===== å´é‚Šæ¬„çµ±è¨ˆæ›´æ–°å‡½æ•¸ï¼ˆä¿®å¾©ç‰ˆï¼‰=====
-// åªæ›´æ–°å–®å€‹é …ç›®çš„çµ±è¨ˆ
+
 function updateSingleItemStats(type, itemId, versionId = null) {
     const item = ItemManager.getItemsArray(type).find(i => i.id === itemId);
     if (!item) return;
     
-    // åªæ›´æ–°é€™å€‹é …ç›®çš„æ‰€æœ‰ç‰ˆæœ¬çµ±è¨ˆ
     item.versions.forEach(version => {
         updateSingleVersionSidebarStats(type, itemId, version.id);
     });
 }
 
 function updateSingleVersionSidebarStats(itemType, itemId, versionId) {
-    // ðŸŽ¯ ä½¿ç”¨è¨ºæ–·çµæžœä¸­æœ‰æ•ˆçš„é¸æ“‡å™¨
     const versionElement = document.querySelector(
         `[data-action="selectSidebarItem"][data-type="${itemType}"][data-item-id="${itemId}"][data-version-id="${versionId}"] [style*="italic"]`
     );
     
     if (!versionElement) {
-        // å‚™ç”¨é¸æ“‡å™¨
         const fallbackElement = document.querySelector(`[data-version-id="${versionId}"] [style*="italic"]`);
         if (!fallbackElement) {
             
             return;
         }
         
-        // ä½¿ç”¨å‚™ç”¨å…ƒç´ æ›´æ–°
         updateVersionElementStats(fallbackElement, itemType, itemId, versionId);
         return;
     }
@@ -617,28 +603,13 @@ function updateVersionElementStats(element, itemType, itemId, versionId) {
 function getCachedStatsForSidebar(version, itemType) {
     const cached = TokenCacheManager.get(version.id, version.updatedAt);
     if (cached) {
-        let extraInfo = '';
-        if (itemType === 'worldbook' && version.entries && Array.isArray(version.entries)) {
-            const entryCount = version.entries.length;
-            extraInfo = `${entryCount} ${t('entriesCount')} / `;
-        }
-        
-        return {
-            chars: cached.chars,
-            tokens: cached.tokens,
-            extraInfo: extraInfo,
-            formatted: `${extraInfo}${cached.chars} ${t('chars')} / ${cached.tokens} ${t('tokens')}`
-        };
+        return cached;
     }
     
-    const quickEstimate = getQuickStatsEstimate(version, itemType);
+    const realStats = StatsManager.calculateVersionStats(version, itemType);
+    TokenCacheManager.set(version.id, realStats, version.updatedAt);
     
-    setTimeout(() => {
-        const realStats = StatsManager.calculateVersionStats(version, itemType);
-        updateSidebarVersionStats(version.id, realStats);
-    }, 10);
-    
-    return quickEstimate;
+    return realStats;
 }
 
 // ðŸ“Š å¿«é€Ÿçµ±è¨ˆé ä¼°ï¼ˆé¿å…é¡¯ç¤º0ï¼‰
