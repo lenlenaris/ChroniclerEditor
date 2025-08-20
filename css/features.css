@@ -443,7 +443,9 @@
 }
 
 .character-title-section {
-    flex: 0 0 auto;
+    flex: 1 1 auto !important; /* 可以縮小，沒有固定基準 */
+    min-width: 120px !important; /* 但保持最小寬度 */
+    overflow: hidden !important; /* 防止內容溢出 */
 }
 
 .character-main-title-fixed {
@@ -456,9 +458,12 @@
     background: transparent !important;
     color: var(--text-color) !important;
     transition: all 0.2s ease !important;
-    min-width: 200px !important;
-    flex: 1 !important;
-    max-width: 100% !important;
+    height: 36px !important; /* 🆕 從內聯移過來 */
+    min-width: 80px !important;
+    flex: 1 1 0px !important;
+    max-width: 700px !important;
+    width: auto !important;
+    box-sizing: border-box !important; /* 🆕 確保邊距計算正確 */
 }
 
 .character-main-title-fixed:focus {
@@ -497,8 +502,20 @@
     display: flex;
     gap: var(--spacing-md);
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap !important; 
+    min-width: 0 !important;
+    flex-shrink: 0 !important;
 }
+/* 讓所有控制按鈕能夠適當縮小 */
+.character-controls > * {
+    flex-shrink: 1 !important;
+}
+/* 🆕 但圖示按鈕保持固定大小 */
+.btn-edit-header {
+    flex-shrink: 0 !important;
+    min-width: 36px !important;
+}
+
 /* 編輯頁世界書選擇器 */
 .select-edit-header {
     padding: 8px 12px; 
@@ -507,12 +524,80 @@
     background: var(--surface-color); 
     color: var(--text-color);
     font-size: 0.85em;
-    width: 350px;   
+    width: auto !important; 
+    min-width: 100px !important; 
+    max-width: 280px !important; 
+    flex: 0 1 200px !important;
     height: 36px;
     cursor: pointer;
     outline: none;
     box-sizing: border-box;
     transition: all 0.2s ease;
+    flex-shrink: 1 !important; 
+}
+
+/* 🆕 視圖切換開關的完整樣式 */
+.view-toggle-switch {
+    position: relative;
+    border: 0px solid color-mix(in srgb, var(--accent-color) 60%, transparent);
+    border-radius: 6px;
+    padding: 2px;
+    background: color-mix(in srgb, var(--accent-color) 40%, transparent);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    overflow: hidden;
+    width: auto !important; /* 🔧 改為自動寬度 */
+    min-width: auto !important; /* 🔧 移除固定最小寬度 */
+    flex-shrink: 0 !important; /* 🔧 保持不被壓縮 */
+}
+/* 🆕 滑動背景的樣式 */
+.toggle-background {
+    position: absolute;
+    top: 2px;
+    height: calc(100% - 4px);
+    background: var(--accent-color);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    width: calc(50% - 2px);
+}
+
+/* 🆕 單一模式的背景位置 */
+.view-toggle-switch.single-mode .toggle-background {
+    left: 2px;
+}
+
+/* 🆕 對比模式的背景位置 */
+.view-toggle-switch.compare-mode .toggle-background {
+    right: 2px;
+}
+
+/* 🆕 文字容器的基本樣式 */
+.toggle-text {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    font-size: 0.85em;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    white-space: nowrap;
+    color: var(--text-color);
+}
+
+/* 🆕 激活狀態的文字顏色 */
+.view-toggle-switch.single-mode .toggle-text.single {
+    color: white;
+}
+
+.view-toggle-switch.compare-mode .toggle-text.compare {
+    color: white;
 }
 
 /* 編輯頁頂部控制欄按鈕 */

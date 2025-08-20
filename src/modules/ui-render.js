@@ -402,8 +402,7 @@ static renderItemHeader(item) {
         <div class="character-title-section" style="display: flex; align-items: center; gap: 0px; flex: 1; margin-right: 8px;">
             <input type="text" class="character-main-title-fixed title-font" value="${item.name}" 
     onchange="updateItemName('${itemType}', '${item.id}', this.value)" 
-    placeholder="${itemTypeDisplay}${t('name')}"
-    style="height: 36px; min-width: 200px; max-width: 100%; flex: 1;">
+    placeholder="${itemTypeDisplay}${t('name')}">
         </div>
     <div class="character-controls" style="display: flex; align-items: center; gap: 8px;">
     <button class="btn-edit-header hover-primary" 
@@ -440,71 +439,22 @@ static renderItemHeader(item) {
         ` : ''}
         
         <!-- 🔄 方形開關 -->
-        <button class="view-toggle-switch ${viewMode === 'single' ? 'single-mode' : 'compare-mode'}" 
-            onclick="toggleCompareMode()"
-            style="
-                position: relative; 
-                border: 0px solid color-mix(in srgb, var(--accent-color) 60%, transparent);
-                border-radius: 6px; 
-                padding: 2px; 
-                background: color-mix(in srgb, var(--accent-color) 40%, transparent);
-                cursor: pointer; 
-                transition: all 0.3s ease; 
-                height: 36px; 
-                display: flex; 
-                align-items: center;
-                box-sizing: border-box;
-                overflow: hidden;
-            ">
-        
-        <!-- 滑動的背景 -->
-        <div class="toggle-background" 
-            style="
-                position: absolute; 
-                top: 2px; 
-                height: calc(100% - 4px); 
-                background: ${viewMode === 'single' ? 'var(--accent-color)' : 'var(--accent-color)'}; 
-                border-radius: 4px; 
-                transition: all 0.3s ease; 
-                ${viewMode === 'single' ? 'left: 2px; width: calc(50% - 2px);' : 'right: 2px; width: calc(50% - 2px);'}
-            "></div>
-        
-        <!-- 左側文字容器 (單一檢視) -->
-        <div style="
-            position: relative; 
-            z-index: 2; 
-            flex: 1; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 0 8px; 
-            font-size: 0.85em; 
-            font-weight: 500; 
-            color: ${viewMode === 'single' ? 'white' : 'var(--text-color)'}; 
-            transition: color 0.3s ease; 
-            white-space: nowrap;
-        ">
-            ${t('singleView')}
-        </div>
-        
-        <!-- 右側文字容器 (對比檢視) -->
-        <div style="
-            position: relative; 
-            z-index: 2; 
-            flex: 1; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 0 8px; 
-            font-size: 0.85em; 
-            font-weight: 500; 
-            color: ${viewMode === 'compare' ? 'white' : 'var(--text-color)'}; 
-            transition: color 0.3s ease; 
-            white-space: nowrap;
-        ">
-            ${t('compareView')}
-        </div>
-        </button>
+<button class="view-toggle-switch ${viewMode === 'single' ? 'single-mode' : 'compare-mode'}" 
+    onclick="toggleCompareMode()">
+    
+    <!-- 滑動的背景 -->
+    <div class="toggle-background"></div>
+    
+    <!-- 左側文字容器 (單一檢視) -->
+    <div class="toggle-text single">
+        ${t('singleView')}
+    </div>
+    
+    <!-- 右側文字容器 (對比檢視) -->
+    <div class="toggle-text compare">
+        ${t('compareView')}
+    </div>
+</button>
     
     </div>
     </div>

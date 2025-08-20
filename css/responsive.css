@@ -44,6 +44,24 @@
     .character-controls {
         justify-content: center;
     }
+
+        .character-main-title-fixed {
+        max-width: 300px !important;
+        flex: 1 1 100px !important;
+    }
+        .select-edit-header {
+        max-width: 180px !important;
+        flex: 0 1 150px !important;
+    }
+    .view-toggle-switch {
+        min-width: 80px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .toggle-text {
+        padding: 0 6px !important;
+        font-size: 0.8em !important;
+    }
 }
 
 @media (max-width: 992px) {
@@ -51,15 +69,27 @@
     .character-header-bar.single-mode {
         max-width: 90%;
     }
+
+        .select-edit-header {
+        max-width: 140px !important;
+        min-width: 120px !important;
+        flex: 0 1 120px !important;
+    }
     
     .versions-container.compare-view,
     .character-header-bar.compare-mode {
         max-width: 100%;
     }
+
+    
 }
+
 
 /* 第3區塊：手機響應式  */
 @media (max-width: 768px) {
+    
+
+
     .bottom-container {
         flex-direction: column;
     }
@@ -83,16 +113,56 @@
         flex-direction: column;
         gap: var(--spacing-lg);
         align-items: stretch;
+        padding: 12px 15px;
+    }
+
+    .character-header-bar > div {
+        flex-direction: column !important;
+        gap: 12px !important;
+        align-items: stretch !important;
     }
     
     .character-title-section {
         text-align: center;
+        margin-right: 0 !important;
+    }
+
+    .character-main-title-fixed {
+        min-width: 100px !important;
+        max-width: none !important;
+        flex: 1 1 auto !important;
+        width: 100% !important;
     }
     
     .character-controls {
-        justify-content: center;
+        justify-content: center !important;
+        flex-wrap: wrap !important; /* 🔧 手機版允許換行 */
+        gap: 8px !important;
+    }
+    .select-edit-header {
+        width: 100% !important;
+        min-width: 200px !important;
+        max-width: none !important;
+        flex: 1 1 auto !important;
+    }
+
+        .select-edit-header option {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .view-toggle-switch {
+        min-width: 80px !important;
+        flex-shrink: 0 !important; /* 🔧 絕對不被壓縮 */
     }
     
+    .toggle-text {
+        padding: 0 4px !important;
+        font-size: 0.75em !important;
+    }
+
     .versions-container.single-view,
     .versions-container.compare-view,
     .character-header-bar.single-mode,

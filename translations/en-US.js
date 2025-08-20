@@ -371,8 +371,8 @@ window.ChroniclerTranslations['en-US'] = {
     // 8. Version Control
     // ========================================
     // View Modes
-    singleView: 'Single',
-    compareView: 'Compare',
+    singleView: 'Solo',
+    compareView: 'Dual',
     
     // Version Operations
     addVersion: 'New Version',

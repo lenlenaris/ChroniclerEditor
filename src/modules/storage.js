@@ -503,7 +503,6 @@ async detectPrivateMode() {
         }
     }
 
-    // å·¥å…·å‡½æ•¸ï¼šæ¸…ç©ºè¡¨æ ¼
     clearStore(store) {
         return new Promise((resolve, reject) => {
             const request = store.clear();
@@ -512,16 +511,14 @@ async detectPrivateMode() {
         });
     }
 
-    // å·¥å…·å‡½æ•¸ï¼šæ·»åŠ åˆ°è¡¨æ ¼
     addToStore(store, data) {
         return new Promise((resolve, reject) => {
-            const request = store.add(data);
+            const request = store.put(data);
             request.onsuccess = () => resolve();
             request.onerror = () => reject(request.error);
         });
     }
 
-    // å·¥å…·å‡½æ•¸ï¼šå–å¾—æ‰€æœ‰è³‡æ–™
     getAllFromStore(store) {
         return new Promise((resolve, reject) => {
             const request = store.getAll();
@@ -530,7 +527,6 @@ async detectPrivateMode() {
         });
     }
 
-    // é™ç´šåˆ° localStorage
     fallbackSave(key, data) {
         try {
             localStorage.setItem(key, JSON.stringify(data));
