@@ -3,6 +3,7 @@ class LoveyDoveyRenderer {
     
     // 主要版本內容渲染
 static renderVersionContent(character, version) {
+    
     return `
         <div class="version-content loveydovey-mode">
             <!--  外層容器增加邊距 -->
@@ -480,8 +481,7 @@ static renderAdditionalInfoList(character, version) {
         </div>
     `).join('');
 }
-
-  // 渲染創作者事件欄位（第五大區）
+// 渲染創作者事件欄位（第五大區）
 static renderCreatorEventsFields(character, version) {
     const creatorEvents = version.creatorEvents || [];
     const count = creatorEvents.length;
@@ -597,7 +597,6 @@ static renderCreatorEventsFields(character, version) {
 <div class="creator-event-content" id="content-${event.id}" style="display: none;">
     <!-- Content will be loaded lazily when expanded -->
 </div>
-                        </div>
                     </div>
                 `).join('')}
             </div>

@@ -2415,6 +2415,8 @@ class VersionSelector {
         currentItem = worldBooks.find(wb => wb.id === currentWorldBookId);
     } else if (currentMode === 'custom') {
         currentItem = customSections.find(s => s.id === currentCustomSectionId);
+    } else if (currentMode === 'loveydovey') {
+        currentItem = loveyDoveyCharacters.find(c => c.id === currentLoveyDoveyId);
     }
     
     if (!currentItem) return false;

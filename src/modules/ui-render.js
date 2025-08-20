@@ -58,6 +58,7 @@ static renderMainContent() {
     `;
         
 initAutoResize();
+
 if (currentItem && currentItem.id) {
     const currentVersionId = ItemManager.getCurrentVersionId();
     if (currentVersionId) {
@@ -849,6 +850,7 @@ static rerenderVersionPanel(itemType, itemId, versionId) {
             const loveyDoveyHTML = LoveyDoveyRenderer.renderVersionContent(item, version);
             setTimeout(() => {
                 // 初始化附加資訊拖曳
+                
                 if (typeof DragSortManager !== 'undefined') {
                     DragSortManager.enableAdditionalInfoDragSort(item.id, version.id);
                 }
