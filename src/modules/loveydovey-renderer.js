@@ -1525,15 +1525,16 @@ function toggleAdditionalInfoCollapse(infoId, event = null) {
     saveCollapseStates();
 }
 
-// 更新折疊時的標題顯示
+// 更新摺疊時的標題顯示
 function updateAdditionalInfoCollapsedTitle(infoId) {
     const titleCollapsed = document.getElementById(`title-collapsed-${infoId}`);
     if (!titleCollapsed) return;
     
-    const container = document.querySelector(`[data-info-id="${infoId}"]`);
-    if (!container) return;
+    // 直接通過ID查找標題輸入框
+    const titleInput = document.getElementById(`additionalTitle-${infoId}`);
+    if (!titleInput) return;
     
-    const title = container.querySelector('input[placeholder*="標題"]')?.value || '';
+    const title = titleInput.value || '';
     
     // 更新標題顯示
     const titleElement = titleCollapsed.querySelector('div:first-child');
@@ -1542,8 +1543,7 @@ function updateAdditionalInfoCollapsedTitle(infoId) {
         const allInfoItems = Array.from(document.querySelectorAll('.additional-info-item'));
         const currentIndex = allInfoItems.findIndex(item => item.dataset.infoId === infoId) + 1;
         
-        titleElement.textContent = `${t('additionalInfo')} ${currentIndex} － ${title || t('noTitle')}`;
-
+        titleElement.textContent = `${t('additionalInfo')} ${currentIndex} ： ${title || t('noTitle')}`;
     }
 }
 
@@ -1726,23 +1726,26 @@ function toggleAdditionalInfoCollapseLazy(characterId, versionId, infoId, index,
     
     const isExpanded = content.style.display !== 'none';
     
-    if (isExpanded) {
-        // 摺疊：隱藏內容
+   if (isExpanded) {
+    // 摺疊：隱藏內容
     content.style.display = 'none';
     titleExpanded.style.display = 'none';
-    titleCollapsed.style.display = 'flex'; 
-    } else {
-        // 展開：檢查是否需要載入內容
-        if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
-            // 第一次展開，需要載入內容
-            loadAdditionalInfoContent(characterId, versionId, infoId, index);
-        }
-        
-        // 顯示內容
-        content.style.display = 'block';
-    titleExpanded.style.display = 'block';  
-    titleCollapsed.style.display = 'none'; 
+    titleCollapsed.style.display = 'flex';
+    
+    // 立即更新摺疊標題以反映最新內容
+    updateAdditionalInfoCollapsedTitle(infoId);
+} else {
+    // 展開：檢查是否需要載入內容
+    if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
+        // 第一次展開，需要載入內容
+        loadAdditionalInfoContent(characterId, versionId, infoId, index);
     }
+    
+    // 顯示內容
+    content.style.display = 'block';
+    titleExpanded.style.display = 'block';
+    titleCollapsed.style.display = 'none';
+}
 }
 
 // 載入附加資料詳細內容

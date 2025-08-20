@@ -93,7 +93,7 @@ window.ChroniclerTranslations['en-US'] = {
     alternateGreetings: 'Alternate Greetings',
     alternateGreeting: 'Alternate Greeting',
     manageAlternateGreetings: 'Manage Alternate Greetings',
-    addAlternateGreeting: 'Add a New Greeting',
+    addAlternateGreeting: 'New Greeting',
     alternateGreetingPlaceholder: 'Enter an alternate first message...',
     noAlternateGreetings: 'No alternate greetings have been added.',
     maxAlternateGreetingsReached: 'You can add a maximum of 10 alternate greetings.',
