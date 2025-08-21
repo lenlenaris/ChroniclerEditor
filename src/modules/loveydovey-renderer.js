@@ -101,18 +101,22 @@ static renderVersionContent(character, version) {
             <!-- 頭像 -->
             <div class="avatar-section">
                 <div class="avatar-preview loveydovey-avatar ${version.profileImage ? '' : 'avatar-upload-placeholder'}" 
-                     onclick="triggerLoveyDoveyImageUpload('${character.id}', '${version.id}')"
-                     style="
-                         ${version.profileImage ? 'border: 1px solid var(--border-color);' : 'border: 2px dashed var(--border-color);'}
-                     "
-                     onmouseover="this.style.opacity='0.8'${version.profileImage ? '; this.style.transform=\'scale(1.02)\'' : '; this.style.borderColor=\'var(--primary-color)\''}"
-                     onmouseout="this.style.opacity='1'${version.profileImage ? '; this.style.transform=\'scale(1)\'' : '; this.style.borderColor=\'var(--border-color)\''}">
+     onclick="triggerLoveyDoveyImageUpload('${character.id}', '${version.id}')"
+     ondragenter="showAvatarDragOverlay(event, this)"
+     ondragover="event.preventDefault(); event.stopPropagation();"
+     ondragleave="handleAvatarDragLeave(event, this)"
+     ondrop="handleAvatarDrop(event, '${character.id}', '${version.id}', 'loveydovey'); hideAvatarDragOverlay(this);"
+     style="
+         ${version.profileImage ? 'border: 1px solid var(--border-color);' : 'border: 2px dashed var(--border-color);'}
+     "
+     onmouseover="this.style.opacity='0.8'${version.profileImage ? '; this.style.transform=\'scale(1.02)\'' : '; this.style.borderColor=\'var(--primary-color)\''}"
+     onmouseout="this.style.opacity='1'${version.profileImage ? '; this.style.transform=\'scale(1)\'' : '; this.style.borderColor=\'var(--border-color)\''}">
                     ${version.profileImage ? 
                         `<img src="${BlobManager.getBlobUrl(version.profileImage)}" alt="Profile">` : 
                         `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 0.9em; text-align: center;">
                             <div>
                                 <div style="color: var(--text-muted); font-size: 3em; margin-bottom: 12px;">+</div>
-                                ${t('clickToUpload')}
+                                ${t('clickToUploadAvatar')}
                             </div>
                         </div>`
                     }

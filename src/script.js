@@ -1282,16 +1282,16 @@ class ScrollbarManager {
     }
 }
 
-// ===== 14. 總覽管理器 =====
+// ===== 總覽管理 =====
 class OverviewManager {
     static currentSort = 'created-desc';
     static selectedTags = [];
         // 分頁相關屬性
     static itemsPerPage = 50;
-    static currentlyShown = 50; // 當前顯示的項目數量
-    static processedItems = []; // 已處理（篩選+排序）的項目
-    static isShowingAll = false; // 是否已顯示全部
-    static lastProcessParams = null; // 記錄上次處理的參數，用於判斷是否需要重新處理
+    static currentlyShown = 50;
+    static processedItems = []; 
+    static isShowingAll = false; 
+    static lastProcessParams = null;
 
    static initialize() {
     const savedSort = localStorage.getItem('characterCreator-sortPreference');
@@ -1314,13 +1314,12 @@ class OverviewManager {
         DragSortManager.applySavedOrder('character');
     }
     
-    // 🔧 新增：同步下拉選單顯示值
+    // 同步下拉選單顯示值
     this.syncDropdownValue();
 }
 
-// 🔧 新增：同步下拉選單值的方法
+
 static syncDropdownValue() {
-    // 尋找各種可能的下拉選單選擇器
     const possibleSelectors = [
         '.sort-dropdown',
         '.overview-sort-dropdown', 
@@ -1362,7 +1361,7 @@ static syncDropdownValue() {
         sort: this.currentSort,
         tags: [...this.selectedTags],
         search: searchText || '', // 確保搜尋文字變化時會重新處理
-        dataLength: characters.length // 🆕 新增：檢查數據長度變化
+        dataLength: characters.length // 新增：檢查數據長度變化
     };
     
     const needReprocess = !this.lastProcessParams || 
@@ -1382,7 +1381,6 @@ static syncDropdownValue() {
     
     container.innerHTML = this.generateCharacterCards(itemsToShow);
     
-    // 🆕 添加 Show More 按鈕（如果需要）
     if (!this.isShowingAll) {
         container.innerHTML += this.generateShowMoreButton('characters');
     }

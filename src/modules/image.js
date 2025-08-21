@@ -1355,3 +1355,114 @@ if ('memory' in performance) {
         }
     }, 30000); // 每30秒檢查一次
 }
+
+
+// ===== 頭像拖拽上傳函數 =====
+
+/**
+ * 處理頭像拖拽上傳
+ * @param {Event} e - 拖拽事件
+ * @param {string} itemId - 項目ID  
+ * @param {string} versionId - 版本ID
+ * @param {string} type - 類型 ('character', 'userpersona', 'loveydovey')
+ */
+function handleAvatarDrop(e, itemId, versionId, type = 'character') {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    
+    if (imageFiles.length === 0) {
+        NotificationManager.warning(t('pleaseDropImageFiles'));
+        return;
+    }
+    
+    if (imageFiles.length > 1) {
+        NotificationManager.warning(t('pleaseDropSingleImage'));
+        return;
+    }
+    
+    // 根據類型調用對應的上傳函數
+    switch (type) {
+        case 'loveydovey':
+            if (typeof handleLoveyDoveyImageUpload === 'function') {
+                handleLoveyDoveyImageUpload(itemId, versionId, imageFiles[0]);
+            } else {
+                console.warn('handleLoveyDoveyImageUpload 函數不存在');
+                handleImageUpload(itemId, versionId, imageFiles[0]);
+            }
+            break;
+        case 'userpersona':
+        case 'character':
+        default:
+            handleImageUpload(itemId, versionId, imageFiles[0]);
+            break;
+    }
+}
+
+/**
+ * 顯示拖拽覆蓋層
+ * @param {Event} e - 拖拽事件
+ * @param {HTMLElement} target - 目標元素
+ */
+function showAvatarDragOverlay(e, target) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!e.dataTransfer.types.includes('Files')) return;
+    
+    // 檢查是否已有覆蓋層
+    if (target.querySelector('.avatar-drag-overlay')) return;
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'avatar-drag-overlay';
+    overlay.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(92, 193, 255, 0.3);
+        color: #66b3ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        font-size: 1.2em;
+        font-weight: 600;
+        backdrop-filter: blur(3px);
+        border: 0px dashed #66b3ff;
+        border-radius: inherit;
+        box-sizing: border-box;
+        pointer-events: none;
+    `;
+    
+    overlay.innerHTML = `<div>${t('dropImageHere')}</div>`;
+    
+    target.style.position = 'relative';
+    target.appendChild(overlay);
+}
+
+/**
+ * 隱藏拖拽覆蓋層
+ * @param {HTMLElement} target - 目標元素
+ */
+function hideAvatarDragOverlay(target) {
+    const overlay = target.querySelector('.avatar-drag-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+/**
+ * 處理拖拽離開
+ * @param {Event} e - 拖拽事件
+ * @param {HTMLElement} target - 目標元素
+ */
+function handleAvatarDragLeave(e, target) {
+    // 檢查是否真的離開了元素（不是移動到子元素）
+    if (!target.contains(e.relatedTarget)) {
+        hideAvatarDragOverlay(target);
+    }
+}

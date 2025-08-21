@@ -609,8 +609,8 @@ window.ChroniclerTranslations['zh-TW'] = {
     // 其他
     loadingCharacters: '',
     pleaseWait: '載入中...',
-    clickToUploadImage: '點擊上傳圖片',
-    clickToUploadAvatar: '點擊上傳頭像',
+    clickToUploadImage: '點擊或拖曳上傳圖片',
+    clickToUploadAvatar: '點擊或拖曳上傳頭像',
     enterTagName: '輸入標籤名稱...',
     unknownItemType: '未知的項目類型',
     dataLoadError: '資料載入錯誤，請重新選擇',
@@ -742,6 +742,9 @@ window.ChroniclerTranslations['zh-TW'] = {
     verticalRatio: '豎直矩形',
     cropFailed: '裁切失敗：裁切區域無效。',
     imageLoadFailed: '圖片載入失敗',
+    pleaseDropImageFiles: '請拖拽圖片檔案',
+    pleaseDropSingleImage: '請一次只拖拽一張圖片',
+    dropImageHere: '拖拽圖片到此處',
 
     // ========================================
     // 17. 預設名稱與字串

@@ -93,7 +93,7 @@ window.ChroniclerTranslations['en-US'] = {
     alternateGreetings: 'Alternate Greetings',
     alternateGreeting: 'Alternate Greeting',
     manageAlternateGreetings: 'Manage Alternate Greetings',
-    addAlternateGreeting: 'New Greeting',
+    addAlternateGreeting: 'Add Alternate Greeting',
     alternateGreetingPlaceholder: 'Enter an alternate first message...',
     noAlternateGreetings: 'No alternate greetings have been added.',
     maxAlternateGreetingsReached: 'You can add a maximum of 10 alternate greetings.',
@@ -290,21 +290,21 @@ window.ChroniclerTranslations['en-US'] = {
     // ========================================
     // 7. Lovey-Dovey Management
     // ========================================
-    loveydoveyCharacter: 'Lovey-Dovey Character',
-    clickToCreateLoveydovey: 'Click to Create a Lovey-Dovey Character',
+    loveydoveyCharacter: 'LoveyDovey Character',
+    clickToCreateLoveydovey: 'Click to Create a LoveyDovey Character',
     
     // Lovey-Dovey Section Titles
     profileSection: 'Profile',
     basicSettingsSection: 'Basic Settings',
-    firstChatScenario: 'First Chat Scenario',
+    firstChatScenario: 'First Chat Scene',
     detailSettingsSection: 'Detailed Settings',
     creatorEventsSection: 'Creator Events',
     
     // Profile Fields
     age: 'Age',
-    occupation: 'Occupation',
-    characterQuote: 'Character Quote',
-    publicDescription: 'Public Description',
+    occupation: 'Job',
+    characterQuote: 'Character\'s Comment',
+    publicDescription: 'Narrative',
     gender: 'Gender',
     profileImage: 'Profile Image',
     characterLinkUrl: 'Character Profile URL',
@@ -315,12 +315,12 @@ window.ChroniclerTranslations['en-US'] = {
     unset: 'Not Set',
     
     // Basic Settings Fields
-    basicInfo: 'Basic Info',
-    speakingStyle: 'Speaking Style',
+    basicInfo: 'Basic Infomation',
+    speakingStyle: 'Speaking Style and Habit',
     
     // First Chat Scenario
-    scenarioScript: 'Scenario Script',
-    characterDialogue: 'Character Dialogue',
+    scenarioScript: 'Situation Script',
+    characterDialogue: 'Character\'s Dialogue',
     
     // Detail Settings
     detailedSettings: 'Detailed Settings',
@@ -329,7 +329,7 @@ window.ChroniclerTranslations['en-US'] = {
     additionalInfo: 'Additional Information',
     additionalTitle: 'Title',
     additionalContent: 'Content',
-    addAdditionalInfo: 'Add Info Block',
+    addAdditionalInfo: 'Add Additional Information',
     deleteAdditionalInfo: 'Delete this Block',
     
     // Creator Events
@@ -609,8 +609,8 @@ window.ChroniclerTranslations['en-US'] = {
     // Other
     loadingCharacters: '',
     pleaseWait: 'Loading...',
-    clickToUploadImage: 'Click to Upload Image',
-    clickToUploadAvatar: 'Click to Upload Avatar',
+    clickToUploadImage: 'Click or drag to Upload Image',
+    clickToUploadAvatar: 'Click or drag to Upload Avatar',
     enterTagName: 'Enter a tag name...',
     unknownItemType: 'Unknown item type',
     dataLoadError: 'Data failed to load. Please make your selection again.',
@@ -741,6 +741,9 @@ window.ChroniclerTranslations['en-US'] = {
     verticalRatio: 'Portrait',
     cropFailed: 'Crop failed: The selected crop area is invalid.',
     imageLoadFailed: 'Failed to load the image.',
+    pleaseDropImageFiles: 'Please drop image files',
+    pleaseDropSingleImage: 'Please drop only one image at a time',
+    dropImageHere: 'Drop image here',
 
     // ========================================
     // 17. Default Names & Strings

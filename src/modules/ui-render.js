@@ -537,7 +537,7 @@ static renderVersionPanel(item, version, explicitItemType = null) {
         <!-- 分隔線 -->
         <div style="border-top: 1px solid var(--border-color); margin: 5px 0 20px 0;"></div>
         
-        <!--  把彈窗移到這裡 -->
+        <!--  標籤輸入彈窗 -->
         ${hasTagsSupport ? this.createVersionTagModal(version.id, itemType, item.id, 'tags') : ''}
         </div>
     `;
@@ -583,7 +583,7 @@ static createVersionTagModal(versionId, itemType, itemId, fieldName) {
             <input type="text" 
                    id="version-tag-input-version-tags-${versionId}" 
                    class="field-input"
-                   placeholder="${t('searchPlaceholder')}"
+                   placeholder="${t('enterTagName')}"
                    style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85em;"
                    onkeydown="ContentRenderer.handleVersionTagKeydown(event, 'version-tags-${versionId}', '${itemType}', '${itemId}', '${versionId}', '${fieldName}')"
                    oninput="ContentRenderer.showVersionTagSuggestions('version-tags-${versionId}', '${itemType}', '${itemId}', '${versionId}', '${fieldName}')"
@@ -886,7 +886,11 @@ static renderCharacterVersionContent(character, version) {
         <div class="character-basic-info">
             <div class="avatar-section">
                 <div class="avatar-preview ${version.avatar ? '' : 'avatar-upload-placeholder'}" 
-                     onclick="triggerImageUpload('${character.id}', '${version.id}')" 
+     onclick="triggerImageUpload('${character.id}', '${version.id}')" 
+     ondragenter="showAvatarDragOverlay(event, this)"
+     ondragover="event.preventDefault(); event.stopPropagation();"
+     ondragleave="handleAvatarDragLeave(event, this)"
+     ondrop="handleAvatarDrop(event, '${character.id}', '${version.id}', 'character'); hideAvatarDragOverlay(this);"
                      style="
                          cursor: pointer; 
                          transition: all 0.2s ease;
@@ -918,28 +922,32 @@ static renderUserPersonaVersionContent(userPersona, version) {
         <div class="user-persona-content" style="display: flex; flex-direction: column; align-items: center; gap: 24px;">
             <!-- 頭像區域 - 置中顯示 -->
             <div class="avatar-section" style="display: flex; flex-direction: column; align-items: center;">
-                <div class="avatar-preview ${version.avatar ? '' : 'avatar-upload-placeholder'}" 
-                     onclick="triggerImageUpload('${userPersona.id}', '${version.id}')" 
-                     style="
-                         cursor: pointer; 
-                         transition: all 0.2s ease; 
-                         width: 360px; 
-                         height: 540px; 
-                         aspect-ratio: 2/3; 
-                         border-radius: var(--radius-lg);
-                         overflow: hidden;
-                         background: transparent;
-                         ${version.avatar ? 
-                             'border: 1px solid var(--border-color); box-shadow: var(--shadow-light);' : 
-                             'border: 2px dashed var(--border-color);'
-                         }
-                         display: flex; 
-                         align-items: center; 
-                         justify-content: center;
-                     " 
-                     onmouseover="this.style.opacity='0.8'${version.avatar ? '; this.style.transform=\'scale(1.02)\'' : '; this.style.borderColor=\'var(--primary-color)\''}" 
-                     onmouseout="this.style.opacity='1'${version.avatar ? '; this.style.transform=\'scale(1)\'' : '; this.style.borderColor=\'var(--border-color)\''}"
-                     >
+               <div class="avatar-preview ${version.avatar ? '' : 'avatar-upload-placeholder'}" 
+     onclick="triggerImageUpload('${userPersona.id}', '${version.id}')" 
+     ondragenter="showAvatarDragOverlay(event, this)"
+     ondragover="event.preventDefault(); event.stopPropagation();"
+     ondragleave="handleAvatarDragLeave(event, this)"
+     ondrop="handleAvatarDrop(event, '${userPersona.id}', '${version.id}', 'userpersona'); hideAvatarDragOverlay(this);"
+     style="
+         cursor: pointer; 
+         transition: all 0.2s ease; 
+         width: 360px; 
+         height: 540px; 
+         aspect-ratio: 2/3; 
+         border-radius: var(--radius-lg);
+         overflow: hidden;
+         background: transparent;
+         ${version.avatar ? 
+             'border: 1px solid var(--border-color); box-shadow: var(--shadow-light);' : 
+             'border: 2px dashed var(--border-color);'
+         }
+         display: flex; 
+         align-items: center; 
+         justify-content: center;
+     " 
+     onmouseover="this.style.opacity='0.8'${version.avatar ? '; this.style.transform=\'scale(1.02)\'' : '; this.style.borderColor=\'var(--primary-color)\''}" 
+     onmouseout="this.style.opacity='1'${version.avatar ? '; this.style.transform=\'scale(1)\'' : '; this.style.borderColor=\'var(--border-color)\''}"
+     >
                     ${version.avatar ? 
                         `<img src="${BlobManager.getBlobUrl(version.avatar)}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">` : 
                         `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 0.9em; text-align: center;">
