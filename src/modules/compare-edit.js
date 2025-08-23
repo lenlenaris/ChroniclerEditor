@@ -245,11 +245,34 @@ static renderCrossTypeInterface() {
         </div>
     `;
     
-    // 初始化功能
+// 初始化功能
 setTimeout(() => {
     updateAllPageStats();
     initAutoResize();
-}, 50);
+    if (crossTypeCompareMode) {
+        // 只更新當前可見的textarea
+        document.querySelectorAll('textarea[id]').forEach(textarea => {
+            if (textarea.offsetParent !== null) { 
+                const text = textarea.value;
+                const chars = text.length;
+                const tokens = countTokens(text);
+                const textareaId = textarea.id;
+                const statsElement = document.querySelector(`[data-target="${textareaId}"]`);
+                
+                if (statsElement && !isLoveyDoveyField(textareaId)) {
+                    const excludeTokenFields = ['creator-', 'charVersion-', 'creatorNotes-', 'tags-'];
+                    const shouldShowTokens = !excludeTokenFields.some(prefix => textareaId.includes(prefix));
+                    
+                    const displayText = shouldShowTokens ? 
+                        `${chars} ${t('chars')} / ${tokens} ${t('tokens')}` : 
+                        `${chars} ${t('chars')}`;
+                    
+                    statsElement.textContent = displayText;
+                }
+            }
+        });
+    }
+}, 100);
 }
 
 // 渲染跨類型標題欄
