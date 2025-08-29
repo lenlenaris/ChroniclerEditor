@@ -450,7 +450,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                         <option value="6" ${entry.position === 6 ? 'selected' : ''}>${t('afterExampleMsg')}</option>
                         <option value="2" ${entry.position === 2 ? 'selected' : ''}>${t('topAuthorNote')}</option>
                         <option value="3" ${entry.position === 3 ? 'selected' : ''}>${t('bottomAuthorNote')}</option>
-                        <option value="4" ${entry.position === 4 && entry.role === 0 ? 'selected' : ''}>${t('atSystemDepth')}</option>
+                        <option value="4" data-role="0" ${entry.position === 4 && (entry.role === 0 || entry.role === null) ? 'selected' : ''}>${t('atSystemDepth')}</option>
                         <option value="4" data-role="1" ${entry.position === 4 && entry.role === 1 ? 'selected' : ''}>${t('atUserDepth')}</option>
                         <option value="4" data-role="2" ${entry.position === 4 && entry.role === 2 ? 'selected' : ''}>${t('atAiDepth')}</option>
                     </select>
