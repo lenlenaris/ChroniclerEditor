@@ -873,8 +873,25 @@ return `
     // --- PNG 匯出 ---
     static exportCharacterPNGWithFilename(character, version, filename, includeWorldBook = false) {
         const characterData = this.createCharacterData(character, version, includeWorldBook);
-        const jsonString = JSON.stringify(characterData);
-        const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
+        const jsonString = JSON.stringify(characterData, null, 0);  // 🔧 不使用縮排，減少檔案大小
+        
+        // 🔧 更安全的Base64編碼，處理特殊字符
+        let base64Data;
+        try {
+            // 現代瀏覽器優先使用 TextEncoder
+            if (typeof TextEncoder !== 'undefined') {
+                const encoder = new TextEncoder();
+                const uint8Array = encoder.encode(jsonString);
+                base64Data = btoa(String.fromCharCode(...uint8Array));
+            } else {
+                // 向後相容的編碼方式
+                base64Data = btoa(unescape(encodeURIComponent(jsonString)));
+            }
+        } catch (error) {
+            console.warn('Base64編碼失敗，使用備用方法:', error);
+            // 🔧 備用編碼方法
+            base64Data = btoa(unescape(encodeURIComponent(jsonString)));
+        }
         
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
