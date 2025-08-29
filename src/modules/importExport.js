@@ -1533,49 +1533,53 @@ static createWorldBookMarkdownContent(worldBook, version) {
     static convertWorldBookToCharacterBook(worldBook, version) {
         return {
             name: worldBook.name,
-            entries: version.entries.map((entry, index) => ({
-                id: entry.uid !== undefined ? entry.uid : index,
-                keys: Array.isArray(entry.key) ? entry.key : [],
-                secondary_keys: Array.isArray(entry.keysecondary) ? entry.keysecondary : [],
-                comment: entry.comment || '',
-                content: entry.content || '',
-                constant: entry.constant || false,
-                selective: entry.selective !== false,
-                insertion_order: entry.order || 100,
-                enabled: !entry.disable,
-                position: this.convertPositionToLegacy(entry.position),
-                use_regex: true,
-                extensions: {
-                    position: entry.position || 1,
-                    exclude_recursion: entry.excludeRecursion || false,
-                    display_index: entry.displayIndex !== undefined ? entry.displayIndex : index,
-                    probability: entry.probability || 100,
-                    useProbability: entry.useProbability || false,
-                    depth: entry.depth || 4,
-                    selectiveLogic: entry.selectiveLogic || 0,
-                    group: entry.group || '',
-                    group_override: entry.groupOverride || false,
-                    group_weight: entry.groupWeight || 100,
-                    prevent_recursion: entry.preventRecursion || false,
-                    delay_until_recursion: entry.delayUntilRecursion || false,
-                    scan_depth: entry.scanDepth || null,
-                    match_whole_words: entry.matchWholeWords || null,
-                    use_group_scoring: entry.useGroupScoring || null,
-                    case_sensitive: entry.caseSensitive || null,
-                    automation_id: entry.automationId || '',
-                    role: entry.role || 0,
-                    vectorized: entry.vectorized || false,
-                    sticky: entry.sticky || 0,
-                    cooldown: entry.cooldown || 0,
-                    delay: entry.delay || 0,
-                    match_persona_description: entry.matchPersonaDescription || false,
-                    match_character_description: entry.matchCharacterDescription || false,
-                    match_character_personality: entry.matchCharacterPersonality || false,
-                    match_character_depth_prompt: entry.matchCharacterDepthPrompt || false,
-                    match_scenario: entry.matchScenario || false,
-                    match_creator_notes: entry.matchCreatorNotes || false
-                }
-            }))
+            entries: version.entries.map((entry, index) => {
+                return {
+                    // 🔧 使用陣列索引確保ID唯一
+                    id: index,  // 改用 index 而不是 entry.uid
+                    keys: Array.isArray(entry.key) ? entry.key : [],
+                    secondary_keys: Array.isArray(entry.keysecondary) ? entry.keysecondary : [],
+                    comment: entry.comment || '',
+                    content: entry.content || '',
+                    constant: entry.constant || false,
+                    selective: entry.selective !== false,
+                    insertion_order: entry.order || 100,
+                    enabled: !entry.disable,
+                    position: this.convertPositionToLegacy(entry.position),
+                    use_regex: true,
+                    extensions: {
+                        position: entry.position || 1,
+                        exclude_recursion: entry.excludeRecursion || false,
+                        // 🔧 使用陣列索引確保 display_index 唯一
+                        display_index: index,
+                        probability: entry.probability !== undefined ? entry.probability : 100,
+                        useProbability: entry.useProbability || false,
+                        depth: entry.depth || 4,
+                        selectiveLogic: entry.selectiveLogic || 0,
+                        group: entry.group || '',
+                        group_override: entry.groupOverride || false,
+                        group_weight: entry.groupWeight || 100,
+                        prevent_recursion: entry.preventRecursion || false,
+                        delay_until_recursion: entry.delayUntilRecursion || false,
+                        scan_depth: entry.scanDepth || null,
+                        match_whole_words: entry.matchWholeWords,
+                        use_group_scoring: entry.useGroupScoring,
+                        case_sensitive: entry.caseSensitive,
+                        automation_id: entry.automationId || '',
+                        role: entry.role || 0,
+                        vectorized: entry.vectorized || false,
+                        sticky: entry.sticky || 0,
+                        cooldown: entry.cooldown || 0,
+                        delay: entry.delay || 0,
+                        match_persona_description: entry.matchPersonaDescription || false,
+                        match_character_description: entry.matchCharacterDescription || false,
+                        match_character_personality: entry.matchCharacterPersonality || false,
+                        match_character_depth_prompt: entry.matchCharacterDepthPrompt || false,
+                        match_scenario: entry.matchScenario || false,
+                        match_creator_notes: entry.matchCreatorNotes || false
+                    }
+                };
+            })
         };
     }
 

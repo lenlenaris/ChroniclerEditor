@@ -4,10 +4,13 @@ function addWorldBookEntry(worldBookId, versionId) {
     if (worldBook) {
         const version = worldBook.versions.find(v => v.id === versionId);
         if (version) {
+            const maxUid = Math.max(-1, ...version.entries.map(e => e.uid || 0));
+            const newUid = maxUid + 1;
+            
             const newEntry = {
                 id: generateId(),
-                uid: version.entries.length,
-                displayIndex: version.entries.length + 1,
+                uid: newUid,
+                displayIndex: version.entries.length,
                 key: [],
                 keysecondary: [],
                 content: '',
@@ -44,32 +47,25 @@ function addWorldBookEntry(worldBookId, versionId) {
                 matchCharacterDepthPrompt: false,
                 matchScenario: false,
                 matchCreatorNotes: false,
-                matchPersonaDescription: false,
-                matchCharacterDescription: false,
-                matchCharacterPersonality: false,
-                matchCharacterDepthPrompt: false,
-                matchScenario: false,
-                matchCreatorNotes: false,
                 triggers: []
             };
+            
             version.entries.push(newEntry);
             
             if (crossTypeCompareMode) {
                 if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
                     WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
                 } else {
-                    // 備用方案：重新渲染整個雙屏內容
                     CrossTypeCompareManager.renderCrossTypeInterface();
                 }
             } else {
-                // 單版本模式：使用原有的全量渲染
                 renderAll();
             }
             
             markAsChanged();
             setTimeout(() => {
-            enableWorldBookEntriesDragSort(worldBookId, versionId);
-        }, 100);
+                enableWorldBookEntriesDragSort(worldBookId, versionId);
+            }, 100);
         }
     }
 }
@@ -264,26 +260,26 @@ function copyWorldBookEntry(worldBookId, versionId, entryId) {
         if (version) {
             const originalEntry = version.entries.find(e => e.id === entryId);
             if (originalEntry) {
+                const maxUid = Math.max(-1, ...version.entries.map(e => e.uid || 0));
+                const newUid = maxUid + 1;
+                
                 const newEntry = {
                     ...originalEntry,
                     id: generateId(),
-                    uid: version.entries.length,
+                    uid: newUid, 
+                    displayIndex: version.entries.length,
                     comment: (originalEntry.comment || '') + t('copyPrefix')
                 };
                 
                 version.entries.push(newEntry);
                 
-                // 【修改】雙屏模式的渲染邏輯
                 if (crossTypeCompareMode) {
-                    // 雙屏模式：使用 WorldBookRenderer 進行局部渲染
                     if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
                         WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
                     } else {
-                        // 備用方案：重新渲染整個雙屏內容
                         CrossTypeCompareManager.renderCrossTypeInterface();
                     }
                 } else {
-                    // 單版本模式：使用原有的全量渲染（確保向後相容）
                     renderAll();
                 }
                 
@@ -1274,12 +1270,8 @@ function reorderWorldBookEntriesFromContainer(container, worldBookId, versionId)
     const version = worldBook.versions.find(v => v.id === versionId);
     if (!version || !version.entries) return;
     
-    
-    
-    // 從指定容器獲取條目順序
     const entryPanels = Array.from(container.querySelectorAll('.entry-panel'));
     
-    // 根據DOM順序重建陣列
     const newEntriesOrder = [];
     entryPanels.forEach(panel => {
         const entryId = panel.dataset.entryId;
@@ -1289,23 +1281,20 @@ function reorderWorldBookEntriesFromContainer(container, worldBookId, versionId)
         }
     });
     
-    // 確保沒有遺失條目
     if (newEntriesOrder.length !== version.entries.length) {
         console.warn('⚠️ 條目數量不匹配，使用原順序');
         return;
     }
     
-    // 更新陣列和 displayIndex
     version.entries = newEntriesOrder;
+    // 🔧 確保 displayIndex 和 uid 連續且唯一
     version.entries.forEach((entry, index) => {
-        entry.displayIndex = index + 1;
+        entry.displayIndex = index;
+        // 保持 uid 不變，只更新 displayIndex
     });
     
-    // 更新時間戳記
     TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
     markAsChanged();
-    
-    
 }
 
 // 重新排序世界書條目（基於DOM順序重建）
