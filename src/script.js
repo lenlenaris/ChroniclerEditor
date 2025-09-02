@@ -603,13 +603,14 @@ class DataOperations {
 }
 
 class ItemCRUD {
-    static add(type) {
+static add(type) {
     const itemsArray = DataOperations.getItems(type);
     const newItem = DataOperations.createNewItem(type, itemsArray.length);
     
     itemsArray.push(newItem);
     
-    // 🔧 修復：正確設定頁面狀態
+    OverviewManager.invalidateCache();
+    
     isHomePage = false;
     isListPage = false;
     ItemManager.setCurrentItem(type, newItem.id, newItem.versions[0].id);
@@ -636,7 +637,8 @@ class ItemCRUD {
         this.updateCurrentAfterDelete(type, itemId);
         
         if (!silent) {
-            renderAll();
+            // ✅ 修改：使用 OverviewManager.onDataChange() 替代 renderAll()
+            OverviewManager.onDataChange();
             saveData();
         }
         return true;
@@ -3441,12 +3443,12 @@ function deleteSelectedItems() {
     const confirmMessage = t('batchDeleteConfirm', selectedItems.length);
     
     if (confirm(confirmMessage)) {
-        // 批量刪除項目
+        const deletedCount = selectedItems.length;
+        
         selectedItems.forEach(itemId => {
-            ItemCRUD.remove(itemType, itemId, true); // 添加 silent 參數跳過個別確認
+            ItemCRUD.remove(itemType, itemId, true);
         });
         
-        // 清理狀態
         selectedItems = [];
         batchEditMode = false;
         
@@ -3455,8 +3457,7 @@ function deleteSelectedItems() {
             batchBar.style.display = 'none';
         }
         
-        // 重新渲染
-        renderAll();
+        OverviewManager.onDataChange();
         saveData();
         
         NotificationManager.success(t('batchDeleteSuccess', deletedCount));
