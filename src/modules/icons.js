@@ -116,8 +116,8 @@ class IconManager {
         </svg>`;
     }
 
-    // 匯入圖示
-    static import(options = {}) {
+    // 匯出圖示
+    static download(options = {}) {
         const {
             width = 16,
             height = 16,
@@ -190,8 +190,8 @@ class IconManager {
         </svg>`;
     }
 
-    // 下載圖示
-    static download(options = {}) {
+    // 匯入圖示
+    static import(options = {}) {
         const {
             width = 16,
             height = 16,
