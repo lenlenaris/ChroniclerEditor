@@ -1133,9 +1133,9 @@ static renderCustomField(sectionId, versionId, field) {
                 </div>
             </div>
             <textarea class="field-input" id="custom-field-${field.id}" 
-                placeholder="${t('customFieldPlaceholder')}"
-                style="resize: vertical;"
-                oninput="updateCustomFieldContent('${sectionId}', '${versionId}', '${field.id}', this.value); autoResizeTextarea(this);">${field.content}</textarea>
+    placeholder="${t('customFieldPlaceholder')}"
+    style="min-height: 200px; max-height: 70vh; resize: vertical;"
+    oninput="updateField('custom', '${sectionId}', '${versionId}', 'customField-${field.id}', this.value);">${field.content}</textarea>
         </div>
     `;
 }

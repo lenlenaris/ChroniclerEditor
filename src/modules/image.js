@@ -1267,34 +1267,49 @@ async function handleImageUpload(itemId, versionId, file) {
     // 使用裁切器
     ImageCropper.show(file, aspectRatio, async (croppedDataUrl) => {
         
-        
-        // ✨ 立即轉換為 Blob URL
+        // 立即轉換為 Blob URL
         const blobUrl = BlobManager.getBlobUrl(croppedDataUrl);
-        
         
         // 更新數據
         updateField(itemType, itemId, versionId, 'avatar', croppedDataUrl);
         
+       setTimeout(() => {
+    // 雙屏模式下使用特殊的渲染邏輯
+    if (crossTypeCompareMode && currentMode === 'crosstype') {
+        console.log('雙屏模式圖片更新 - 使用對比渲染邏輯');
         
+        CrossTypeCompareManager.renderCrossTypeInterface();
         
-        // 🎯 優化：使用單一的延遲渲染，避免多次 setTimeout
         setTimeout(() => {
-            // 1. 統一重新渲染（一次性完成所有渲染）
-            renderAll();
+            // 統計更新
+            updateAllPageStats();
+            if (typeof OtherSettings !== 'undefined') {
+                OtherSettings.initializeTextareaHeights();
+            }
             
-            // 2. 立即處理所有圖片的 Blob URL 轉換
+            // 圖片 Blob 轉換
             requestAnimationFrame(() => {
                 const newBase64Images = document.querySelectorAll('img[src^="data:"]');
-                
-                
                 newBase64Images.forEach(img => {
                     const blobUrl = BlobManager.getBlobUrl(img.src);
                     img.src = blobUrl;
                 });
-                
-                
             });
-        }, 50); // 單一的最小延遲
+        }, 50);
+        
+    } else {
+        // 普通模式使用原有邏輯
+        renderAll();
+        
+        requestAnimationFrame(() => {
+            const newBase64Images = document.querySelectorAll('img[src^="data:"]');
+            newBase64Images.forEach(img => {
+                const blobUrl = BlobManager.getBlobUrl(img.src);
+                img.src = blobUrl;
+            });
+        });
+    }
+}, 50);
     });
 }
 

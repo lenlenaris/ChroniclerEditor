@@ -196,6 +196,11 @@ class ItemManager {
     }
     
     static getCurrentItemId() {
+        // 雙屏模式特殊處理
+        if (currentMode === 'crosstype' && crossTypeCompareMode) {
+            return crossTypeItems.left.itemId;
+        }
+        
         switch (currentMode) {
             case 'character': return currentCharacterId;
             case 'custom': return currentCustomSectionId;
@@ -207,6 +212,11 @@ class ItemManager {
     }
     
     static getCurrentVersionId() {
+        // 雙屏模式特殊處理
+        if (currentMode === 'crosstype' && crossTypeCompareMode) {
+            return crossTypeItems.left.versionId;
+        }
+        
         switch (currentMode) {
             case 'character': return currentVersionId;
             case 'custom': return currentCustomVersionId;
@@ -215,6 +225,16 @@ class ItemManager {
             case 'loveydovey': return currentLoveyDoveyVersionId;
             default: return null;
         }
+    }
+
+    static getCrossTypeItemDetails(itemId, versionId) {
+        // 判斷是左側還是右側
+        if (crossTypeItems.left.itemId === itemId && crossTypeItems.left.versionId === versionId) {
+            return { side: 'left', type: crossTypeItems.left.type };
+        } else if (crossTypeItems.right.itemId === itemId && crossTypeItems.right.versionId === versionId) {
+            return { side: 'right', type: crossTypeItems.right.type };
+        }
+        return null;
     }
     
     static getItemsArray(type) {
@@ -3773,32 +3793,60 @@ function updateHeaderBarStyles() {
 
 // ===== 21. 欄位更新和處理函數 =====
 function updateField(itemType, itemId, versionId, field, value, source = 'input') {
-    const item = ItemManager.getItemsArray(itemType).find(i => i.id === itemId);
-    if (!item) return;
+    // 雙屏模式特殊處理
+    let actualItemType = itemType;
+    
+    if (currentMode === 'crosstype' && crossTypeCompareMode) {
+        const crossTypeDetails = ItemManager.getCrossTypeItemDetails(itemId, versionId);
+        if (crossTypeDetails) {
+            actualItemType = crossTypeDetails.type;
+        }
+    }
+    
+    const item = ItemManager.getItemsArray(actualItemType).find(i => i.id === itemId);
+    if (!item) {
+        console.warn(`找不到項目: ${actualItemType}-${itemId}`);
+        return;
+    }
     
     const version = item.versions.find(v => v.id === versionId);
-    if (!version) return;
-    
+    if (!version) {
+        console.warn(`找不到版本: ${versionId}`);
+        return;
+    }
+
     if (field === 'tags') {
         const normalizedTags = TagManager.normalizeToArray(value);
         version[field] = TagManager.normalizeToString(normalizedTags);
     } else if (field === 'key' || field === 'keysecondary') {
         version[field] = value.split(',').map(k => k.trim()).filter(k => k);
+    } else if (field.startsWith('customField-')) {
+    // 處理筆記本自定義欄位
+    const fieldId = field.replace('customField-', '');
+    const customField = version.fields?.find(f => f.id === fieldId);
+    if (customField) {
+        customField.content = value;
+    }
     } else {
         version[field] = value;
     }
     
-    TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
-    
-    // 只有打字時才更新統計
-if (source === 'input') {
-    const activeElement = document.activeElement;
-    if (activeElement && activeElement.id) {
-        updateFieldStats(activeElement.id);
-        updateVersionStats(itemType, itemId, versionId);
+    TimestampManager.updateVersionTimestamp(actualItemType, itemId, versionId);
+
+    if (source === 'input') {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.id) {
+            updateFieldStats(activeElement.id);
+            updateVersionStats(actualItemType, itemId, versionId);
+        }
     }
-}
+    
     markAsChanged();
+    
+    // 如果是頭像更新，在雙屏模式下觸發局部重渲染
+    if (field === 'avatar' && crossTypeCompareMode) {
+        console.log(`✅ 雙屏模式頭像已更新到數據: ${actualItemType}-${itemId}-${versionId}`);
+    }
 }
 
 function updateCharacterField(characterId, versionId, field, value) {
@@ -4196,7 +4244,6 @@ static restoreTextareaHeight(textarea) {
     }
 }
 
-// 🔧 替換整個 bindHeightChangeEvent 方法
 static bindHeightChangeEvent(textarea) {
     let startHeight = null;
     let resizeTimeout = null;

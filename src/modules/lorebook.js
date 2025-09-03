@@ -339,7 +339,7 @@ class WorldBookRenderer {
         return `
         <div style="width: 98%; margin: 0 auto;">
             <!-- 條目列表 -->
-            <div class="entries-container">
+            <div class="entries-container" data-world-book-id="${worldBook.id}" data-version-id="${version.id}">
                 ${version.entries.length > 0 ? `
                     <!-- 條目標題標籤（只顯示一次） -->
                   ${UIUtils.createTableHeader([
@@ -1241,14 +1241,22 @@ function enableWorldBookEntriesDragSort(worldBookId, versionId) {
             },
             
             onEnd: function(evt) {
-                
                 document.body.style.cursor = '';
                 
                 if (evt.oldIndex !== evt.newIndex) {
-                    // 使用當前容器重新排序
-                    reorderWorldBookEntriesFromContainer(container, worldBookId, versionId);
+                    // 從容器的 data 屬性獲取版本信息
+                    const containerWorldBookId = container.dataset.worldBookId;
+                    const containerVersionId = container.dataset.versionId;
                     
-                    // 立即恢復折疊狀態
+                    if (containerWorldBookId && containerVersionId) {
+                        // 使用容器自己的版本信息
+                        reorderWorldBookEntriesFromContainer(container, containerWorldBookId, containerVersionId);
+                    } else {
+                        // 備援：使用傳入的參數（向後兼容單版本模式）
+                        reorderWorldBookEntriesFromContainer(container, worldBookId, versionId);
+                    }
+                    
+                    // 立即恢復摺疊狀態
                     setTimeout(() => {
                         restoreWorldBookEntryCollapseStates(savedStates);
                     }, 10);

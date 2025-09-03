@@ -777,11 +777,22 @@ async function handleLoveyDoveyImageUpload(itemId, versionId, file = null) {
         return;
     }
     
-    // 使用裁切器
-    ImageCropper.show(file, '1:1', async (croppedDataUrl) => {
-        updateField('loveydovey', itemId, versionId, 'profileImage', croppedDataUrl);
+// 使用裁切器
+ImageCropper.show(file, '1:1', async (croppedDataUrl) => {
+    updateField('loveydovey', itemId, versionId, 'profileImage', croppedDataUrl);
+    
+    // 🌟 雙屏模式下避免整頁重渲染
+    if (crossTypeCompareMode && currentMode === 'crosstype') {
+        console.log('雙屏模式卿卿我我圖片更新 - 避免整頁重渲染');
+        
+        // 重新渲染雙屏界面
+        CrossTypeCompareManager.renderCrossTypeInterface();
+        
+    } else {
+        // 普通模式使用原有邏輯
         renderContent();
-    });
+    }
+});
 }
 
 function updateLoveyDoveyField(itemType, itemId, versionId, fieldName, value, maxLength = 0) {

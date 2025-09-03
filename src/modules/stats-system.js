@@ -519,10 +519,41 @@ function handleFieldUpdateComplete(itemType, itemId, versionId) {
 
 
 function isLoveyDoveyField(textareaId) {
-    const statsElement = document.querySelector(`[data-target="${textareaId}"]`);
-    if (!statsElement) return false;
+    // 方法1：檢查是否在卿卿我我容器內
+    const textarea = document.getElementById(textareaId);
+    if (textarea) {
+        const loveyDoveyContainer = textarea.closest('.loveydovey-mode, .loveydovey-content-section');
+        if (loveyDoveyContainer) return true;
+        
+        // 檢查父級是否有卿卿我我相關的類名
+        const versionPanel = textarea.closest('.version-panel');
+        if (versionPanel) {
+            const hasLoveyDoveyContent = versionPanel.querySelector('.loveydovey-mode, .loveydovey-content-section');
+            if (hasLoveyDoveyContent) return true;
+        }
+    }
     
-    return statsElement.textContent.match(/^\d+\s*\/\s*\d+\s*å­—$/);
+    // 方法2：檢查當前面板的類型（雙屏模式）
+    if (crossTypeCompareMode) {
+        const leftPanel = document.querySelector('.versions-container .version-panel:first-child');
+        const rightPanel = document.querySelector('.versions-container .version-panel:last-child');
+        
+        if (leftPanel && leftPanel.contains(textarea) && crossTypeItems.left.type === 'loveydovey') {
+            return true;
+        }
+        
+        if (rightPanel && rightPanel.contains(textarea) && crossTypeItems.right.type === 'loveydovey') {
+            return true;
+        }
+    }
+    
+    // 方法3：原有的文字格式檢查（作為後備）
+    const statsElement = document.querySelector(`[data-target="${textareaId}"]`);
+    if (statsElement) {
+        return statsElement.textContent.match(/^\d+\s*\/\s*\d+\s*字$/);
+    }
+    
+    return false;
 }
 
 function updateLoveyDoveyFieldStats(textareaId) {
