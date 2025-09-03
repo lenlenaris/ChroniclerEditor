@@ -640,7 +640,7 @@ static add(type) {
     return newItem;
 }
     
-    static remove(type, itemId, silent = false) {
+static remove(type, itemId, silent = false) {
     const itemsArray = DataOperations.getItems(type);
     const item = itemsArray.find(i => i.id === itemId);
     
@@ -657,14 +657,87 @@ static add(type) {
         this.updateCurrentAfterDelete(type, itemId);
         
         if (!silent) {
-            // ✅ 修改：使用 OverviewManager.onDataChange() 替代 renderAll()
-            OverviewManager.onDataChange();
+            // 🔑 關鍵：檢查是否需要頁面導航
+            const needsPageNavigation = this.checkIfNeedsPageNavigation(type, itemId);
+            
+            if (needsPageNavigation) {
+                // 需要跳轉頁面時才進行導航
+                this.navigateAfterDelete(type);
+            } else {
+                // 在總覽頁面時保持原有邏輯
+                OverviewManager.onDataChange();
+            }
+            
             saveData();
         }
         return true;
     }
     
     return false;
+}
+
+// 🆕 新增：檢查是否需要頁面導航
+static checkIfNeedsPageNavigation(type, itemId) {
+    // 檢查當前是否在被刪除項目的詳細編輯頁面
+    switch (type) {
+        case 'character':
+            return !isHomePage && !isListPage && currentMode === 'character' && currentCharacterId === itemId;
+        case 'userpersona':
+            return !isHomePage && !isListPage && currentMode === 'userpersona' && currentUserPersonaId === itemId;
+        case 'loveydovey':
+            return !isHomePage && !isListPage && currentMode === 'loveydovey' && currentLoveyDoveyId === itemId;
+        case 'worldbook':
+            return !isHomePage && !isListPage && currentMode === 'worldbook' && currentWorldBookId === itemId;
+        case 'custom':
+            return !isHomePage && !isListPage && currentMode === 'custom' && currentCustomSectionId === itemId;
+        default:
+            return false;
+    }
+}
+
+// 🆕 新增：導航邏輯（與之前相同）
+static navigateAfterDelete(type) {
+    this.clearCurrentItemIds();
+    
+    switch (type) {
+        case 'character':
+            isHomePage = true;
+            isListPage = false;
+            currentMode = 'character';
+            break;
+        case 'userpersona':
+            isHomePage = false;
+            isListPage = false;
+            currentMode = 'userpersona';
+            break;
+        case 'loveydovey':
+            isHomePage = false;
+            isListPage = false;
+            currentMode = 'loveydovey';
+            break;
+        case 'worldbook':
+        case 'custom':
+            isHomePage = false;
+            isListPage = true;
+            listPageType = type;
+            currentMode = type;
+            break;
+    }
+    
+    renderAll();
+}
+
+static clearCurrentItemIds() {
+    currentCharacterId = null;
+    currentVersionId = null;
+    currentWorldBookId = null;
+    currentWorldBookVersionId = null;
+    currentCustomSectionId = null;
+    currentCustomVersionId = null;
+    currentUserPersonaId = null;
+    currentUserPersonaVersionId = null;
+    currentLoveyDoveyId = null;
+    currentLoveyDoveyVersionId = null;
 }
     
     static copy(type, itemId) {
@@ -707,43 +780,60 @@ static add(type) {
         return newItem;
     }
     
-    static updateCurrentAfterDelete(type, deletedItemId) {
-        const currentItemId = ItemManager.getCurrentItemId();
-        
-        if (currentItemId === deletedItemId) {
-            const itemsArray = DataOperations.getItems(type);
+static updateCurrentAfterDelete(type, deletedItemId) {
+    const currentItemId = ItemManager.getCurrentItemId();
+    
+    if (currentItemId === deletedItemId) {
+        this.resetToHomePage(type);
+    }
+}
+    
+static resetToHomePage(type) {
+    switch (type) {
+        case 'character':
+            isHomePage = true;
+            isListPage = false;
+            currentMode = 'character';
+            currentCharacterId = null;
+            currentVersionId = null;
+            break;
             
-            if (itemsArray.length > 0) {
-                ItemManager.setCurrentItem(type, itemsArray[0].id, itemsArray[0].versions[0].id);
-            } else {
-                this.resetToHomePage(type);
-            }
-        }
+        case 'userpersona':
+            isHomePage = false;
+            isListPage = false;
+            currentMode = 'userpersona';
+            currentUserPersonaId = null;
+            currentUserPersonaVersionId = null;
+            break;
+            
+        case 'loveydovey':
+            isHomePage = false;
+            isListPage = false;
+            currentMode = 'loveydovey';
+            currentLoveyDoveyId = null;
+            currentLoveyDoveyVersionId = null;
+            break;
+            
+        case 'worldbook':
+            isHomePage = false;
+            isListPage = true;
+            listPageType = 'worldbook';
+            currentMode = 'worldbook';
+            currentWorldBookId = null;
+            currentWorldBookVersionId = null;
+            break;
+            
+        case 'custom':
+            isHomePage = false;
+            isListPage = true;
+            listPageType = 'custom';
+            currentMode = 'custom';
+            currentCustomSectionId = null;
+            currentCustomVersionId = null;
+            break;
     }
     
-    static resetToHomePage(type) {
-    if (type === 'character') {
-        isHomePage = true;
-        currentCharacterId = null;
-        currentVersionId = null;
-    } else if (type === 'userpersona') {
-        currentMode = 'character';
-        currentUserPersonaId = null;
-        currentUserPersonaVersionId = null;
-    } else if (type === 'custom') {
-        currentMode = 'character';
-        currentCustomSectionId = null;
-        currentCustomVersionId = null;
-    } else if (type === 'worldbook') {
-        currentMode = 'character';
-        currentWorldBookId = null;
-        currentWorldBookVersionId = null;
-    }
-    else if (type === 'loveydovey') {
-        currentMode = 'character';
-        currentLoveyDoveyId = null;
-        currentLoveyDoveyVersionId = null;
-    }
+    renderAll();
 }
 }
 
@@ -1865,7 +1955,7 @@ static renderItems(type, containerId) {
     OverviewManager.syncDropdownValue();
 }
 
-// 🆕 清除快取，強制重新處理數據
+
 static invalidateCache() {
     this.processedItems = [];
     this.lastProcessParams = null;
@@ -1873,7 +1963,7 @@ static invalidateCache() {
     this.isShowingAll = false;
 }
 
-// 🆕 數據變更時的通知方法
+
 static onDataChange() {
     this.invalidateCache();
     

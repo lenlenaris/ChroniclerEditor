@@ -102,7 +102,7 @@ static renderLoveyDoveyOverview(container) {
 </button>
 
 <!-- 批量編輯按鈕 -->
-<button class="overview-btn hover-primary" onclick="toggleBatchEditMode())" title="${t('tooltipBatchEdit')}">
+<button class="overview-btn hover-primary" onclick="toggleBatchEditMode()" title="${t('tooltipBatchEdit')}">
     ${IconManager.selectAll()}
 </button>
     
@@ -764,10 +764,16 @@ static addVersionTag(id, tagValue, itemType, itemId, versionId, fieldName) {
         currentTags.push(tagValue);
         version[fieldName] = TagManager.normalizeToString(currentTags);
         
-        TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
-        markAsChanged();
-        saveDataSilent();
-        this.rerenderVersionPanel(itemType, itemId, versionId);
+       TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
+markAsChanged();
+saveDataSilent();
+this.rerenderVersionPanel(itemType, itemId, versionId);
+
+setTimeout(() => {
+    if (typeof updateAllFieldStatsOnLoad === 'function') {
+        updateAllFieldStatsOnLoad();
+    }
+}, 100);
     }
 }
 
@@ -784,10 +790,17 @@ static removeVersionTag(id, tagToRemove, itemType, itemId, versionId, fieldName)
     
     version[fieldName] = TagManager.normalizeToString(updatedTags);
     
-    TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
-    markAsChanged();
-    saveDataSilent();
-    this.rerenderVersionPanel(itemType, itemId, versionId);
+   TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
+markAsChanged();
+saveDataSilent();
+this.rerenderVersionPanel(itemType, itemId, versionId);
+
+// 🔧 修復：版本Tag操作後恢復欄位統計
+setTimeout(() => {
+    if (typeof updateAllFieldStatsOnLoad === 'function') {
+        updateAllFieldStatsOnLoad();
+    }
+}, 100);
 }
 
         // 綁定世界書

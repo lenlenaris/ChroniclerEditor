@@ -396,19 +396,26 @@ static updateData(inputId, itemType, itemId, versionId, fieldName) {
     // 強制靜默保存
     saveDataSilent();
 
-// 重新渲染版本面板以更新UI
-if (typeof ContentRenderer !== 'undefined' && ContentRenderer.rerenderVersionPanel) {
-    // 檢查是否為卿卿我我類型且在雙屏模式下
-    const isLoveyDoveyInCompareMode = itemType === 'loveydovey' && 
-                                     ((typeof crossTypeCompareMode !== 'undefined' && crossTypeCompareMode) || 
-                                      (typeof viewMode !== 'undefined' && viewMode === 'compare'));
-    
-    if (!isLoveyDoveyInCompareMode) {
+    // 重新渲染版本面板以更新UI
+    if (typeof ContentRenderer !== 'undefined' && ContentRenderer.rerenderVersionPanel) {
+        // 檢查是否為卿卿我我類型且在雙屏模式下
+        const isLoveyDoveyInCompareMode = itemType === 'loveydovey' && 
+                                         ((typeof crossTypeCompareMode !== 'undefined' && crossTypeCompareMode) || 
+                                          (typeof viewMode !== 'undefined' && viewMode === 'compare'));
+        
+        if (!isLoveyDoveyInCompareMode) {
+            setTimeout(() => {
+                ContentRenderer.rerenderVersionPanel(itemType, itemId, versionId);
+            }, 50);
+        }
+        
+        // 🔧 修復：重新渲染後，恢復所有欄位統計
         setTimeout(() => {
-            ContentRenderer.rerenderVersionPanel(itemType, itemId, versionId);
-        }, 50);
+            if (typeof updateAllFieldStatsOnLoad === 'function') {
+                updateAllFieldStatsOnLoad();
+            }
+        }, 100);
     }
-}
 }
 }
 
