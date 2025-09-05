@@ -271,6 +271,16 @@ setTimeout(() => {
                 }
             }
         });
+        
+        const leftItem = this.getItemById(crossTypeItems.left.type, crossTypeItems.left.itemId);
+        const rightItem = this.getItemById(crossTypeItems.right.type, crossTypeItems.right.itemId);
+        
+        if (leftItem && crossTypeItems.left.type === 'custom') {
+            DragSortManager.enableCustomFieldsDragSort(crossTypeItems.left.itemId, crossTypeItems.left.versionId);
+        }
+        if (rightItem && crossTypeItems.right.type === 'custom') {
+            DragSortManager.enableCustomFieldsDragSort(crossTypeItems.right.itemId, crossTypeItems.right.versionId);
+        }
     }
 }, 100);
 }

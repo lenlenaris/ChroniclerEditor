@@ -78,14 +78,19 @@ requestAnimationFrame(() => {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
     
-    setTimeout(() => {
-        updateAllFieldStatsOnLoad();
-        
-        // 最終確保在頂部
-        document.getElementById('contentArea').scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-    }, 50);
+setTimeout(() => {
+    updateAllFieldStatsOnLoad();
+    
+    // 最終確保在頂部
+    document.getElementById('contentArea').scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
+    // 啟用筆記本欄位拖曳排序（如果當前在筆記本模式）
+    if (currentMode === 'custom' && currentCustomSectionId && currentCustomVersionId) {
+        DragSortManager.enableCustomFieldsDragSort(currentCustomSectionId, currentCustomVersionId);
+    }
+}, 50);
 });
     }
 
@@ -1108,7 +1113,7 @@ return basicFieldsHTML;
             return `
             <div style="width: 98%; margin: 0 auto;">
                 <!-- 動態欄位區域 -->
-                <div id="custom-fields-${version.id}">
+                <div id="custom-fields-${version.id}" data-section-id="${section.id}" data-version-id="${version.id}">
                     ${version.fields.map(field => this.renderCustomField(section.id, version.id, field)).join('')}
                 </div>
                 
@@ -1124,10 +1129,28 @@ return basicFieldsHTML;
    // 渲染自定義欄位
 static renderCustomField(sectionId, versionId, field) {
     return `
-        <div class="field-group" id="field-${field.id}">
+        <div class="field-group sortable-item" id="field-${field.id}" data-field-id="${field.id}">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div style="display: flex; align-items: center;">
-                    <input type="text" class="version-title title-font" value="${field.name}" 
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <!-- 拖曳控制柄 -->
+        <div class="drag-handle" style="
+            cursor: grab;
+            color: var(--text-muted);
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        " onmouseover="this.style.color='var(--text-color)'; this.style.backgroundColor='var(--border-color)'"
+           onmouseout="this.style.color='var(--text-muted)'; this.style.backgroundColor='transparent'">
+            ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+        </div>
+        
+        <input type="text" class="version-title title-font" value="${field.name}"
                         onchange="updateCustomFieldName('${sectionId}', '${versionId}', '${field.id}', this.value)"
                         placeholder="${t('fieldNamePlaceholder')}"
                         style="padding: 4px 8px; font-size: 0.9em; font-weight: 500; color: var(--text-color); min-width: 250px; width: auto;">
@@ -1135,7 +1158,7 @@ static renderCustomField(sectionId, versionId, field) {
                 <div style="display: flex; align-items: center; gap: 8px;">
                 <button class="fullscreen-btn" onclick="openFullscreenEditor('custom-field-${field.id}', '${field.name}')" 
                             title="${t('fullscreenEdit')}">⛶</button>
-                    <span class="field-stats" data-target="custom-field-${field.id}" style="font-size: 0.85em; color: var(--text-muted);">${field.content ? field.content.length : 0} ${t('chars')} / ${field.content ? countTokens(field.content) : 0} ${t('tokens')}</span>
+                    <span class="field-stats" data-target="custom-field-${field.id}" style=" color: var(--text-muted);">${field.content ? field.content.length : 0} ${t('chars')} / ${field.content ? countTokens(field.content) : 0} ${t('tokens')}</span>
 
                     
                     <button class="delete-btn" 
@@ -1218,12 +1241,13 @@ static renderCustomFieldsList(sectionId, versionId) {
     parentContainer.appendChild(tempDiv.firstElementChild);
     parentContainer.appendChild(tempDiv.lastElementChild);
     
-    // 重新初始化功能
-    setTimeout(() => {
-        updateAllPageStats();
-        initAutoResize();
-        // 筆記本可能沒有拖曳功能，這裡暫時不處理
-    }, 50);
+// 重新初始化功能
+setTimeout(() => {
+    updateAllPageStats();
+    initAutoResize();
+    // 啟用筆記本欄位拖曳排序
+    DragSortManager.enableCustomFieldsDragSort(sectionId, versionId);
+}, 50);
 }
         
         // 工具函數
@@ -2631,6 +2655,13 @@ function renderContent() {
 
 function renderCustomContent() {
     renderAll();
+    
+    // 延遲啟用筆記本欄位拖曳排序
+    setTimeout(() => {
+        if (currentMode === 'custom' && currentCustomSectionId && currentCustomVersionId) {
+            DragSortManager.enableCustomFieldsDragSort(currentCustomSectionId, currentCustomVersionId);
+        }
+    }, 100);
 }
 
 function renderWorldBookContent() {
@@ -2815,6 +2846,37 @@ function handleSidebarClick(event) {
         default:
             console.warn('未知的側邊欄操作:', action);
     }
+}
+
+// 筆記本欄位拖曳排序功能
+function reorderCustomFieldsFromContainer(container, sectionId, versionId) {
+    const section = customSections.find(s => s.id === sectionId);
+    if (!section) return;
+    
+    const version = section.versions.find(v => v.id === versionId);
+    if (!version || !version.fields) return;
+    
+    const fieldGroups = Array.from(container.querySelectorAll('.field-group'));
+    
+    const newFieldsOrder = [];
+    fieldGroups.forEach(group => {
+        const fieldId = group.dataset.fieldId;
+        const field = version.fields.find(f => f.id === fieldId);
+        if (field) {
+            newFieldsOrder.push(field);
+        }
+    });
+    
+    if (newFieldsOrder.length !== version.fields.length) {
+        console.warn('⚠️ 欄位數量不匹配，使用原順序');
+        return;
+    }
+    
+    // 更新陣列順序
+    version.fields = newFieldsOrder;
+    
+    TimestampManager.updateVersionTimestamp('custom', sectionId, versionId);
+    markAsChanged();
 }
 
 // 🚀 在頁面載入時初始化事件委託

@@ -425,7 +425,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                         placeholder="${t('entryTitle')}"
                         value="${entry.comment || ''}"
                         style="font-weight: 500;"
-                        onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'comment', this.value)">
+                        oninput="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'comment', this.value)">
                 </div>
                 
                 <!-- Trigger mode -->

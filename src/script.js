@@ -4038,8 +4038,8 @@ function addCustomField(sectionId, versionId) {
             };
             version.fields.push(newField);
             
-            if (crossTypeCompareMode && typeof ContentRenderer.renderCustomFieldsList === 'function') {
-                // 如果在雙屏模式且新函數存在，使用局部渲染
+            if ((crossTypeCompareMode || viewMode === 'compare') && typeof ContentRenderer.renderCustomFieldsList === 'function') {
+                // 如果在雙屏模式或對比模式且新函數存在，使用局部渲染
                 ContentRenderer.renderCustomFieldsList(sectionId, versionId);
             } else {
                 // 否則使用原有的全量渲染（確保向後相容）
@@ -4087,8 +4087,8 @@ function removeCustomField(sectionId, versionId, fieldId) {
         if (version && version.fields.length > 1) {
             version.fields = version.fields.filter(f => f.id !== fieldId);
             
-            if (crossTypeCompareMode && typeof ContentRenderer.renderCustomFieldsList === 'function') {
-                // 如果在雙屏模式且新函數存在，使用局部渲染
+            if ((crossTypeCompareMode || viewMode === 'compare') && typeof ContentRenderer.renderCustomFieldsList === 'function') {
+                // 如果在雙屏模式或對比模式且新函數存在，使用局部渲染
                 ContentRenderer.renderCustomFieldsList(sectionId, versionId);
             } else {
                 // 否則使用原有的全量渲染（確保向後相容）

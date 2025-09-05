@@ -731,6 +731,113 @@ static initializeListPageDragSort(pageType) {
         }
     }
 }
+
+static enableCustomFieldsDragSort(sectionId, versionId) {
+    let containers = [];
+    
+    if (viewMode === 'compare') {
+        // 對比模式：查找所有版本面板內的筆記本容器
+        document.querySelectorAll('.version-panel').forEach(panel => {
+            const container = panel.querySelector('[id*="custom-fields"]');
+            if (container) {
+                containers.push(container);
+            }
+        });
+    } else {
+        // 單版本模式：只查找當前版本的容器
+        const container = document.querySelector(`#custom-fields-${versionId}`);
+        if (container) {
+            containers = [container];
+        }
+    }
+    
+    if (containers.length === 0) {
+        console.warn(`找不到筆記本容器`);
+        return;
+    }
+    
+    // 為每個容器都啟用拖曳
+    containers.forEach((container, index) => {
+        const containerVersionId = container.dataset.versionId;
+        const containerSectionId = container.dataset.sectionId;
+        const uniqueSelector = `#${container.id}`;
+        
+        // 銷毀現有實例
+        const existingInstance = this.sortableInstances.get(uniqueSelector);
+        if (existingInstance) {
+            existingInstance.destroy();
+        }
+        
+        // 創建新實例
+        const sortable = new Sortable(container, {
+            group: `custom-fields-sort-${containerSectionId}-${containerVersionId}`,
+            animation: 150,
+            easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+            
+            draggable: '.field-group',
+            handle: '.drag-handle',
+            
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            
+            // 排除按鈕
+            filter: (evt, item, container) => {
+                return item.classList.contains('loveydovey-add-btn-transparent') || 
+                       item.tagName === 'BUTTON';
+            },
+            
+            onStart: (evt) => {
+                document.body.classList.add('dragging-active');
+                container.classList.add('drag-in-progress');
+            },
+            
+            onEnd: (evt) => {
+                document.body.classList.remove('dragging-active');
+                container.classList.remove('drag-in-progress');
+                
+                if (evt.oldIndex !== evt.newIndex) {
+                    this.handleCustomFieldsReorder(container, containerSectionId, containerVersionId, evt);
+                }
+            }
+        });
+        
+        this.sortableInstances.set(uniqueSelector, sortable);
+    });
+    
+    return containers.length;
+}
+
+// 處理筆記本欄位重新排序
+static handleCustomFieldsReorder(container, sectionId, versionId, evt) {
+    const section = customSections.find(s => s.id === sectionId);
+    if (!section) return;
+    
+    const version = section.versions.find(v => v.id === versionId);
+    if (!version || !version.fields) return;
+    
+    const fieldGroups = Array.from(container.querySelectorAll('.field-group'));
+    const newFieldsOrder = [];
+    
+    fieldGroups.forEach(group => {
+        const fieldId = group.dataset.fieldId;
+        const field = version.fields.find(f => f.id === fieldId);
+        if (field) {
+            newFieldsOrder.push(field);
+        }
+    });
+    
+    if (newFieldsOrder.length !== version.fields.length) {
+        console.warn('⚠️ 欄位數量不匹配，使用原順序');
+        return;
+    }
+    
+    // 更新陣列順序
+    version.fields = newFieldsOrder;
+    
+    TimestampManager.updateVersionTimestamp('custom', sectionId, versionId);
+    markAsChanged();
+}
     
     //  檢測是否為檔案拖曳（避免與元素拖曳衝突）
     static isFileDrag(e) {
