@@ -76,6 +76,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     tooltipManageFavorites: '管理最愛',
     applyFavoriteChanges: '套用變更',
     favoriteChangesApplied: '最愛設定已更新',
+    selectedFavoriteCount: '已選擇加入最愛的項目：',
 
     // ========================================
     // 3. 角色卡管理

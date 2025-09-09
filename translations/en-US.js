@@ -76,6 +76,7 @@ window.ChroniclerTranslations['en-US'] = {
     tooltipManageFavorites: 'Manage Favorites',
     applyFavoriteChanges: 'Apply Changes', 
     favoriteChangesApplied: 'Favorite settings updated',
+    selectedFavoriteCount: 'Selected for favorites: ',
 
     // ========================================
     // 3. Character Management

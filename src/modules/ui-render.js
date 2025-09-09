@@ -186,7 +186,7 @@ static renderLoveyDoveyOverview(container) {
         font-size: 0.9em;
     ">
         <div style="color: var(--text-color);">
-            ${t('selectedCount')}<span id="selected-count">0</span>
+            ${t('selectedFavoriteCount')}<span id="selected-count">0</span>
         </div>
         <div style="display: flex; gap: 8px;">
             <button class="overview-btn hover-primary" onclick="selectAllItems()">
@@ -1566,7 +1566,7 @@ ${listPageType === 'worldbook' ? `
         font-size: 0.9em;
     ">
         <div style="color: var(--text-color);">
-            ${t('selectedCount')}<span id="selected-count">0</span>
+            ${t('selectedFavoriteCount')}<span id="selected-count">0</span>
         </div>
         <div style="display: flex; gap: 8px;">
             <button class="overview-btn hover-primary" onclick="selectAllItems()">
@@ -1713,7 +1713,7 @@ static renderUserPersonaOverview(container) {
         font-size: 0.9em;
     ">
         <div style="color: var(--text-color);">
-            ${t('selectedCount')}<span id="selected-count">0</span>
+            ${t('selectedFavoriteCount')}<span id="selected-count">0</span>
         </div>
         <div style="display: flex; gap: 8px;">
             <button class="overview-btn hover-primary" onclick="selectAllItems()">
@@ -1987,7 +1987,7 @@ static renderUserPersonaCards() {
 }
 
 //側邊欄
-    function renderSidebar() {
+function renderSidebar() {
     const container = document.getElementById('sidebarContent');
     container.innerHTML = renderItemList('character', characters, currentCharacterId, currentVersionId);
     
@@ -2003,10 +2003,9 @@ static renderUserPersonaCards() {
 
     const userPersonaContainer = document.getElementById('userPersonaContent');
     if (userPersonaContainer) {
-        userPersonaContainer.innerHTML = renderItemList('userpersona', userPersonas, currentUserPersonaId, currentUserPersonaVersionId);
+        userPersonaContainer.innerHTML = renderItemList('userpersona', userPersonas, currentUserPersonaId, currentUserPersonaVersionId); // 👈 修正：用正確的容器
     }
 
-    //  修改卿卿我我部分，檢查顯示設定
     const loveyDoveyContainer = document.getElementById('loveyDoveyContent');
     if (loveyDoveyContainer) {
         const shouldShow = OtherSettings?.settings?.showLoveyDovey !== false;
@@ -2451,7 +2450,7 @@ function renderHomePage() {
         font-size: 0.9em;
     ">
         <div style="color: var(--text-color);">
-            ${t('selectedCount')}<span id="selected-count">0</span>
+            ${t('selectedFavoriteCount')}<span id="selected-count">0</span>
         </div>
         <div style="display: flex; gap: 8px;">
             <button class="overview-btn hover-primary" onclick="selectAllItems()">
@@ -2825,21 +2824,18 @@ function renderCurrentMode() {
     }
 }
 
-// 統一的項目列表渲染（支援自定義排序）
 function renderItemList(type, items, currentItemId, currentVersionId) {
-    let sortedItems = items;
+    let filteredItems = getFilteredItemsForSidebar(items, type, currentItemId);
     
-    //  統一使用 OverviewManager 的排序邏輯（所有類型）
     if (typeof OverviewManager !== 'undefined') {
         if (type === 'character') {
-            sortedItems = OverviewManager.sortCharacters([...items]);
+            filteredItems = OverviewManager.sortCharacters([...filteredItems]);
         } else {
-            //  為世界書和筆記也使用相同的排序邏輯
-            sortedItems = OverviewManager.sortItems([...items], type);
+            filteredItems = OverviewManager.sortItems([...filteredItems], type);
         }
     }
     
-    return sortedItems.map(item => renderSidebarItem(item, type, currentItemId, currentVersionId)).join('');
+    return filteredItems.map(item => renderSidebarItem(item, type, currentItemId, currentVersionId)).join('');
 }
 
 

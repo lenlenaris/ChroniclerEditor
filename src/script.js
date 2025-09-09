@@ -2872,6 +2872,19 @@ function setupBrowserCloseWarning() {
 }
 
 // ===== 19. 側邊欄和導航函數 =====
+// 側邊欄篩選邏輯
+function getFilteredItemsForSidebar(items, type, currentItemId) {
+    return items.filter(item => {
+        // 向後兼容處理
+        if (item.isFavorite === undefined) {
+            item.isFavorite = false;
+        }
+        
+        // 顯示最愛項目 或 當前編輯的項目
+        return item.isFavorite || item.id === currentItemId;
+    });
+}
+
 function toggleSection(sectionName) {
     const content = document.getElementById(`${sectionName}-content`);
     const icon = document.getElementById(`${sectionName}-icon`);
