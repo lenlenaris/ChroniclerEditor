@@ -106,6 +106,11 @@ static renderLoveyDoveyOverview(container) {
     ${IconManager.plus()}
 </button>
 
+    <!-- 愛心按鈕 -->
+    <button class="overview-btn hover-primary" onclick="FavoriteManager.toggleMode()" title="${t('tooltipManageFavorites')}">
+     ${IconManager.heartFilled()} 
+    </button>
+
 <!-- 批量編輯按鈕 -->
 <button class="overview-btn hover-primary" onclick="toggleBatchEditMode()" title="${t('tooltipBatchEdit')}">
     ${IconManager.selectAll()}
@@ -167,6 +172,35 @@ static renderLoveyDoveyOverview(container) {
                     </div>
                 </div>
             </div>
+
+            <!-- 愛心操作列 -->
+<div id="favorite-operations-bar" style="display: none; padding: 0px 32px; margin-bottom: 16px;">
+    <div style="
+        background: var(--surface-color); 
+        border: 1px solid var(--border-color); 
+        border-radius: 8px; 
+        padding: 12px 20px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        font-size: 0.9em;
+    ">
+        <div style="color: var(--text-color);">
+            ${t('selectedCount')}<span id="selected-count">0</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="overview-btn hover-primary" onclick="selectAllItems()">
+                ${t('selectAll')}
+            </button>
+            <button class="overview-btn hover-primary" onclick="FavoriteManager.cancelEdit()">
+                ${t('cancel')}
+            </button>
+            <button class="overview-btn btn-primary" onclick="FavoriteManager.applyChanges()">
+                ${t('applyFavoriteChanges')}
+            </button>
+        </div>
+    </div>
+</div>
                 
             <!-- 卿卿我我卡片區塊 -->
             <div style="padding: 0px 32px 32px 32px; background: transparent; border-radius: 12px;">
@@ -259,7 +293,7 @@ static renderLoveyDoveyCards() {
         
         return `
             <div class="home-card loveydovey-card" 
-                onclick="${batchEditMode ? `toggleItemSelection('${character.id}')` : `selectItem('loveydovey', '${character.id}')`}"
+                onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('${character.id}')` : `selectItem('loveydovey', '${character.id}')`}"
                  data-persona-id="${character.id}"
                  id="card-${character.id}"
                  style="aspect-ratio: 1 / 1; width: 220px; transition: all 0.2s ease; position: relative; cursor: pointer;">
@@ -301,7 +335,7 @@ static renderLoveyDoveyCards() {
                         display: none;
                     "></div>
                     
-                    ${batchEditMode ? `
+                    ${batchEditMode || FavoriteManager.isInEditMode() ? `
                         <div style="position: absolute; top: 8px; left: 8px; z-index: 10;">
                             <input type="checkbox" class="selection-checkbox"
                                    style="
@@ -325,7 +359,7 @@ static renderLoveyDoveyCards() {
                         line-height: 1.3; 
                         display: block;
                     ">
-                        ${character.name}
+                        ${FavoriteManager.getDisplayName(character)}
                     </span>
                 </div>
             </div>
@@ -1452,6 +1486,11 @@ ${listPageType === 'worldbook' ? `
 </button>
 ` : ''}
 
+    <!-- 愛心按鈕 -->
+    <button class="overview-btn hover-primary" onclick="FavoriteManager.toggleMode()" title="${t('tooltipManageFavorites')}">
+     ${IconManager.heartFilled()} 
+    </button>
+
 <!-- 批量編輯按鈕 -->
 <button class="overview-btn hover-primary" onclick="toggleBatchEditMode()" title="${t('tooltipBatchEdit')}">
     ${IconManager.selectAll()}
@@ -1513,6 +1552,35 @@ ${listPageType === 'worldbook' ? `
             </div>
         </div>
     </div>
+
+                <!-- 愛心操作列 -->
+<div id="favorite-operations-bar" style="display: none; padding: 0px 32px; margin-bottom: 16px;">
+    <div style="
+        background: var(--surface-color); 
+        border: 1px solid var(--border-color); 
+        border-radius: 8px; 
+        padding: 12px 20px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        font-size: 0.9em;
+    ">
+        <div style="color: var(--text-color);">
+            ${t('selectedCount')}<span id="selected-count">0</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="overview-btn hover-primary" onclick="selectAllItems()">
+                ${t('selectAll')}
+            </button>
+            <button class="overview-btn hover-primary" onclick="FavoriteManager.cancelEdit()">
+                ${t('cancel')}
+            </button>
+            <button class="overview-btn btn-primary" onclick="FavoriteManager.applyChanges()">
+                ${t('applyFavoriteChanges')}
+            </button>
+        </div>
+    </div>
+</div>
             
             <!-- 項目列表容器 -->
 <div class="item-list" id="${listPageType}-list" style="padding: 0 32px;">
@@ -1556,6 +1624,11 @@ static renderUserPersonaOverview(container) {
 <button class="overview-btn hover-primary" onclick="ItemCRUD.add('userpersona')" title="${t('tooltipAddUserPersona')}">
     ${IconManager.plus()}
 </button>
+
+    <!-- 愛心按鈕 -->
+    <button class="overview-btn hover-primary" onclick="FavoriteManager.toggleMode()" title="${t('tooltipManageFavorites')}">
+     ${IconManager.heartFilled()} 
+    </button>
                         
 <!-- 批量編輯按鈕 -->
 <button class="overview-btn hover-primary" onclick="toggleBatchEditMode()" title="${t('tooltipBatchEdit')}">
@@ -1626,6 +1699,35 @@ static renderUserPersonaOverview(container) {
 </div>
                 </div>
             </div>
+
+                        <!-- 愛心操作列 -->
+<div id="favorite-operations-bar" style="display: none; padding: 0px 32px; margin-bottom: 16px;">
+    <div style="
+        background: var(--surface-color); 
+        border: 1px solid var(--border-color); 
+        border-radius: 8px; 
+        padding: 12px 20px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        font-size: 0.9em;
+    ">
+        <div style="color: var(--text-color);">
+            ${t('selectedCount')}<span id="selected-count">0</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="overview-btn hover-primary" onclick="selectAllItems()">
+                ${t('selectAll')}
+            </button>
+            <button class="overview-btn hover-primary" onclick="FavoriteManager.cancelEdit()">
+                ${t('cancel')}
+            </button>
+            <button class="overview-btn btn-primary" onclick="FavoriteManager.applyChanges()">
+                ${t('applyFavoriteChanges')}
+            </button>
+        </div>
+    </div>
+</div>
                 
             <!-- 玩家角色卡片區塊 -->
             <div style="padding: 0px 32px 32px 32px; background: transparent; border-radius: 12px;">
@@ -1717,7 +1819,7 @@ static renderUserPersonaCards() {
         
         return `
             <div class="home-card" 
-                onclick="${batchEditMode ? `toggleItemSelection('${persona.id}')` : `selectItem('userpersona', '${persona.id}')`}"
+                onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('${persona.id}')` : `selectItem('userpersona', '${persona.id}')`}"
                  data-persona-id="${persona.id}"
                  id="card-${persona.id}"
                  style="aspect-ratio: 2 / 3; width: 180px; transition: all 0.2s ease; position: relative; cursor: pointer;">
@@ -1759,7 +1861,7 @@ static renderUserPersonaCards() {
                         display: none;
                     "></div>
                     
-                    ${batchEditMode ? `
+                    ${batchEditMode || FavoriteManager.isInEditMode() ? `
                         <div style="position: absolute; top: 8px; left: 8px; z-index: 10;">
                             <input type="checkbox" class="selection-checkbox"
                                    style="
@@ -1783,7 +1885,7 @@ static renderUserPersonaCards() {
                         line-height: 1.3; 
                         display: block;
                     ">
-                        ${persona.name}
+                        ${FavoriteManager.getDisplayName(persona)}
                     </span>
                 </div>
             </div>
@@ -2268,6 +2370,11 @@ function renderHomePage() {
     <button class="overview-btn hover-primary" onclick="importCharacter()" title="${t('tooltipImportCharacter')}">
         ${IconManager.upload()}
     </button>
+    
+    <!-- 愛心按鈕 -->
+    <button class="overview-btn hover-primary" onclick="FavoriteManager.toggleMode()" title="${t('tooltipManageFavorites')}">
+     ${IconManager.heartFilled()} 
+    </button>
 
     <!-- 批量編輯按鈕 -->
     <button class="overview-btn hover-primary" onclick="toggleBatchEditMode()" title="${t('tooltipBatchEdit')}">
@@ -2327,6 +2434,35 @@ function renderHomePage() {
                         <button class="overview-danger-btn" onclick="deleteSelectedItems()">
                             ${t('deleteSelected')}
                         </button>
+        </div>
+    </div>
+</div>
+
+            <!-- 愛心操作列 -->
+<div id="favorite-operations-bar" style="display: none; padding: 0px 32px; margin-bottom: 16px;">
+    <div style="
+        background: var(--surface-color); 
+        border: 1px solid var(--border-color); 
+        border-radius: 8px; 
+        padding: 12px 20px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        font-size: 0.9em;
+    ">
+        <div style="color: var(--text-color);">
+            ${t('selectedCount')}<span id="selected-count">0</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="overview-btn hover-primary" onclick="selectAllItems()">
+                ${t('selectAll')}
+            </button>
+            <button class="overview-btn hover-primary" onclick="FavoriteManager.cancelEdit()">
+                ${t('cancel')}
+            </button>
+            <button class="overview-btn btn-primary" onclick="FavoriteManager.applyChanges()">
+                ${t('applyFavoriteChanges')}
+            </button>
         </div>
     </div>
 </div>
@@ -2556,7 +2692,7 @@ function renderSidebarItem(item, type, currentItemId, currentVersionId) {
                  data-item-id="${item.id}">
                 <span class="expand-icon"><span class="arrow-icon arrow-right"></span></span>
                 <div class="character-info">
-                    <span>${item.name}</span>
+                    <span>${FavoriteManager.getDisplayName(item)}</span>
                     <span style="font-size: 0.8em; opacity: 0.7;">${item.versions.length}</span>
                 </div>
             </div>

@@ -373,6 +373,20 @@ class IconManager {
         </svg>`;
     }
 
+    // 實心愛心圖示
+    static heartFilled(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            className = '',
+            style = ''
+        } = options;
+        
+        return `<svg width="${width}" height="${width}" viewBox="0 0 24 24" fill="currentColor" class="${className}" style="${style}">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>`;
+    }
+
     // 書本圖示
     static book(options = {}) {
         const {

@@ -72,6 +72,11 @@ window.ChroniclerTranslations['zh-TW'] = {
     dualScreenDescription: '選擇要同時編輯的兩個項目，支援跨類型對比編輯。',
     startDualScreen: '開始雙屏編輯',
 
+    // 最愛功能相關
+    tooltipManageFavorites: '管理最愛',
+    applyFavoriteChanges: '套用變更',
+    favoriteChangesApplied: '最愛設定已更新',
+
     // ========================================
     // 3. 角色卡管理
     // ========================================

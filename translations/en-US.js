@@ -72,6 +72,11 @@ window.ChroniclerTranslations['en-US'] = {
     dualScreenDescription: 'Select two items to edit side-by-side. You can even compare items of different types.',
     startDualScreen: 'Start Dual Screen',
 
+    // Favorite functionality
+    tooltipManageFavorites: 'Manage Favorites',
+    applyFavoriteChanges: 'Apply Changes', 
+    favoriteChangesApplied: 'Favorite settings updated',
+
     // ========================================
     // 3. Character Management
     // ========================================

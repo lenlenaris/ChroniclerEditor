@@ -26,6 +26,7 @@ let compareVersions = [];
 let hasUnsavedChanges = false;
 let lastSavedData = null;
 let sidebarCollapsed = false;
+let favoriteEditMode = false;
 
 // 列表頁面狀態變數
 let isListPage = false;
@@ -311,6 +312,7 @@ class DataOperations {
                 return {
                     ...baseStructure,
                     name: `${t('defaultCharacterName')} ${index + 1}`,
+                    isFavorite: false,
                     createdAt: TimestampManager.createTimestamp(), 
                     updatedAt: TimestampManager.createTimestamp(),
                     versions: [{
@@ -334,6 +336,7 @@ class DataOperations {
                 return {
                     ...baseStructure,
                     name: `${t('defaultCharacterName')} ${index + 1}`,
+                    isFavorite: false,
                     createdAt: TimestampManager.createTimestamp(),
                     updatedAt: TimestampManager.createTimestamp(),
                     versions: [{
@@ -375,6 +378,7 @@ class DataOperations {
                 return {
                     ...baseStructure,
                     name: `${t('defaultLorebookName')} ${index + 1}`,
+                    isFavorite: false,
                     description: '',
                     versions: [{
                         ...baseStructure.versions[0],
@@ -388,6 +392,7 @@ class DataOperations {
                 return {
                     ...baseStructure,
                     name: `${t('defaultNotebookName')} ${index + 1}`,
+                    isFavorite: false,
                     versions: [{
                         ...baseStructure.versions[0],
                         fields: [{
@@ -404,6 +409,7 @@ class DataOperations {
                 return {
                     ...baseStructure,
                     name: `${t('defaultUserPersonaName')} ${index + 1}`,
+                    isFavorite: false,
                     createdAt: TimestampManager.createTimestamp(),
                     updatedAt: TimestampManager.createTimestamp(),
                     versions: [{
@@ -760,6 +766,7 @@ static clearCurrentItemIds() {
         const newItem = {
             id: generateId(),
             name: originalItem.name + t('copyPrefix'),
+            isFavorite: false,
             versions: originalItem.versions.map(version => {
                 const clonedVersion = DataOperations.cloneVersion(version, type);
                 clonedVersion.createdAt = TimestampManager.createTimestamp();
@@ -1536,6 +1543,28 @@ static syncDropdownValue() {
         return tagMatch && searchMatch;
     });
 }
+
+// 最愛項目優先排序
+static applyFavoritePriority(itemList) {
+    const favorites = [];
+    const nonFavorites = [];
+    
+    itemList.forEach(item => {
+        // 向後兼容處理
+        if (item.isFavorite === undefined) {
+            item.isFavorite = false;
+        }
+        
+        if (item.isFavorite) {
+            favorites.push(item);
+        } else {
+            nonFavorites.push(item);
+        }
+    });
+    
+    // 最愛項目排在前面，非最愛項目排在後面
+    return [...favorites, ...nonFavorites];
+}
     
    
 static sortCharacters(characterList) {
@@ -1560,7 +1589,7 @@ static sortCharacters(characterList) {
         }
     }
     
-    return characterList.sort((a, b) => {
+    const sorted = characterList.sort((a, b) => {
         switch (this.currentSort) {
             case 'name-asc': return a.name.localeCompare(b.name);
             case 'name-desc': return b.name.localeCompare(a.name);
@@ -1582,6 +1611,9 @@ static sortCharacters(characterList) {
             default: return 0;
         }
     });
+    
+    // 其他排序才套用最愛優先
+    return this.applyFavoritePriority(sorted);
 }
 
 // 計算單個項目的總 token 數
@@ -1660,7 +1692,7 @@ static calculateItemTotalTokensWithType(item, type) {
         
         return `
             <div class="home-card" 
-                 onclick="${batchEditMode ? `toggleItemSelection('${character.id}')` : `selectCharacterFromHome('${character.id}')`}"
+                 onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('${character.id}')` : `selectCharacterFromHome('${character.id}')`}"
                  data-character-id="${character.id}"
                  id="card-${character.id}"
                  style="aspect-ratio: 2 / 3; width: 180px; transition: all 0.2s ease; position: relative; cursor: pointer;">
@@ -1704,7 +1736,7 @@ static calculateItemTotalTokensWithType(item, type) {
                     "></div>
                     
                     <!-- 選擇框（批量編輯模式下顯示） -->
-                    ${batchEditMode ? `
+                    ${batchEditMode || FavoriteManager.isInEditMode() ? `
                         <div style="position: absolute; top: 8px; left: 8px; z-index: 10;">
                             <input type="checkbox" class="selection-checkbox"
                                    style="
@@ -1729,7 +1761,7 @@ static calculateItemTotalTokensWithType(item, type) {
                         line-height: 1.3; 
                         display: block;
                     ">
-                        ${character.name}
+                        ${FavoriteManager.getDisplayName(character)}
                     </span>
                 </div>
             </div>
@@ -2099,42 +2131,45 @@ static showMoreItems(type) {
     });
 }
 
-     static sortItems(itemList, type) {
-        if (this.currentSort === 'custom') {
-            const savedOrder = DragSortManager.loadCustomOrder(type);
-            if (savedOrder && savedOrder.length > 0) {
-                const ordered = [];
-                savedOrder.forEach(id => {
-                    const item = itemList.find(i => i.id === id);
-                    if (item) ordered.push(item);
-                });
-                
-                itemList.forEach(item => {
-                    if (!savedOrder.includes(item.id)) {
-                        ordered.push(item);
-                    }
-                });
-                
-                return ordered;
-            }
+static sortItems(itemList, type) {
+    if (this.currentSort === 'custom') {
+        const savedOrder = DragSortManager.loadCustomOrder(type);
+        if (savedOrder && savedOrder.length > 0) {
+            const ordered = [];
+            savedOrder.forEach(id => {
+                const item = itemList.find(i => i.id === id);
+                if (item) ordered.push(item);
+            });
+            
+            itemList.forEach(item => {
+                if (!savedOrder.includes(item.id)) {
+                    ordered.push(item);
+                }
+            });
+            
+            return ordered;
         }
-        
-        return itemList.sort((a, b) => {
-            switch (this.currentSort) {
-                case 'name-asc': return a.name.localeCompare(b.name);
-                case 'name-desc': return b.name.localeCompare(a.name);
-                case 'time-desc': return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
-                case 'time-asc': return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0);
-                case 'created-desc': return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-                case 'created-asc': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
-                case 'tokens-desc': 
-                    return this.calculateItemMaxTokens(b, type) - this.calculateItemMaxTokens(a, type);
-                case 'tokens-asc': 
-                    return this.calculateItemMaxTokens(a, type) - this.calculateItemMaxTokens(b, type);
-                default: return 0;
-            }
-        });
     }
+    
+    const sorted = itemList.sort((a, b) => {
+        switch (this.currentSort) {
+            case 'name-asc': return a.name.localeCompare(b.name);
+            case 'name-desc': return b.name.localeCompare(a.name);
+            case 'time-desc': return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+            case 'time-asc': return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0);
+            case 'created-desc': return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            case 'created-asc': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+            case 'tokens-desc': 
+                return this.calculateItemMaxTokens(b, type) - this.calculateItemMaxTokens(a, type);
+            case 'tokens-asc': 
+                return this.calculateItemMaxTokens(a, type) - this.calculateItemMaxTokens(b, type);
+            default: return 0;
+        }
+    });
+    
+    // 其他排序才套用最愛優先
+    return this.applyFavoritePriority(sorted);
+}
 
 static calculateItemMaxTokens(item, type) {
     if (!item || !item.versions || item.versions.length === 0) return 0;
@@ -2169,7 +2204,7 @@ const timestamp = TimestampManager.formatTimestamp(latestVersion?.updatedAt);
     
     return `
         <div class="list-item" 
-             onclick="${batchEditMode ? `toggleItemSelection('${item.id}')` : `selectItem('${type}', '${item.id}')`}"
+             onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('${item.id}')` : `selectItem('${type}', '${item.id}')`}"
              data-item-id="${item.id}"
              id="list-item-${item.id}"
              style="
@@ -2186,7 +2221,7 @@ const timestamp = TimestampManager.formatTimestamp(latestVersion?.updatedAt);
              onmouseout="if (!batchEditMode) { this.style.borderColor='var(--border-color)'; const deleteBtn = this.querySelector('.delete-btn'); if(deleteBtn) deleteBtn.style.display='none' }">
 
             <!-- 選擇框（批量編輯模式下顯示） -->
-            ${batchEditMode ? `
+            ${batchEditMode || FavoriteManager.isInEditMode() ? `
                 <div style="position: absolute; top: 16px; left: 16px; z-index: 10;">
                     <input type="checkbox" class="list-selection-checkbox"
                            style="width: 18px; height: 18px; cursor: pointer; pointer-events: none;">
@@ -2208,7 +2243,7 @@ const timestamp = TimestampManager.formatTimestamp(latestVersion?.updatedAt);
                         color: var(--text-color);
                         flex: 1;
                     ">
-                        ${item.name}
+                        ${FavoriteManager.getDisplayName(item)}
                     </div>
                     
 
@@ -4428,6 +4463,163 @@ static bindHeightChangeEvent(textarea) {
 
 }
 
+// ===== 最愛功能管理器 =====
+class FavoriteManager {
+    static favoriteEditMode = false;
+    
+    // 🎨 顯示邏輯：處理名稱顯示
+    static getDisplayName(item) {
+        // 向後兼容：如果舊數據沒有 isFavorite 欄位，預設為 false
+        if (item.isFavorite === undefined) {
+            item.isFavorite = false;
+        }
+        return item.isFavorite ? `♥ ${item.name}` : item.name;
+    }
+    
+    // ⚙️ 操作邏輯：切換最愛狀態
+    static toggleItemFavorite(type, itemId) {
+        const itemsArray = DataOperations.getItems(type);
+        const item = itemsArray.find(i => i.id === itemId);
+        
+        if (item) {
+            // 向後兼容
+            if (item.isFavorite === undefined) {
+                item.isFavorite = false;
+            }
+            
+            item.isFavorite = !item.isFavorite;
+            markAsChanged();
+            return item.isFavorite;
+        }
+        
+        return false;
+    }
+    
+    // 🎯 批量操作：獲取所有最愛項目的ID
+    static getAllFavoriteItemIds(type) {
+        const itemsArray = DataOperations.getItems(type);
+        return itemsArray
+            .filter(item => {
+                if (item.isFavorite === undefined) item.isFavorite = false;
+                return item.isFavorite;
+            })
+            .map(item => item.id);
+    }
+    
+    // 🚀 模式切換：進入/退出愛心編輯模式
+    static toggleMode() {
+        this.favoriteEditMode = !this.favoriteEditMode;
+        
+        // 如果同時開啟批量刪除模式，先關閉它
+        if (batchEditMode) {
+            batchEditMode = false;
+            const batchBar = document.getElementById('batch-operations-bar');
+            if (batchBar) {
+                batchBar.style.display = 'none';
+            }
+        }
+        
+        // 重置選擇項目
+        selectedItems = [];
+        
+        if (this.favoriteEditMode) {
+            // 進入愛心模式：自動選擇所有已最愛的項目
+            const currentType = this.getCurrentPageType();
+            selectedItems = this.getAllFavoriteItemIds(currentType);
+            this.showOperationsBar();
+        } else {
+            // 退出愛心模式
+            this.hideOperationsBar();
+        }
+        
+        updateSelectedCount();
+        this.rerenderCurrentPage();
+        
+        // 👈 新增：重新渲染後更新視覺選擇狀態
+        if (this.favoriteEditMode && selectedItems.length > 0) {
+            setTimeout(() => {
+                selectedItems.forEach(itemId => {
+                    if (isHomePage || currentMode === 'userpersona' || currentMode === 'loveydovey') {
+                        updateCardVisualState(itemId);
+                    } else if (isListPage) {
+                        updateListItemVisualState(itemId);
+                    }
+                });
+            }, 100); // 等待DOM更新完成
+        }
+    }
+    
+    // 🚫 取消編輯模式
+    static cancelEdit() {
+        this.favoriteEditMode = false;
+        selectedItems = [];
+        this.hideOperationsBar();
+        this.rerenderCurrentPage();
+    }
+    
+    // 💾 套用變更：批量更新最愛狀態
+    static applyChanges() {
+        const currentType = this.getCurrentPageType();
+        const itemsArray = DataOperations.getItems(currentType);
+        
+        // 更新所有項目的最愛狀態
+        itemsArray.forEach(item => {
+            if (item.isFavorite === undefined) item.isFavorite = false;
+            item.isFavorite = selectedItems.includes(item.id);
+        });
+        
+        markAsChanged();
+        saveData();
+        
+        // 退出編輯模式
+        this.cancelEdit();
+        
+        NotificationManager.success(t('favoriteChangesApplied'));
+    }
+    
+    // 🔍 獲取當前頁面類型
+    static getCurrentPageType() {
+        if (isHomePage) return 'character';
+        if (isListPage) return listPageType;
+        if (currentMode === 'userpersona' && !ItemManager.getCurrentItemId()) return 'userpersona';
+        if (currentMode === 'loveydovey' && !ItemManager.getCurrentItemId()) return 'loveydovey';
+        return 'character'; // 預設
+    }
+    
+    // 📺 顯示操作欄
+    static showOperationsBar() {
+        const favoriteBar = document.getElementById('favorite-operations-bar');
+        if (favoriteBar) {
+            favoriteBar.style.display = 'block';
+        }
+    }
+    
+    // 📺 隱藏操作欄
+    static hideOperationsBar() {
+        const favoriteBar = document.getElementById('favorite-operations-bar');
+        if (favoriteBar) {
+            favoriteBar.style.display = 'none';
+        }
+    }
+    
+    // 🔄 重新渲染當前頁面
+    static rerenderCurrentPage() {
+        if (isHomePage) {
+            OverviewManager.renderCharacters();
+        } else if (isListPage) {
+            OverviewManager.renderItems(listPageType, `${listPageType}-list`);
+        } else if (currentMode === 'userpersona' && !ItemManager.getCurrentItemId()) {
+            ContentRenderer.renderUserPersonaCards();
+        } else if (currentMode === 'loveydovey' && !ItemManager.getCurrentItemId()) {
+            ContentRenderer.renderLoveyDoveyCards();
+        }
+    }
+    
+    // 📊 檢查是否在愛心編輯模式
+    static isInEditMode() {
+        return this.favoriteEditMode;
+    }
+}
 
 // ===== 記憶體監控工具（開發完刪除） =====
 function showMemoryStats() {
