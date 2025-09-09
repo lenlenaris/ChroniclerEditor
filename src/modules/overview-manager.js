@@ -211,63 +211,8 @@ static syncDropdownValue() {
         return this.currentSort;
     }
 
-    static renderCharacters() {
-    const container = document.getElementById('character-grid');
-    if (!container) return;
-    
-    const currentParams = {
-        sort: this.currentSort,
-        tags: [...this.selectedTags],
-        search: searchText || '', // 確保搜尋文字變化時會重新處理
-        dataLength: characters.length // 新增：檢查數據長度變化
-    };
-    
-    const needReprocess = !this.lastProcessParams || 
-        JSON.stringify(currentParams) !== JSON.stringify(this.lastProcessParams);
-    
-    if (needReprocess) {
-        // 重新處理數據
-        let filteredCharacters = this.filterCharacters();
-        this.processedItems = this.sortCharacters(filteredCharacters);
-        this.currentlyShown = this.itemsPerPage;
-        this.lastProcessParams = currentParams;
-    }
-    
-    // 計算要顯示的項目
-    const itemsToShow = this.processedItems.slice(0, this.currentlyShown);
-    this.isShowingAll = this.currentlyShown >= this.processedItems.length;
-    
-    container.innerHTML = this.generateCharacterCards(itemsToShow);
-    
-    if (!this.isShowingAll) {
-        container.innerHTML += this.generateShowMoreButton('characters');
-    }
-    
-    // 重新啟用拖曳功能
-    setTimeout(() => {
-        DragSortManager.enableDragSort({
-            containerSelector: '#character-grid',
-            itemSelector: '.home-card[onclick*="selectCharacterFromHome"]',
-            type: 'character',
-            mode: 'grid',
-            onReorder: () => {
-                OverviewManager.enableCustomSort();
-                const dropdown = document.querySelector('.sort-dropdown');
-                if (dropdown) dropdown.value = 'custom';
-            }
-        });
-        
-        ContentRenderer.bindCardHoverEffects();
-        
-        if (batchEditMode && selectedItems.length > 0) {
-            selectedItems.forEach(itemId => {
-                updateCardVisualState(itemId);
-            });
-        }
-        
-    }, 100);
-    
-    OverviewManager.syncDropdownValue();
+static renderCharacters() {
+    this.renderCards('character');
 }
     
     static filterCharacters() {
@@ -1296,4 +1241,267 @@ static renderOverviewLayout(config) {
         `;
     }
 }
+
+// ===== 統一卡片渲染配置 =====
+static CARD_CONFIGS = {
+    character: {
+        width: '180px', height: '280px', aspectRatio: '2/3',
+        imageField: 'avatar',
+        clickFn: 'selectCharacterFromHome', // ✅ 這個是對的
+        dataAttr: 'data-character-id',
+        nameClass: 'character-name',
+        dragSelector: '.home-card[onclick*="selectCharacterFromHome"]',
+        gridId: 'character-grid',
+        gridClass: 'character-grid',
+        createText: 'createOrImport'
+    },
+    userpersona: {
+        width: '180px', height: '280px', aspectRatio: '2/3',
+        imageField: 'avatar',
+        clickFn: 'selectItem',
+        clickParams: ['userpersona'],
+        dataAttr: 'data-persona-id',
+        nameClass: 'persona-name', 
+        dragSelector: '.home-card[onclick*="selectItem(\'userpersona\'"]',
+        gridId: 'userpersona-grid',
+        gridClass: 'userpersona-grid',
+        createText: 'clickToCreatePersona'
+    },
+    loveydovey: {
+        width: '220px', height: '220px', aspectRatio: '1/1',
+        imageField: 'profileImage',
+        clickFn: 'selectItem',
+        clickParams: ['loveydovey'],
+        dataAttr: 'data-persona-id',
+        nameClass: 'character-name',
+        dragSelector: '.home-card[onclick*="selectItem(\'loveydovey\'"]',
+        gridId: 'loveydovey-grid', 
+        gridClass: 'userpersona-grid loveydovey-grid',
+        createText: 'clickToCreateLoveydovey'
+    }
+};
+
+// ===== 統一卡片渲染主函數 =====
+static renderCards(type, folderId = null) {
+    const config = this.CARD_CONFIGS[type];
+    if (!config) {
+        console.error('❌ 不支援的卡片類型:', type);
+        return;
+    }
+    
+    const container = document.getElementById(config.gridId);
+    if (!container) return;
+    
+    // 🔄 檢查是否需要重新處理數據
+    const currentParams = {
+        sort: this.currentSort,
+        tags: [...this.selectedTags],
+        search: searchText || '',
+        type: type,
+        folderId: folderId, // 🗂️ 資料夾功能預留
+        dataLength: this.getItemsArray(type).length
+    };
+    
+    const needReprocess = !this.lastProcessParams || 
+        JSON.stringify(currentParams) !== JSON.stringify(this.lastProcessParams);
+    
+    if (needReprocess) {
+        // 重新處理數據
+        let items = this.getItemsArray(type);
+        
+        // 🗂️ 資料夾篩選（預留功能）
+        if (folderId) {
+            items = items.filter(item => item.folderId === folderId);
+        }
+        
+        // 套用現有篩選邏輯
+        let filteredItems = this.filterItems(items, type);
+        this.processedItems = this.sortItems(filteredItems, type);
+        this.currentlyShown = this.itemsPerPage;
+        this.lastProcessParams = currentParams;
+    }
+    
+    // 計算要顯示的項目
+    const itemsToShow = this.processedItems.slice(0, this.currentlyShown);
+    this.isShowingAll = this.currentlyShown >= this.processedItems.length;
+    
+    // 🎨 生成卡片HTML
+    const cards = this.generateUnifiedCards(itemsToShow, type, config);
+    const createCard = this.generateCreateCard(type, config);
+    
+    container.innerHTML = cards + createCard;
+    
+    // 添加 Show More 按鈕（如果需要）
+    if (!this.isShowingAll) {
+        const showMoreType = type === 'character' ? 'characters' : 
+                    type === 'userpersona' ? 'userpersona' :
+                    type === 'loveydovey' ? 'loveydovey' : type;
+container.innerHTML += this.generateShowMoreButton(showMoreType);
+    }
+    
+    // ⚡ 延遲初始化功能（避免效能問題）
+    setTimeout(() => {
+        this.initializeCardFeatures(type, config);
+    }, 100);
+    
+    this.syncDropdownValue();
+}
+
+// ===== 統一卡片HTML生成 =====
+static generateUnifiedCards(itemList, type, config) {
+    return itemList.map((item, index) => {
+        const firstVersion = item.versions[0];
+        const imageUrl = firstVersion[config.imageField];
+        let normalClickAction;
+        if (config.clickParams) {
+            // selectItem 類型的函數需要額外參數
+            const params = config.clickParams.map(p => `'${p}'`).join(', ');
+            normalClickAction = `${config.clickFn}(${params}, '${item.id}')`;
+        } else {
+            // selectCharacterFromHome 類型的函數只需要 ID
+            normalClickAction = `${config.clickFn}('${item.id}')`;
+        }
+
+        const clickAction = batchEditMode || FavoriteManager.isInEditMode() ? 
+            `toggleItemSelection('${item.id}')` : 
+            normalClickAction;
+        
+        return `
+            <div class="home-card" 
+                 onclick="${clickAction}"
+                 ${config.dataAttr}="${item.id}"
+                 id="card-${item.id}"
+                 style="aspect-ratio: ${config.aspectRatio}; width: ${config.width}; transition: all 0.2s ease; position: relative; cursor: pointer;">
+                
+                <!-- 卡片主體 -->
+                <div style="
+                    flex: 1 1 auto; 
+                    width: 100%; 
+                    height: ${config.height}; 
+                    aspect-ratio: ${config.aspectRatio}; 
+                    border-radius: 5px; 
+                    overflow: hidden; 
+                    background: transparent; 
+                    border: 1px solid var(--border-color); 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    margin-bottom: 12px; 
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                    position: relative;
+                ">
+                    ${imageUrl ? 
+                        `<img src="${BlobManager.getBlobUrl(imageUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="${item.name}">` :
+                        ``
+                    }
+                    
+                    <!-- 選中覆蓋層 -->
+                    <div class="selection-overlay" style="
+                        position: absolute; 
+                        top: 0; 
+                        left: 0; 
+                        right: 0; 
+                        bottom: 0; 
+                        background: rgba(92, 193, 255, 0.4); 
+                        border: 3px solid #66b3ff; 
+                        border-radius: 5px; 
+                        z-index: 5;
+                        pointer-events: none;
+                        box-sizing: border-box;
+                        display: none;
+                    "></div>
+                    
+                    <!-- 選擇框（批量編輯模式下顯示） -->
+                    ${batchEditMode || FavoriteManager.isInEditMode() ? `
+                        <div style="position: absolute; top: 8px; left: 8px; z-index: 10;">
+                            <input type="checkbox" class="selection-checkbox"
+                                   style="
+                                       width: 20px; 
+                                       height: 20px; 
+                                       cursor: pointer; 
+                                       pointer-events: none;
+                                       background: white;
+                                       border: 2px solid #666;
+                                       border-radius: 3px;
+                                   ">
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <!-- 項目名稱 -->
+                <div style="text-align: center; padding: 0 8px;">
+                    <span class="${config.nameClass}" style="
+                        font-size: 1em; 
+                        color: var(--text-color); 
+                        font-weight: 500; 
+                        line-height: 1.3; 
+                        display: block;
+                    ">
+                        ${FavoriteManager.getDisplayName(item)}
+                    </span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ===== 統一新增卡片生成 =====
+static generateCreateCard(type, config) {
+    return `
+        <div class="home-card create-${type}-card" onclick="ItemCRUD.add('${type}')" 
+             style="cursor: pointer; width: ${config.width}; transition: all 0.2s ease;">
+            <div style="width: 100%; height: ${config.height}; border: 2px dashed var(--border-color); border-radius: 8px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;"
+                 onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
+                 onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
+                <div style="color: var(--text-muted); font-size: 3em; margin-bottom: 8px; opacity: 0.7;">+</div>
+                <span style="font-size: 0.9em; color: var(--text-muted); font-weight: 500; text-align: center; line-height: 2.0; opacity: 0.7;">
+                    ${t(config.createText)}
+                </span>
+            </div>
+        </div>
+    `;
+}
+
+// ===== 統一功能初始化 =====
+static initializeCardFeatures(type, config) {
+    // 🎯 啟用拖曳功能
+    if (typeof DragSortManager !== 'undefined') {
+        DragSortManager.enableDragSort({
+            containerSelector: `#${config.gridId}`,
+            itemSelector: config.dragSelector,
+            type: type,
+            mode: 'grid',
+            onReorder: () => {
+                this.enableCustomSort();
+                // 🔧 修復：找對正確的下拉選單
+                const dropdown = document.querySelector('.overview-sort-dropdown') || 
+                               document.querySelector('.sort-dropdown');
+                if (dropdown) dropdown.value = 'custom';
+                if (typeof renderSidebar === 'function') {
+                    renderSidebar();
+                }
+            }
+        });
+    }
+    
+    // 🎯 綁定hover效果
+    ContentRenderer.bindCardHoverEffects();
+    
+    // 🎯 恢復選中項目的視覺狀態（如果在批量編輯模式）
+    if (batchEditMode && selectedItems.length > 0) {
+        selectedItems.forEach(itemId => {
+            updateCardVisualState(itemId);
+        });
+    }
+    
+    // 🎯 特殊處理：卿卿我我的額外初始化
+    if (type === 'loveydovey') {
+        setTimeout(() => {
+            if (typeof DragSortManager !== 'undefined' && DragSortManager.autoInitializeAdditionalInfoDragSort) {
+                DragSortManager.autoInitializeAdditionalInfoDragSort();
+            }
+        }, 500);
+    }
+}
+
 }
