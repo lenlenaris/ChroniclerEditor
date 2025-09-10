@@ -2629,6 +2629,10 @@ function updateSelectedCount() {
     if (countElement) {
         countElement.textContent = selectedItems.length;
     }
+    const favoriteCountElement = document.getElementById('selected-favorite-count');
+    if (favoriteCountElement) {
+        favoriteCountElement.textContent = selectedItems.length;
+    }
 }
 
 function deleteSelectedItems() {

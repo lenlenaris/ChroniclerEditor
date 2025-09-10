@@ -1178,7 +1178,7 @@ static getItemStats(item, type) {
                     font-size: 0.9em;
                 ">
                     <div style="color: var(--text-color);">
-                        ${t('selectedFavoriteCount')}<span id="selected-count">0</span>
+                        ${t('selectedFavoriteCount')}<span id="selected-favorite-count">0</span>
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button class="overview-btn hover-primary" onclick="selectAllItems()">
