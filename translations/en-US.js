@@ -66,6 +66,7 @@ window.ChroniclerTranslations['en-US'] = {
     tooltipBatchEdit: 'Batch Delete',
     tooltipTagFilter: 'Tag Filter',
     tooltipSortDropdown: 'Item Sorting Method\nDrag to customize order',
+    clickToReturn: 'Click to return', 
     
     // Dual Screen Editing
     dualScreenSelector: 'Dual Screen Selector', 
@@ -77,6 +78,39 @@ window.ChroniclerTranslations['en-US'] = {
     applyFavoriteChanges: 'Apply Changes', 
     favoriteChangesApplied: 'Favorite settings updated',
     selectedFavoriteCount: 'Selected for favorites: ',
+
+    //Folder
+    moveToFolder: 'Move',
+    selectTargetFolder: 'Select Target Folder', 
+    moveItemsCount: 'Moving {0} items',
+    createNewFolder: 'Create New Folder',
+    moveToRoot: 'Move to Root',
+    enterFolderName: 'Enter folder name',
+    moveToRootComplete: 'Items moved to root directory',
+    moveToFolderComplete: 'Items moved to "{0}" folder',
+    folder: 'Folder',
+    pleaseSelectItemsFirst: 'Please select items first',
+    renameFolder: 'Rename',
+    dissolveFolder: 'Dissolve Folder',
+    deleteFolder: 'Delete Folder',
+    enterNewFolderName: 'Enter new folder name',
+    folderRenamedSuccess: 'Folder renamed successfully',
+    folderRenameError: 'Failed to rename folder',
+    dissolveFolderConfirm: 'Are you sure you want to dissolve folder "{0}"?\n{1} items will be moved back to root directory.',
+    folderDissolvedSuccess: 'Folder dissolved, items moved to root directory',
+    folderDissolveError: 'Failed to dissolve folder',
+    deleteFolderConfirm: 'Are you sure you want to delete folder "{0}"?\n{1} items inside will also be deleted!',
+    deleteFolderDoubleConfirm: '⚠️ This action cannot be undone!\nAre you sure you want to delete the folder and all its contents?',
+    folderDeletedSuccess: 'Folder and its contents deleted',
+    folderDeleteError: 'Failed to delete folder',
+    cannotMixSelectTypes: 'Cannot select both characters and folders at the same time',
+    selectedFolders: 'Folders ',
+    dissolveFolders: 'Dissolve Folders',
+    deleteFolders: 'Delete Folders',
+    deleteFoldersConfirm: 'Are you sure you want to delete {0} folders and their contents?\nThis action cannot be undone!',
+    foldersDeletedSuccess: 'Deleted {0} folders',
+    foldersDissolvedAndMovedComplete: 'Dissolved folders and moved {0} items to "{1}"',
+    foldersDissolvedToRootComplete: 'Dissolved folders, contents returned to root',
 
     // ========================================
     // 3. Character Management
@@ -124,6 +158,10 @@ window.ChroniclerTranslations['en-US'] = {
     scenarioPlaceholder: 'Describe the context, environment, or situation the character is in...',
     dialoguePlaceholder: '{{user}}: Hello!\n{{char}}: Hi there! It\'s a pleasure to meet you.',
     firstMsgPlaceholder: 'The very first message the character will send...',
+    moveSelectedFolders: 'Move {0} selected folders to:',
+    moveSelectedItems: 'Move {0} selected items to:',
+    selectedMixed: 'Selected {0} items and {1} folders',
+    selectedFoldersOnly: 'Selected {0} folders',
     
     // ========================================
     // 4. Lorebook Management

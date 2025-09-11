@@ -105,9 +105,6 @@
         grid-template-columns: 1fr;
     }
     
-    .content-area {
-        padding: var(--spacing-lg);
-    }
     
     .character-header-bar {
         flex-direction: column;

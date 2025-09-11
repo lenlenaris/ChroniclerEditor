@@ -485,7 +485,6 @@ function updateSidebarStats() {
     });
 }
 
-// ===== æ¸…ç†å‡½æ•¸ =====
 function clearStatsUpdateTimer() {
     if (updateFieldStatsTimer) {
         clearTimeout(updateFieldStatsTimer);
@@ -497,7 +496,6 @@ function clearStatsUpdateTimer() {
     }
 }
 
-// ===== å…¼å®¹æ€§å‡½æ•¸ï¼ˆè™•ç†å­—æ®µæ›´æ–°å®Œæˆï¼‰=====
 function handleFieldUpdateComplete(itemType, itemId, versionId) {
     updateAllPageStats();
     markAsChanged();
@@ -509,8 +507,6 @@ function handleFieldUpdateComplete(itemType, itemId, versionId) {
     
     setTimeout(() => {
         updateVersionStats(itemType, itemId, versionId);
-        
-        // ðŸŽ¯ åŒæ™‚æ›´æ–°å´é‚Šæ¬„çµ±è¨ˆï¼ˆåªæ›´æ–°ç•¶å‰é …ç›®ï¼‰
         if (itemId === ItemManager.getCurrentItemId()) {
             updateSingleItemStats(itemType, itemId, versionId);
         }

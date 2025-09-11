@@ -27,6 +27,8 @@ let hasUnsavedChanges = false;
 let lastSavedData = null;
 let sidebarCollapsed = false;
 let favoriteEditMode = false;
+let currentFolderId = null; 
+let folderBreadcrumbs = [];
 
 // 列表頁面狀態變數
 let isListPage = false;
@@ -2382,9 +2384,9 @@ function selectItem(type, itemId, versionId = null, searchOptions = null) {
 }
 
 function goToHomePage() {
+    currentFolderId = null;
+    folderBreadcrumbs = [];
     clearStatsUpdateTimer();
-        // ✨ 新增：返回首頁時清理記憶體
-    
     setTimeout(() => {
         BlobManager.performCleanup();
         
@@ -2420,6 +2422,8 @@ function goToHomePage() {
 
 // 進入列表頁面
 function enterListPage(type) {
+    currentFolderId = null;
+    folderBreadcrumbs = [];
     if (type === 'character') {
         // 角色卡使用現有的首頁
         goToHomePage();
@@ -2486,6 +2490,14 @@ function enterListPage(type) {
     selectedItems = [];
     currentPage = 1;
     searchText = '';
+
+    if (type === 'worldbook') {
+    currentWorldBookId = null;
+    currentWorldBookVersionId = null;
+    } else if (type === 'custom') {
+        currentCustomSectionId = null;
+        currentCustomVersionId = null;
+    }
     
     // 展開對應的側邊欄區塊，收起其他
     expandSidebarSection(type);
@@ -2574,6 +2586,20 @@ function selectAllItems() {
 }
 
 function toggleItemSelection(itemId) {
+    const isFolder = itemId.startsWith('folder-');
+    const hasItems = selectedItems.some(id => !id.startsWith('folder-'));
+    const hasFolders = selectedItems.some(id => id.startsWith('folder-'));
+    
+    if (isFolder && hasItems) {
+        alert(t('cannotMixSelectTypes'));
+        return;
+    }
+    
+    if (!isFolder && hasFolders) {
+        alert(t('cannotMixSelectTypes'));
+        return;
+    }
+    
     const index = selectedItems.indexOf(itemId);
     if (index > -1) {
         selectedItems.splice(index, 1);
@@ -2583,7 +2609,6 @@ function toggleItemSelection(itemId) {
     
     updateSelectedCount();
     
-    // 根據當前頁面類型選擇正確的視覺更新函數
     if (isHomePage || currentMode === 'userpersona' || currentMode === 'loveydovey') {
         updateCardVisualState(itemId);
     } else if (isListPage) {
@@ -2593,17 +2618,17 @@ function toggleItemSelection(itemId) {
 
 // 更新卡片視覺狀態
 function updateCardVisualState(itemId) {
-    //  支援角色卡和玩家角色卡
     const card = document.getElementById(`card-${itemId}`) || 
                  document.querySelector(`[data-character-id="${itemId}"]`) ||
-                 document.querySelector(`[data-persona-id="${itemId}"]`);
+                 document.querySelector(`[data-persona-id="${itemId}"]`) ||
+                 document.getElementById(`folder-card-${itemId.replace('folder-', '')}`); 
     
     if (!card) return;
     
     const isSelected = selectedItems.includes(itemId);
     const overlay = card.querySelector('.selection-overlay');
     const checkbox = card.querySelector('.selection-checkbox');
-    const nameElement = card.querySelector('.character-name, .persona-name');
+    const nameElement = card.querySelector('.character-name, .persona-name, .folder-name'); 
     
     if (overlay) {
         overlay.style.display = isSelected ? 'block' : 'none';
@@ -2619,15 +2644,14 @@ function updateCardVisualState(itemId) {
             nameElement.style.fontWeight = '600';
         } else {
             nameElement.style.color = 'var(--text-color)';
-            nameElement.style.fontWeight = '500';
+            nameElement.style.fontWeight = nameElement.classList.contains('folder-name') ? '600' : '500'; 
         }
     }
 }
 
 function updateSelectedCount() {
-    const countElement = document.getElementById('selected-count');
-    if (countElement) {
-        countElement.textContent = selectedItems.length;
+    if (batchEditMode) {
+        OverviewManager.updateBatchOperationsBar();
     }
     const favoriteCountElement = document.getElementById('selected-favorite-count');
     if (favoriteCountElement) {
@@ -2641,15 +2665,34 @@ function deleteSelectedItems() {
         return;
     }
     
-    const itemType = isHomePage ? 'character' : listPageType;
-    const confirmMessage = t('batchDeleteConfirm', selectedItems.length);
+    const isSelectingFolders = selectedItems[0].startsWith('folder-');
+    const itemType = isSelectingFolders ? 'character' : (isHomePage ? 'character' : listPageType);
+    
+    let confirmMessage;
+    if (isSelectingFolders) {
+        confirmMessage = t('deleteFoldersConfirm', selectedItems.length);
+    } else {
+        confirmMessage = t('batchDeleteConfirm', selectedItems.length);
+    }
     
     if (confirm(confirmMessage)) {
-        const deletedCount = selectedItems.length;
+        let deletedCount = 0;
         
-        selectedItems.forEach(itemId => {
-            ItemCRUD.remove(itemType, itemId, true);
-        });
+        if (isSelectingFolders) {
+            // 刪除資料夾及其內容
+            selectedItems.forEach(selectedId => {
+                const realFolderId = selectedId.replace('folder-', '');
+                const folderItems = FolderManager.getFolderItems(itemType, realFolderId);
+                deletedCount += folderItems.length;
+                FolderManager.deleteFolder(itemType, realFolderId);
+            });
+        } else {
+            // 刪除一般項目
+            selectedItems.forEach(itemId => {
+                ItemCRUD.remove(itemType, itemId, true);
+                deletedCount++;
+            });
+        }
         
         selectedItems = [];
         batchEditMode = false;
@@ -2662,7 +2705,11 @@ function deleteSelectedItems() {
         OverviewManager.onDataChange();
         saveData();
         
-        NotificationManager.success(t('batchDeleteSuccess', deletedCount));
+        const successMessage = isSelectingFolders ? 
+            t('foldersDeletedSuccess', selectedItems.length) : 
+            t('batchDeleteSuccess', deletedCount);
+        
+        NotificationManager.success(successMessage);
     }
 }
 
