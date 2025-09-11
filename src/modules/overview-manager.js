@@ -1252,7 +1252,7 @@ static renderBreadcrumbNav() {
                 ${showImport && config_data.importFn ? `
                 <!-- 匯入按鈕 -->
                 <button class="overview-btn hover-primary" onclick="${config_data.importFn}" title="${t(config_data.importTooltip)}">
-                    ${IconManager.upload()}
+                    ${IconManager.import()}
                 </button>
                 ` : ''}
                 
