@@ -99,6 +99,21 @@ class IconManager {
         </svg>`;
     }
 
+    // 打開的資料夾圖示
+    static folderOpen(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            strokeWidth = 2,
+            className = '',
+            style = ''
+        } = options;
+        
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/>
+        </svg>`;
+    }
+
     // 匯入/上傳圖示
     static upload(options = {}) {
         const {

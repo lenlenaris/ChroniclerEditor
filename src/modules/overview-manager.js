@@ -643,33 +643,41 @@ static renderItems(type, containerId) {
         // 重新處理數據
         let items = this.getItemsArray(type);
         
-        // 加入資料夾處理邏輯
-        const currentFolderId = NavigationManager.getCurrentFolderId();
+        const hasTagFilter = this.selectedTags && this.selectedTags.length > 0;
         
-        if (currentFolderId) {
-            // 在資料夾內：只顯示該資料夾的項目
-            items = items.filter(item => item.folderId === currentFolderId);
+        if (hasTagFilter) {
+            // 🎯 標籤篩選模式：忽略資料夾結構，顯示所有符合標籤的項目
+            // 不進行資料夾篩選，直接處理所有項目
+            // 也不添加資料夾卡片
         } else {
-            // 在根目錄：顯示無資料夾的項目
-            items = items.filter(item => !item.folderId);
+            // 🎯 正常模式：按資料夾結構篩選
+            const currentFolderId = NavigationManager.getCurrentFolderId();
             
-            // 🆕 在根目錄時，在前面加入資料夾（當作特殊項目）
-            const folders = FolderManager.getFoldersByType(type);
-            const folderAsItems = folders.map(folder => ({
-                id: `folder-${folder.id}`,
-                name: folder.name,
-                isFolder: true,
-                folderId: null,
-                itemCount: folder.itemCount,
-                originalFolderId: folder.id,
-                versions: [{}] // 讓現有邏輯不出錯
-            }));
-            
-            // 資料夾永遠排在最前面（除了自定義排序）
-            if (this.currentSort !== 'custom') {
-                items = [...folderAsItems, ...items];
+            if (currentFolderId) {
+                // 在資料夾內：只顯示該資料夾的項目
+                items = items.filter(item => item.folderId === currentFolderId);
             } else {
-                items = [...folderAsItems, ...items];
+                // 在根目錄：顯示無資料夾的項目
+                items = items.filter(item => !item.folderId);
+                
+                // 🆕 在根目錄時，在前面加入資料夾（當作特殊項目）
+                const folders = FolderManager.getFoldersByType(type);
+                const folderAsItems = folders.map(folder => ({
+                    id: `folder-${folder.id}`,
+                    name: folder.name,
+                    isFolder: true,
+                    folderId: null,
+                    itemCount: folder.itemCount,
+                    originalFolderId: folder.id,
+                    versions: [{}]
+                }));
+                
+                // 資料夾永遠排在最前面（除了自訂排序）
+                if (this.currentSort !== 'custom') {
+                    items = [...folderAsItems, ...items];
+                } else {
+                    items = [...folderAsItems, ...items];
+                }
             }
         }
         
@@ -1490,33 +1498,42 @@ static renderCards(type, folderId = null) {
         // 重新處理數據
         let items = this.getItemsArray(type);
         
-        // 🆕 資料夾篩選邏輯
-        if (currentFolderId) {
-            // 在資料夾內：只顯示該資料夾的項目
-            items = items.filter(item => item.folderId === currentFolderId);
+        // 🆕 檢查是否有標籤篩選
+        const hasTagFilter = this.selectedTags && this.selectedTags.length > 0;
+        
+        if (hasTagFilter) {
+            // 🎯 標籤篩選模式：忽略資料夾結構，顯示所有符合標籤的項目
+            // 不進行資料夾篩選，直接處理所有項目
+            // 也不添加資料夾卡片
         } else {
-            // 在根目錄：顯示無資料夾的項目
-            items = items.filter(item => !item.folderId);
+            // 🎯 正常模式：按資料夾結構篩選
+            const currentFolderId = NavigationManager.getCurrentFolderId();
             
-            // 🆕 在根目錄時，在前面加入資料夾（當作特殊項目）
-            const folders = FolderManager.getFoldersByType(type);
-            // 將資料夾轉換成項目格式，讓現有系統處理
-            const folderAsItems = folders.map(folder => ({
-                id: `folder-${folder.id}`,
-                name: folder.name,
-                isFolder: true,
-                folderId: null, // 資料夾本身在根目錄
-                itemCount: folder.itemCount,
-                originalFolderId: folder.id,
-                versions: [{ [config.imageField]: null }] // 讓現有邏輯不出錯
-            }));
-            
-            // 資料夾永遠排在最前面（除了自定義排序）
-            if (this.currentSort !== 'custom') {
-                items = [...folderAsItems, ...items];
+            if (currentFolderId) {
+                // 在資料夾內：只顯示該資料夾的項目
+                items = items.filter(item => item.folderId === currentFolderId);
             } else {
-                // 自定義排序時也要包含資料夾，但按保存的順序
-                items = [...folderAsItems, ...items];
+                // 在根目錄：顯示無資料夾的項目
+                items = items.filter(item => !item.folderId);
+                
+                // 🆕 在根目錄時，在前面加入資料夾（當作特殊項目）
+                const folders = FolderManager.getFoldersByType(type);
+                const folderAsItems = folders.map(folder => ({
+                    id: `folder-${folder.id}`,
+                    name: folder.name,
+                    isFolder: true,
+                    folderId: null,
+                    itemCount: folder.itemCount,
+                    originalFolderId: folder.id,
+                    versions: [{ [config.imageField]: null }]
+                }));
+                
+                // 資料夾永遠排在最前面（除了自訂排序）
+                if (this.currentSort !== 'custom') {
+                    items = [...folderAsItems, ...items];
+                } else {
+                    items = [...folderAsItems, ...items];
+                }
             }
         }
         
@@ -2391,62 +2408,60 @@ class ContextMenuManager {
             position: fixed;
             background: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: var(--shadow-large);
+            border-radius: 6px;
+            box-shadow: var(--shadow-medium);
             z-index: 10000;
-            min-width: 160px;
+            min-width: 140px;
             padding: 4px 0;
-            font-size: 0.9em;
         `;
         
         menu.innerHTML = `
             <div class="context-menu-item" onclick="ContextMenuManager.renameFolder('${type}', '${folderId}', '${folderName}')"
-                 style="
-                     padding: 8px 16px;
-                     cursor: pointer;
-                     transition: background 0.2s ease;
-                     display: flex;
-                     align-items: center;
-                     gap: 8px;
-                 "
-                 onmouseover="this.style.backgroundColor='var(--bg-color)'"
-                 onmouseout="this.style.backgroundColor='transparent'">
-                <span>✏️</span>
-                <span>${t('renameFolder')}</span>
+                style="
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 0.85em;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: background 0.2s ease;
+                "
+                onmouseover="this.style.background='var(--bg-color)'"
+                onmouseout="this.style.background='transparent'">
+                ${IconManager.edit()} ${t('renameFolder')}
             </div>
             
-            <div style="height: 1px; background: var(--border-color); margin: 4px 0;"></div>
+            <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
             
             <div class="context-menu-item" onclick="ContextMenuManager.dissolveFolder('${type}', '${folderId}', '${folderName}')"
-                 style="
-                     padding: 8px 16px;
-                     cursor: pointer;
-                     transition: background 0.2s ease;
-                     display: flex;
-                     align-items: center;
-                     gap: 8px;
-                     color: var(--warning-color);
-                 "
-                 onmouseover="this.style.backgroundColor='var(--bg-color)'"
-                 onmouseout="this.style.backgroundColor='transparent'">
-                <span>📤</span>
-                <span>${t('dissolveFolder')}</span>
+                style="
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 0.85em;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: background 0.2s ease;
+                "
+                onmouseover="this.style.background='var(--bg-color)'"
+                onmouseout="this.style.background='transparent'">
+                ${IconManager.folderOpen()} ${t('dissolveFolder')}
             </div>
             
             <div class="context-menu-item" onclick="ContextMenuManager.deleteFolder('${type}', '${folderId}', '${folderName}')"
-                 style="
-                     padding: 8px 16px;
-                     cursor: pointer;
-                     transition: background 0.2s ease;
-                     display: flex;
-                     align-items: center;
-                     gap: 8px;
-                     color: var(--danger-color);
-                 "
-                 onmouseover="this.style.backgroundColor='var(--bg-color)'"
-                 onmouseout="this.style.backgroundColor='transparent'">
-                <span>🗑️</span>
-                <span>${t('deleteFolder')}</span>
+                style="
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 0.85em;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: var(--danger-color);
+                    transition: background 0.2s ease;
+                "
+                onmouseover="this.style.background='var(--bg-color)'"
+                onmouseout="this.style.background='transparent'">
+                ${IconManager.delete()} ${t('deleteFolder')}
             </div>
         `;
         

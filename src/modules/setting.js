@@ -768,10 +768,7 @@ function toggleFunctionMenu(event) {
     }
 }
 
-/**
- * 動態生成功能選單的內部 HTML
- * (改用 data-action 屬性，移除 inline onclick)
- */
+
 function generateFunctionMenu() {
     return `
         <div style="background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: var(--shadow-medium); min-width: 140px; padding: 4px 0;">

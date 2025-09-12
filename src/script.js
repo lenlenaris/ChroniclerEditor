@@ -1410,8 +1410,20 @@ function toggleListItemSelection(itemId) {
 
 // 更新列表項目視覺狀態
 function updateListItemVisualState(itemId) {
-    const listItem = document.getElementById(`list-item-${itemId}`);
-    if (!listItem) return;
+    let listItem;
+    if (itemId.startsWith('folder-')) {
+        // 資料夾項目：folder-xxx -> folder-list-item-xxx
+        const realFolderId = itemId.replace('folder-', '');
+        listItem = document.getElementById(`folder-list-item-${realFolderId}`);
+    } else {
+        // 一般項目：保持原有邏輯
+        listItem = document.getElementById(`list-item-${itemId}`);
+    }
+    
+    if (!listItem) {
+        console.warn('找不到列表項目:', itemId);
+        return;
+    }
     
     const isSelected = selectedItems.includes(itemId);
     const checkbox = listItem.querySelector('.list-selection-checkbox');
@@ -1424,9 +1436,16 @@ function updateListItemVisualState(itemId) {
     if (nameElement) {
         if (isSelected) {
             nameElement.style.color = '#66b3ff';
+            nameElement.style.fontWeight = '600';
         } else {
             nameElement.style.color = 'var(--text-color)';
+            nameElement.style.fontWeight = nameElement.classList.contains('folder-name') ? '600' : '500';
         }
+    }
+    
+    const overlay = listItem.querySelector('.selection-overlay');
+    if (overlay) {
+        overlay.style.display = isSelected ? 'block' : 'none';
     }
     
     // 更新邊框和背景
@@ -2550,26 +2569,45 @@ function cancelBatchEdit() {
     }
 }
 
-
 function selectAllItems() {
-    // 獲取當前頁面的所有項目ID（限制100個）
     let allItems = [];
-    
     if (isHomePage) {
-        allItems = characters.slice(0, itemsPerPage);
+        // 首頁：使用 OverviewManager 處理過的項目
+        const processedItems = OverviewManager.processedItems || [];
+        allItems = processedItems.slice(0, OverviewManager.currentlyShown || OverviewManager.itemsPerPage);
     } else if (isListPage) {
-        const itemsArray = OverviewManager.getItemsArray(listPageType);
-        allItems = itemsArray.slice(0, itemsPerPage);
+        // 列表頁：同樣使用處理過的項目
+        const processedItems = OverviewManager.processedItems || [];
+        allItems = processedItems.slice(0, OverviewManager.currentlyShown || OverviewManager.itemsPerPage);
     } else if (!isHomePage && !isListPage && currentMode === 'userpersona' && !ItemManager.getCurrentItemId()) {
-        allItems = userPersonas.slice(0, itemsPerPage);
+        // 玩家角色總覽：使用處理過的項目
+        const processedItems = OverviewManager.processedItems || [];
+        allItems = processedItems.slice(0, OverviewManager.currentlyShown || OverviewManager.itemsPerPage);
     } else if (!isHomePage && !isListPage && currentMode === 'loveydovey' && !ItemManager.getCurrentItemId()) {
-        allItems = loveyDoveyCharacters.slice(0, itemsPerPage);
+        // 卿卿我我總覽：使用處理過的項目
+        const processedItems = OverviewManager.processedItems || [];
+        allItems = processedItems.slice(0, OverviewManager.currentlyShown || OverviewManager.itemsPerPage);
     }
     
-    selectedItems = allItems.map(item => item.id);
+    // 分離資料夾和一般項目，避免混選
+    const folders = allItems.filter(item => item.isFolder);
+    const regularItems = allItems.filter(item => !item.isFolder);
+    
+    // 決定選擇策略：優先選擇一般項目，如果沒有一般項目才選資料夾
+    if (regularItems.length > 0) {
+        // 有一般項目：只選擇一般項目
+        selectedItems = regularItems.map(item => item.id);
+    } else if (folders.length > 0) {
+        // 只有資料夾：選擇資料夾
+        selectedItems = folders.map(item => item.id);
+    } else {
+        // 沒有項目
+        selectedItems = [];
+    }
+    
     updateSelectedCount();
     
-    // 🔧 關鍵修改：列表頁面不要重新渲染，只更新視覺狀態
+    // 🔧 列表頁面不要重新渲染，只更新視覺狀態
     if (isHomePage) {
         // 首頁重新渲染（因為渲染時會考慮 batchEditMode 和 selectedItems）
         OverviewManager.renderCharacters();
