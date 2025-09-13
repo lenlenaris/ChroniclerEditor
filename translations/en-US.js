@@ -90,6 +90,8 @@ window.ChroniclerTranslations['en-US'] = {
     moveToRootComplete: 'Items moved to root directory',
     moveToFolderComplete: 'Items moved to folder',
     folder: 'Folder',
+    folders: 'Folders',
+    files: 'Files',
     pleaseSelectItemsFirst: 'Please select items first',
     renameFolder: 'Rename',
     dissolveFolder: 'Dissolve Folder',

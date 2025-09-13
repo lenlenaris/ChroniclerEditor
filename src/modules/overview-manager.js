@@ -647,10 +647,9 @@ static renderItems(type, containerId) {
         const hasSearchText = searchText && searchText.trim().length > 0;
         
         if (hasTagFilter || hasSearchText) {
-            // 🎯 全域篩選模式：有標籤篩選或搜尋文字時，忽略資料夾結構
-            // 顯示所有符合條件的項目，不添加資料夾卡片
+            // 全域篩選模式：有標籤篩選或搜尋文字時，忽略資料夾結構
         } else {
-            // 🎯 正常模式：按資料夾結構篩選
+            // 正常模式：按資料夾結構篩選
             const currentFolderId = NavigationManager.getCurrentFolderId();
             
             if (currentFolderId) {
@@ -659,25 +658,6 @@ static renderItems(type, containerId) {
             } else {
                 // 在根目錄：顯示無資料夾的項目
                 items = items.filter(item => !item.folderId);
-                
-                // 在根目錄時，在前面加入資料夾（當作特殊項目）
-                const folders = FolderManager.getFoldersByType(type);
-                const folderAsItems = folders.map(folder => ({
-                    id: `folder-${folder.id}`,
-                    name: folder.name,
-                    isFolder: true,
-                    folderId: null,
-                    itemCount: folder.itemCount,
-                    originalFolderId: folder.id,
-                    versions: [{}]
-                }));
-                
-                // 資料夾永遠排在最前面（除了自訂排序）
-                if (this.currentSort !== 'custom') {
-                    items = [...folderAsItems, ...items];
-                } else {
-                    items = [...folderAsItems, ...items];
-                }
             }
         }
         
@@ -687,8 +667,25 @@ static renderItems(type, containerId) {
         this.lastProcessParams = currentParams;
     }
     
-    const itemsToShow = this.processedItems.slice(0, this.currentlyShown);
-    this.isShowingAll = this.currentlyShown >= this.processedItems.length;
+    // 🆕 分離資料夾和檔案
+    const currentFolderId = NavigationManager.getCurrentFolderId();
+    const hasTagFilter = this.selectedTags && this.selectedTags.length > 0;
+    const hasSearchText = searchText && searchText.trim().length > 0;
+    
+    let folders = [];
+    let regularItems = this.processedItems;
+    
+    // 只有在根目錄且無篩選條件時才顯示資料夾
+    if (!currentFolderId && !hasTagFilter && !hasSearchText) {
+        folders = FolderManager.getFoldersByType(type);
+    }
+    
+    // 🆕 渲染資料夾區塊
+    this.renderFoldersSection(folders, type);
+    
+    // 🆕 渲染檔案區塊
+    const itemsToShow = regularItems.slice(0, this.currentlyShown);
+    this.isShowingAll = this.currentlyShown >= regularItems.length;
 
     const htmlParts = [];
     
@@ -705,7 +702,139 @@ static renderItems(type, containerId) {
     container.innerHTML = htmlParts.join('');
     container.style.display = '';
     
+    // 🆕 控制檔案區塊標題顯示
+    this.updateFilesHeaderVisibility(folders.length > 0 && regularItems.length > 0);
+    
     OverviewManager.syncDropdownValue();
+}
+
+// 渲染資料夾區塊
+static renderFoldersSection(folders, type) {
+    const foldersSection = document.getElementById('folders-section');
+    const foldersGrid = document.getElementById('folders-grid');
+    
+    if (!foldersSection || !foldersGrid) return;
+    
+    if (folders.length === 0) {
+        foldersSection.style.display = 'none';
+        return;
+    }
+    
+    // 顯示資料夾區塊
+    foldersSection.style.display = 'block';
+    
+    // 生成資料夾小長條卡片
+    const folderCards = folders.map(folder => this.generateFolderCard(folder, type)).join('');
+    foldersGrid.innerHTML = folderCards;
+}
+
+// 🆕 生成資料夾小長條卡片
+static generateFolderCard(folder, type) {
+    const folderInfo = FolderManager.loadFolderInfo(type, folder.id);
+    const folderName = folderInfo?.name || folder.name;
+    
+    return `
+        <div class="folder-card" 
+            onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('folder-${folder.id}')` : `NavigationManager.enterFolder('${type}', '${folder.id}', '${folderName}')`}"
+            oncontextmenu="ContextMenuManager.showFolderMenu(event, '${type}', '${folder.id}', '${folderName}')"
+            data-folder-id="${folder.id}"
+            id="folder-card-${folder.id}"
+            style="
+                background: var(--surface-color);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 12px 16px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                position: relative;
+                height: 48px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                min-width: 0;
+            "
+            onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
+            onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='var(--surface-color)'">
+            
+            <!-- 選擇框（批量編輯模式下顯示） -->
+            ${batchEditMode || FavoriteManager.isInEditMode() ? `
+                <div style="flex-shrink: 0;">
+                    <input type="checkbox" class="selection-checkbox"
+                        style="width: 16px; height: 16px; cursor: pointer; pointer-events: none;">
+                </div>
+            ` : ''}
+            
+            <!-- 🔧 修正：資料夾圖示和文字垂直置中 -->
+            <div style="
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+            ">
+                ${IconManager.folder({width: 20, height: 20, style: 'color: var(--text-muted);'})}
+            </div>
+            
+            <!-- 資料夾名稱 -->
+            <div style="
+                flex: 1; 
+                min-width: 0; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                white-space: nowrap;
+                font-weight: 500;
+                color: var(--text-color);
+                line-height: 1;
+            ">
+                ${folderName}
+            </div>
+            
+        <!-- 項目數量 -->
+        <div style="
+            flex-shrink: 0;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            line-height: 1;
+        ">
+            ${this.formatItemCount(folder.itemCount)}
+        </div>
+            
+            <!-- 🗑️ 移除：選項按鈕（三個點） -->
+            
+            <!-- 選中覆蓋層 -->
+            <div class="selection-overlay" style="
+                position: absolute; 
+                top: 0; 
+                left: 0; 
+                right: 0; 
+                bottom: 0; 
+                background: rgba(92, 193, 255, 0.4); 
+                border: 3px solid #66b3ff; 
+                border-radius: 8px; 
+                z-index: 5;
+                pointer-events: none;
+                box-sizing: border-box;
+                display: none;
+            "></div>
+        </div>
+    `;
+}
+
+// 格式化項目數量顯示
+static formatItemCount(count) {
+    if (count === 0) {
+        return 'Empty';
+    } else if (count === 1) {
+        return '1 item';
+    } else {
+        return `${count} items`;
+    }
+}
+
+// 控制檔案區塊標題顯示
+static updateFilesHeaderVisibility(shouldShow) {
+    const filesHeader = document.getElementById('files-header');
+    if (filesHeader) {
+        filesHeader.style.display = shouldShow ? 'block' : 'none';
+    }
 }
 
 
@@ -734,6 +863,7 @@ static onDataChange() {
         ContentRenderer.renderLoveyDoveyCards();
         renderSidebar();
     }
+    NavigationManager.updateBreadcrumbOnly();
 }
 
 static generateShowMoreButton(type) {
@@ -1176,21 +1306,21 @@ static renderBreadcrumbNav() {
     // 構建麵包屑內容
     let breadcrumbContent = `
         <span class="sidebar-section-title" style="margin-left: 0;">${currentPageInfo.name}</span>
-        <span style="font-size: 0.8em; color: var(--text-muted); margin-left: 4px; margin-top: 3px;">${totalRootCount}</span>
+        ${totalRootCount > 0 ? `<span style="font-size: 0.8em; color: var(--text-muted); margin-left: 4px; margin-top: 3px;">${totalRootCount}</span>` : ''}
 
     `;
     
     if (isInFolder) {
-        // 🆕 只改這裡：移除 += 改為重新設定，讓資料夾內顯示變成 "角色卡 ／ 資料夾名稱 5"
+        // 修改：0 的時候不顯示數字
         const currentFolderId = NavigationManager.getCurrentFolderId();
         const folderItems = FolderManager.getFolderItems(currentPageInfo.type, currentFolderId);
         const folderCount = folderItems.length;
         
         breadcrumbContent = `
             <span class="sidebar-section-title" style="margin-left: 0;">${currentPageInfo.name}</span>
-            <span style="color: var(--text-muted); margin: 0px;">／</span>
+            <span style="color: var(--text-muted); margin: 0 3px;">/</span>
             <span class="sidebar-section-title" style="margin-left: 0;">${breadcrumbs[1]}</span>
-            <span style="font-size: 0.8em; color: var(--text-muted); margin-left: 4px; margin-top: 3px;">${folderCount}</span>
+            ${folderCount > 0 ? `<span style="font-size: 0.8em; color: var(--text-muted); margin-left: 4px; margin-top: 3px;">${folderCount}</span>` : ''}
 
         `;
     }
@@ -1199,7 +1329,7 @@ static renderBreadcrumbNav() {
         <div style="padding: 0 32px; margin-bottom: 8px;">
             <div class="breadcrumb-nav" style="
     padding: 20px 5px; 
-    font-size: 1em; 
+    font-size: 1.1em; 
     color: var(--text-muted);
     border-bottom: 1px solid var(--border-color);
     height: 32px; 
@@ -1414,7 +1544,7 @@ static renderOverviewLayout(config) {
     const breadcrumbHtml = this.renderBreadcrumbNav();
     
     if (isListPage) {
-        // 列表頁結構
+        // 🆕 修改後的列表頁結構 - 支援分區顯示
         return `
             <div style="max-width: ${maxWidth}; margin: 0 auto; margin-top: 0px; padding: 0px;">
 
@@ -1424,14 +1554,34 @@ static renderOverviewLayout(config) {
                 
                 ${this.renderBatchOperationsBars()}
                 
-                <!-- 項目列表容器 -->
-                <div class="item-list" id="${gridId}" style="padding: 0 32px;">
-                    <!-- 項目會在這裡渲染 -->
+                <!-- 資料夾區塊 -->
+                <div id="folders-section" style="padding: 0 32px; margin-bottom: 24px; display: none;">
+                    <h3 style="color: var(--text-color); margin-left: 5px; margin-bottom: 16px; font-size: 0.9em; font-weight: 600;">
+                        ${t('folders')}
+                    </h3>
+                    <div id="folders-grid" style="
+                        display: grid; 
+                        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+                        gap: 12px;
+                        margin-bottom: 8px;
+                    "></div>
+                </div>
+                
+                <!-- 檔案區塊 -->
+                <div id="files-section" style="padding: 0 32px;">
+                    <div id="files-header" style="display: none; margin-left: 5px; margin-bottom: 16px;">
+                        <h3 style="color: var(--text-color); font-size: 0.9em; font-weight: 600;">
+                            ${t('files')}
+                        </h3>
+                    </div>
+                    <div class="item-list" id="${gridId}">
+                        <!-- 檔案項目會在這裡渲染 -->
+                    </div>
                 </div>
             </div>
         `;
     } else {
-        // 卡片頁結構
+        // 保持原有的卡片頁結構不變
         const gridClass = type === 'loveydovey' ? 'userpersona-grid loveydovey-grid' : 
                          type === 'userpersona' ? 'userpersona-grid' : 'character-grid';
         const minWidth = type === 'loveydovey' ? '220px' : '160px';
@@ -2708,7 +2858,7 @@ class ContextMenuManager {
         if (success) {
             // 重新渲染頁面
             OverviewManager.onDataChange();
-            saveData();
+            saveDataSilent();
             NotificationManager.success(t('folderRenamedSuccess'));
         } else {
             alert(t('folderRenameError'));
@@ -2731,7 +2881,7 @@ class ContextMenuManager {
                 } else {
                     OverviewManager.onDataChange();
                 }
-                saveData();
+                saveDataSilent();
                 NotificationManager.success(t('folderDissolvedSuccess'));
             } else {
                 alert(t('folderDissolveError'));
@@ -2757,7 +2907,7 @@ class ContextMenuManager {
                     } else {
                         OverviewManager.onDataChange();
                     }
-                    saveData();
+                    saveDataSilent();
                     NotificationManager.success(t('folderDeletedSuccess'));
                 } else {
                     alert(t('folderDeleteError'));
@@ -2808,7 +2958,7 @@ function dissolveFoldersOnly() {
     }
     
     OverviewManager.onDataChange();
-    saveData();
+    saveDataSilent();
     
     NotificationManager.success(t('foldersDissolvedSuccess'));
 }
@@ -2863,7 +3013,7 @@ function createNewFolderInBatch() {
     
     // 重新渲染頁面以顯示新資料夾
     OverviewManager.onDataChange();
-    saveData();
+    saveDataSilent();
     
     NotificationManager.success(t('folderCreatedSuccess', folderName.trim()));
 }

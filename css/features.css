@@ -417,6 +417,26 @@
     box-shadow: var(--shadow-light);
 }
 
+/* 總覽控制列 */
+/* 資料夾小長條卡片樣式 */
+
+/* 資料夾網格響應式調整 */
+#folders-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+@media (max-width: 768px) {
+    #folders-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 1200px) {
+    #folders-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
 /* 第5區塊：編輯器頂部控制  */
 /* 角色標題與控制區域 */
 .character-header-bar {

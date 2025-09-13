@@ -90,6 +90,8 @@ window.ChroniclerTranslations['zh-TW'] = {
     moveToRootComplete: '項目已移動到根目錄',
     moveToFolderComplete: '項目已移動到資料夾',
     folder: '資料夾',
+    folders: '資料夾',
+    files: '檔案',
     pleaseSelectItemsFirst: '請先選擇要移動的項目',
     renameFolder: '重新命名',
     dissolveFolder: '解散資料夾',

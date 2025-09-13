@@ -1417,11 +1417,12 @@ function toggleListItemSelection(itemId) {
 function updateListItemVisualState(itemId) {
     let listItem;
     if (itemId.startsWith('folder-')) {
-        // 資料夾項目：folder-xxx -> folder-list-item-xxx
         const realFolderId = itemId.replace('folder-', '');
-        listItem = document.getElementById(`folder-list-item-${realFolderId}`);
+        // 🔧 使用多重查詢確保找到元素
+        listItem = document.querySelector(`[data-folder-id="${realFolderId}"]`) ||
+                   document.getElementById(`folder-list-item-${realFolderId}`) ||
+                   document.getElementById(`list-item-folder-${realFolderId}`);
     } else {
-        // 一般項目：保持原有邏輯
         listItem = document.getElementById(`list-item-${itemId}`);
     }
     
