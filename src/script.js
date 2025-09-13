@@ -634,6 +634,10 @@ class ItemCRUD {
 static add(type) {
     const itemsArray = DataOperations.getItems(type);
     const newItem = DataOperations.createNewItem(type, itemsArray.length);
+    const currentFolderId = NavigationManager.getCurrentFolderId();
+    if (currentFolderId) {
+        newItem.folderId = currentFolderId;
+    }
     
     itemsArray.push(newItem);
     
@@ -769,6 +773,7 @@ static clearCurrentItemIds() {
             id: generateId(),
             name: originalItem.name + t('copyPrefix'),
             isFavorite: false,
+            folderId: originalItem.folderId || null,
             versions: originalItem.versions.map(version => {
                 const clonedVersion = DataOperations.cloneVersion(version, type);
                 clonedVersion.createdAt = TimestampManager.createTimestamp();
@@ -2526,6 +2531,9 @@ function enterListPage(type) {
 
 //  批量編輯功能
 function toggleBatchEditMode() {
+    if (FavoriteManager.isInEditMode()) {
+        FavoriteManager.cancelEdit();
+    }
     batchEditMode = !batchEditMode;
     selectedItems = [];
     
@@ -2535,7 +2543,11 @@ function toggleBatchEditMode() {
     }
     
     updateSelectedCount();
-    
+
+    if (batchEditMode) {
+        updateSelectAllButtonText();
+        updateBatchButtonStates();
+    }
     // 重新渲染列表以顯示/隱藏選擇框
     if (isHomePage) {
         OverviewManager.renderCharacters();
@@ -2556,7 +2568,12 @@ function cancelBatchEdit() {
     if (batchBar) {
         batchBar.style.display = 'none';
     }
-    
+    const dissolveFoldersBtn = document.getElementById('dissolve-folders-btn');
+    if (dissolveFoldersBtn) {
+        dissolveFoldersBtn.disabled = false;
+        dissolveFoldersBtn.style.opacity = '1';
+        dissolveFoldersBtn.style.cursor = 'pointer';
+    }
     // 重新渲染列表以隱藏選擇框
     if (isHomePage) {
         OverviewManager.renderCharacters();
@@ -2570,49 +2587,36 @@ function cancelBatchEdit() {
 }
 
 function selectAllItems() {
+    // 獲取當前頁面的所有項目（限制100個）
     let allItems = [];
+    
     if (isHomePage) {
-        // 首頁：使用 OverviewManager 處理過的項目
-        const processedItems = OverviewManager.processedItems || [];
-        allItems = processedItems.slice(0, OverviewManager.currentlyShown || OverviewManager.itemsPerPage);
+        allItems = characters.slice(0, itemsPerPage);
     } else if (isListPage) {
-        // 列表頁：同樣使用處理過的項目
-        const processedItems = OverviewManager.processedItems || [];
-        allItems = processedItems.slice(0, OverviewManager.currentlyShown || OverviewManager.itemsPerPage);
+        const itemsArray = OverviewManager.getItemsArray(listPageType);
+        allItems = itemsArray.slice(0, itemsPerPage);
     } else if (!isHomePage && !isListPage && currentMode === 'userpersona' && !ItemManager.getCurrentItemId()) {
-        // 玩家角色總覽：使用處理過的項目
-        const processedItems = OverviewManager.processedItems || [];
-        allItems = processedItems.slice(0, OverviewManager.currentlyShown || OverviewManager.itemsPerPage);
+        allItems = userPersonas.slice(0, itemsPerPage);
     } else if (!isHomePage && !isListPage && currentMode === 'loveydovey' && !ItemManager.getCurrentItemId()) {
-        // 卿卿我我總覽：使用處理過的項目
-        const processedItems = OverviewManager.processedItems || [];
-        allItems = processedItems.slice(0, OverviewManager.currentlyShown || OverviewManager.itemsPerPage);
+        allItems = loveyDoveyCharacters.slice(0, itemsPerPage);
     }
     
-    // 分離資料夾和一般項目，避免混選
-    const folders = allItems.filter(item => item.isFolder);
-    const regularItems = allItems.filter(item => !item.isFolder);
+    const currentFolderId = NavigationManager.getCurrentFolderId();
     
-    // 決定選擇策略：優先選擇一般項目，如果沒有一般項目才選資料夾
-    if (regularItems.length > 0) {
-        // 有一般項目：只選擇一般項目
-        selectedItems = regularItems.map(item => item.id);
-    } else if (folders.length > 0) {
-        // 只有資料夾：選擇資料夾
-        selectedItems = folders.map(item => item.id);
+    if (currentFolderId) {
+        allItems = allItems.filter(item => item.folderId === currentFolderId);
     } else {
-        // 沒有項目
-        selectedItems = [];
+        allItems = allItems.filter(item => !item.folderId);
     }
     
+    allItems = allItems.filter(item => !item.isFolder);
+    selectedItems = allItems.map(item => item.id);
     updateSelectedCount();
     
-    // 🔧 列表頁面不要重新渲染，只更新視覺狀態
+    // 更新視覺狀態
     if (isHomePage) {
-        // 首頁重新渲染（因為渲染時會考慮 batchEditMode 和 selectedItems）
         OverviewManager.renderCharacters();
     } else if (isListPage) {
-        // 🔧 列表頁面不重新渲染，直接更新視覺狀態
         selectedItems.forEach(itemId => {
             updateListItemVisualState(itemId);
         });
@@ -2625,6 +2629,10 @@ function selectAllItems() {
 
 function toggleItemSelection(itemId) {
     const isFolder = itemId.startsWith('folder-');
+    if (FavoriteManager.isInEditMode() && isFolder) {
+        alert(t('foldersCannotBeAddedToFavorites'));
+        return;
+    }
     const hasItems = selectedItems.some(id => !id.startsWith('folder-'));
     const hasFolders = selectedItems.some(id => id.startsWith('folder-'));
     
@@ -2690,6 +2698,9 @@ function updateCardVisualState(itemId) {
 function updateSelectedCount() {
     if (batchEditMode) {
         OverviewManager.updateBatchOperationsBar();
+
+        updateSelectAllButtonText();
+        updateBatchButtonStates();
     }
     const favoriteCountElement = document.getElementById('selected-favorite-count');
     if (favoriteCountElement) {

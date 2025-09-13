@@ -644,11 +644,11 @@ static renderItems(type, containerId) {
         let items = this.getItemsArray(type);
         
         const hasTagFilter = this.selectedTags && this.selectedTags.length > 0;
+        const hasSearchText = searchText && searchText.trim().length > 0;
         
-        if (hasTagFilter) {
-            // 🎯 標籤篩選模式：忽略資料夾結構，顯示所有符合標籤的項目
-            // 不進行資料夾篩選，直接處理所有項目
-            // 也不添加資料夾卡片
+        if (hasTagFilter || hasSearchText) {
+            // 🎯 全域篩選模式：有標籤篩選或搜尋文字時，忽略資料夾結構
+            // 顯示所有符合條件的項目，不添加資料夾卡片
         } else {
             // 🎯 正常模式：按資料夾結構篩選
             const currentFolderId = NavigationManager.getCurrentFolderId();
@@ -660,7 +660,7 @@ static renderItems(type, containerId) {
                 // 在根目錄：顯示無資料夾的項目
                 items = items.filter(item => !item.folderId);
                 
-                // 🆕 在根目錄時，在前面加入資料夾（當作特殊項目）
+                // 在根目錄時，在前面加入資料夾（當作特殊項目）
                 const folders = FolderManager.getFoldersByType(type);
                 const folderAsItems = folders.map(folder => ({
                     id: `folder-${folder.id}`,
@@ -1008,6 +1008,7 @@ ${folderName}
         return `
             <div class="list-item" 
                 onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('${item.id}')` : `selectItem('${type}', '${item.id}')`}"
+                oncontextmenu="ContextMenuManager.showItemMenu(event, '${type}', '${item.id}', '${item.name}')"
                 data-item-id="${item.id}"
                 id="list-item-${item.id}"
                 style="
@@ -1166,36 +1167,58 @@ static getItemStats(item, type) {
 static renderBreadcrumbNav() {
     const currentPageInfo = this.getCurrentPageInfo();
     const breadcrumbs = NavigationManager.getBreadcrumbs();
-    
-    // 構建完整路徑
-    const fullPath = [currentPageInfo.name];
-    if (breadcrumbs.length > 1) {
-        fullPath.push(breadcrumbs[1]); // 資料夾名稱
-    }
-    
-    const breadcrumbText = fullPath.join(' / ');
     const isInFolder = NavigationManager.isInFolder();
+    
+    // 獲取根目錄所有項目數量（包含資料夾）
+    const allItems = this.getItemsArray(currentPageInfo.type);
+    const totalRootCount = allItems.length;
+    
+    // 構建麵包屑內容
+    let breadcrumbContent = `
+        <span class="sidebar-section-title" style="margin-left: 0;">${currentPageInfo.name}</span>
+        <span style="font-size: 0.8em; color: var(--text-muted); margin-left: 4px; margin-top: 3px;">${totalRootCount}</span>
+
+    `;
+    
+    if (isInFolder) {
+        // 🆕 只改這裡：移除 += 改為重新設定，讓資料夾內顯示變成 "角色卡 ／ 資料夾名稱 5"
+        const currentFolderId = NavigationManager.getCurrentFolderId();
+        const folderItems = FolderManager.getFolderItems(currentPageInfo.type, currentFolderId);
+        const folderCount = folderItems.length;
+        
+        breadcrumbContent = `
+            <span class="sidebar-section-title" style="margin-left: 0;">${currentPageInfo.name}</span>
+            <span style="color: var(--text-muted); margin: 0px;">／</span>
+            <span class="sidebar-section-title" style="margin-left: 0;">${breadcrumbs[1]}</span>
+            <span style="font-size: 0.8em; color: var(--text-muted); margin-left: 4px; margin-top: 3px;">${folderCount}</span>
+
+        `;
+    }
     
     return `
         <div style="padding: 0 32px; margin-bottom: 8px;">
             <div class="breadcrumb-nav" style="
-                padding: 8px 0; 
-                font-size: 1em; 
-                color: var(--text-muted);
-                border-bottom: 1px solid var(--border-color);
-                ${isInFolder ? 'cursor: pointer;' : 'cursor: default;'}
-                transition: color 0.2s ease;
-                display: flex;
-                align-items: center;
-                gap: 6px;
+    padding: 20px 5px; 
+    font-size: 1em; 
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
+    height: 32px; 
+    line-height: 16px;  
+    box-sizing: border-box; 
+    ${isInFolder ? 'cursor: pointer;' : 'cursor: default;'}
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0px;
+    overflow: hidden; 
             " ${isInFolder ? `onclick="NavigationManager.exitFolder()"` : ''}
             ${isInFolder ? `onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'"` : ''}>
-                <span style="margin-left: 8px;">${breadcrumbText}</span>
-                ${isInFolder ? `<span style="margin-left: 8px; font-size: 0.8em; opacity: 0.7;">${t('clickToReturn')}</span>` : ''}
+                ${breadcrumbContent}
             </div>
         </div>
     `;
 }
+
     // 獲取當前頁面資訊（輕量實現）
     static getCurrentPageInfo() {
         if (isHomePage) {
@@ -1307,7 +1330,7 @@ static renderBreadcrumbNav() {
 static renderBatchOperationsBars() {
     return `
         <!-- 批量操作列（默認隱藏） -->
-        <div id="batch-operations-bar" style="display: ${batchEditMode ? 'block' : 'none'}; padding: 0px 32px; margin-bottom: 16px;">
+        <div id="batch-operations-bar" style="display: ${batchEditMode ? 'block' : 'none'}; padding: 0px 32px; margin-bottom: 28px;">
             <div style="
                 background: var(--surface-color); 
                 border: 1px solid var(--border-color); 
@@ -1319,38 +1342,42 @@ static renderBatchOperationsBars() {
                 font-size: 0.9em;
             ">
                 <div style="color: var(--text-color);">
-                    <span id="selection-type-info"></span>
                     ${t('selectedCount')}<span id="selected-count">0</span>
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <button class="overview-btn hover-primary" onclick="selectAllItems()">
-                        ${t('selectAll')}
+                        <span id="select-all-text">${t('selectAll')}</span>
                     </button>
                     
-                    <button class="overview-btn hover-primary" onclick="cancelBatchEdit()">
-                        ${t('cancel')}
+                    <button class="overview-btn hover-primary" onclick="selectAllFolders()">
+                        ${t('selectAllFolders')}
                     </button>
                     
-                    <!-- 移動到資料夾按鈕 -->
+                    <button class="overview-btn hover-primary" onclick="createNewFolderInBatch()">
+                        ${t('newFolder')}
+                    </button>
+                    
                     <button class="overview-btn hover-primary" onclick="FolderMoveDialog.show()">
-                    ${t('moveToFolder')}
+                        ${t('moveToFolder')}
                     </button>
                     
-                    <!-- 動態刪除按鈕 -->
+                    <button class="overview-btn hover-primary" onclick="dissolveFoldersOnly()" id="dissolve-folders-btn">
+                        ${t('dissolveFolders')}
+                    </button>
+                    
                     <button class="overview-danger-btn" onclick="deleteSelectedItems()" id="delete-button">
                         <span id="delete-button-text">${t('deleteSelected')}</span>
                     </button>
                     
-                    <!-- 解散資料夾按鈕（只在選取資料夾時顯示） -->
-                    <button class="overview-btn hover-primary" onclick="dissolveFoldersOnly()" id="dissolve-button" style="display: none;">
-                        ${t('dissolveFolders')}
+                    <button class="overview-btn hover-primary" onclick="cancelBatchEdit()">
+                        ${t('cancel')}
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- 愛心操作列 -->
-        <div id="favorite-operations-bar" style="display: none; padding: 0px 32px; margin-bottom: 16px;">
+        <div id="favorite-operations-bar" style="display: none; padding: 0px 32px; margin-bottom: 28px;">
             <div style="
                 background: var(--surface-color); 
                 border: 1px solid var(--border-color); 
@@ -1498,15 +1525,12 @@ static renderCards(type, folderId = null) {
         // 重新處理數據
         let items = this.getItemsArray(type);
         
-        // 🆕 檢查是否有標籤篩選
         const hasTagFilter = this.selectedTags && this.selectedTags.length > 0;
+        const hasSearchText = searchText && searchText.trim().length > 0;
         
-        if (hasTagFilter) {
-            // 🎯 標籤篩選模式：忽略資料夾結構，顯示所有符合標籤的項目
-            // 不進行資料夾篩選，直接處理所有項目
-            // 也不添加資料夾卡片
+        if (hasTagFilter || hasSearchText) {
         } else {
-            // 🎯 正常模式：按資料夾結構篩選
+            // 按資料夾結構篩選
             const currentFolderId = NavigationManager.getCurrentFolderId();
             
             if (currentFolderId) {
@@ -1577,103 +1601,155 @@ static generateUnifiedCards(itemList, type, config) {
     return itemList.map((item, index) => {
         if (item.isFolder) {
             return `
-                <div class="home-card folder-card" 
-                    onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('folder-${item.originalFolderId}')` : `NavigationManager.enterFolder('${type}', '${item.originalFolderId}', '${item.name}')`}"
-                    oncontextmenu="ContextMenuManager.showFolderMenu(event, '${type}', '${item.originalFolderId}', '${item.name}')"
-                    data-folder-id="${item.originalFolderId}"
-                    id="folder-card-${item.originalFolderId}"
-                     style="aspect-ratio: ${config.aspectRatio}; width: ${config.width}; transition: all 0.2s ease; position: relative; cursor: pointer;">
-                    
-                    <!-- 資料夾卡片主體 -->
-                    <div style="
-                        flex: 1 1 auto; 
-                        width: 100%; 
-                        height: ${config.height}; 
-                        aspect-ratio: ${config.aspectRatio}; 
-                        border-radius: 5px; 
-                        overflow: hidden; 
-                        background: var(--surface-color); 
-                        border: 2px solid var(--accent-color); 
-                        display: flex; 
-                        flex-direction: column;
-                        align-items: center; 
-                        justify-content: center; 
-                        margin-bottom: 12px; 
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-                        position: relative;
-                    "
-                    onmouseover="this.style.borderColor='var(--primary-color)'; this.style.backgroundColor='var(--bg-color)'"
-                    onmouseout="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--surface-color)'">
-                        
-                    <!-- 資料夾圖示 -->
-                    <div style="
-                        color: var(--accent-color); 
-                        margin-bottom: 8px;
-                        opacity: 0.8;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
+<div class="home-card folder-card" 
+    onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('folder-${item.originalFolderId}')` : `NavigationManager.enterFolder('${type}', '${item.originalFolderId}', '${item.name}')`}"
+    oncontextmenu="ContextMenuManager.showFolderMenu(event, '${type}', '${item.originalFolderId}', '${item.name}')"
+    data-folder-id="${item.originalFolderId}"
+    id="folder-card-${item.originalFolderId}"
+    style="aspect-ratio: ${config.aspectRatio}; width: ${config.width}; transition: all 0.2s ease; position: relative; cursor: pointer;">
+    
+<!-- 第三層卡片（最底層） -->
+<div style="
+    position: absolute;
+    width: 100%; 
+    height: ${config.height}; 
+    aspect-ratio: ${config.aspectRatio}; 
+    border-radius: 5px; 
+    background: transparent;
+    border: 1px solid var(--border-color); 
+    transform: rotate(-3deg) translate(-8px, 3px);
+    z-index: 1;
+    opacity: 0.5;
+    pointer-events: none;
+${(() => {
+    const folderItems = FolderManager.getFolderItems(type, item.originalFolderId);
+    if (folderItems.length >= 3 && folderItems[2] && folderItems[2].versions[0]) {
+        const imageField = type === 'loveydovey' ? 'profileImage' : 'avatar';
+        const imageUrl = folderItems[2].versions[0][imageField];
+        if (imageUrl) {
+            return `background-image: url('${BlobManager.getBlobUrl(imageUrl)}'); background-size: cover; background-position: center;`;
+        }
+    }
+    return '';
+})()}
+"></div>
+    
+<!-- 第二層卡片（中間層） -->
+<div style="
+    position: absolute;
+    width: 100%; 
+    height: ${config.height}; 
+    aspect-ratio: ${config.aspectRatio}; 
+    border-radius: 5px; 
+    background: transparent;
+    border: 1px solid var(--border-color); 
+    transform: rotate(2deg) translate(5px, -4px);
+    z-index: 2;
+    opacity: 0.7;
+    pointer-events: none;
+${(() => {
+    const folderItems = FolderManager.getFolderItems(type, item.originalFolderId);
+    if (folderItems.length >= 2 && folderItems[1] && folderItems[1].versions[0]) {
+        const imageField = type === 'loveydovey' ? 'profileImage' : 'avatar';
+        const imageUrl = folderItems[1].versions[0][imageField];
+        if (imageUrl) {
+            return `background-image: url('${BlobManager.getBlobUrl(imageUrl)}'); background-size: cover; background-position: center;`;
+        }
+    }
+    return '';
+})()}
+"></div>
+    
+<!-- 第一層卡片（最上層，主要內容） -->
+<div style="
+    position: relative;
+    width: 100%; 
+    height: ${config.height}; 
+    aspect-ratio: ${config.aspectRatio}; 
+    border-radius: 5px; 
+    background: transparent;
+    border: 1px solid var(--border-color); 
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center; 
+    z-index: 3;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+${(() => {
+    const folderItems = FolderManager.getFolderItems(type, item.originalFolderId);
+    if (folderItems.length >= 1 && folderItems[0] && folderItems[0].versions[0]) {
+        const imageField = type === 'loveydovey' ? 'profileImage' : 'avatar';
+        const imageUrl = folderItems[0].versions[0][imageField];
+        if (imageUrl) {
+            return `background-image: url('${BlobManager.getBlobUrl(imageUrl)}'); background-size: cover; background-position: center;`;
+        }
+    }
+    return '';
+})()}
+"
+onmouseover="
+    this.style.borderColor='var(--accent-color)'; 
+    this.style.backgroundColor='rgba(255, 255, 255, 0.1)';
+"
+onmouseout="
+    this.style.borderColor='var(--border-color)'; 
+    this.style.backgroundColor='transparent';
+">
+
+        <!-- 選中覆蓋層 -->
+        <div class="selection-overlay" style="
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: rgba(92, 193, 255, 0.4); 
+            border: 3px solid #66b3ff; 
+            border-radius: 5px; 
+            z-index: 5;
+            pointer-events: none;
+            box-sizing: border-box;
+            display: none;
+        "></div>
+
+        <!-- 選取框 -->
+        ${batchEditMode || FavoriteManager.isInEditMode() ? `
+            <div style="position: absolute; top: 8px; left: 8px; z-index: 10;">
+                <input type="checkbox" class="selection-checkbox"
+                    style="
+                        width: 20px; 
+                        height: 20px; 
+                        cursor: pointer; 
+                        pointer-events: none;
+                        background: white;
+                        border: 2px solid #666;
+                        border-radius: 3px;
                     ">
-                        ${IconManager.folder({width: 48, height: 48, strokeWidth: 1, style: 'color: var(--accent-color);'})}
-                    </div>
+            </div>
+        ` : ''}
+    
+        
+    </div>
+    
+<!-- 資料夾名稱 -->
+<div style="text-align: center; padding: 0 8px; margin-top: 12px;">
+    <span class="folder-name" style="
+        font-size: 1em; 
+        color: var(--text-color); 
+        font-weight: 600; 
+        line-height: 1.3; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    ">
+        ${IconManager.folder({width: 16, height: 16, style: 'color: var(--text-muted);'})}
+        ${item.name}
 
-                        <!-- 選取覆蓋層 -->
-                        <div class="selection-overlay" style="
-                            position: absolute; 
-                            top: 0; 
-                            left: 0; 
-                            right: 0; 
-                            bottom: 0; 
-                            background: rgba(92, 193, 255, 0.4); 
-                            border: 3px solid #66b3ff; 
-                            border-radius: 5px; 
-                            z-index: 5;
-                            pointer-events: none;
-                            box-sizing: border-box;
-                            display: none;
-                        "></div>
-
-                        <!-- 🆕 在這裡添加選取框 -->
-                        ${batchEditMode || FavoriteManager.isInEditMode() ? `
-                            <div style="position: absolute; top: 8px; left: 8px; z-index: 10;">
-                                <input type="checkbox" class="selection-checkbox"
-                                    style="
-                                        width: 20px; 
-                                        height: 20px; 
-                                        cursor: pointer; 
-                                        pointer-events: none;
-                                        background: white;
-                                        border: 2px solid #666;
-                                        border-radius: 3px;
-                                    ">
-                            </div>
-                        ` : ''}
-                        
-                        <!-- 項目數量 -->
-                        <div style="
-                            font-size: 0.8em; 
-                            color: var(--text-muted); 
-                            background: var(--border-color);
-                            padding: 2px 8px;
-                            border-radius: 12px;
-                            margin-bottom: 8px;
-                        ">${item.itemCount} ${t('items')}</div>
-                        
-                    </div>
-                    
-                    <!-- 資料夾名稱 -->
-                    <div style="text-align: center; padding: 0 8px;">
-                        <span class="folder-name" style="
-                            font-size: 1em; 
-                            color: var(--text-color); 
-                            font-weight: 600; 
-                            line-height: 1.3; 
-                            display: block;
-                        ">
-                            ${item.name}
-                        </span>
-                    </div>
-                </div>
+    </span>
+</div>
+</div>
             `;
         }
         
@@ -1696,10 +1772,11 @@ static generateUnifiedCards(itemList, type, config) {
         
         return `
             <div class="home-card" 
-                 onclick="${clickAction}"
-                 ${config.dataAttr}="${item.id}"
-                 id="card-${item.id}"
-                 style="aspect-ratio: ${config.aspectRatio}; width: ${config.width}; transition: all 0.2s ease; position: relative; cursor: pointer;">
+                onclick="${clickAction}"
+                oncontextmenu="ContextMenuManager.showItemMenu(event, '${type}', '${item.id}', '${item.name}')"
+                ${config.dataAttr}="${item.id}"
+                id="card-${item.id}"
+                style="aspect-ratio: ${config.aspectRatio}; width: ${config.width}; transition: all 0.2s ease; position: relative; cursor: pointer;">
                 
                 <!-- 卡片主體 -->
                 <div style="
@@ -1843,64 +1920,29 @@ static updateBatchOperationsBar() {
         return;
     }
     
-    // 🧠 簡化版選取分析
+    // 簡化版選擇分析
     const analysis = this.analyzeSelection();
     
-    // 📊 更新選取資訊
+    // 更新選擇計數
     countElement.textContent = analysis.totalCount;
     
     if (typeInfoElement) {
         typeInfoElement.textContent = '';
     }
-    
-    // 🔘 動態更新按鈕
-    this.updateBatchButtons(analysis);
+    if (typeof updateBatchButtonStates === 'function') {
+        updateBatchButtonStates();
+    }
 }
 
-// 新增：動態更新批量操作按鈕
 static updateBatchButtons(analysis) {
-    const batchBar = document.getElementById('batch-operations-bar');
-    if (!batchBar) return;
-    
-    // 找到按鈕容器
-    const buttonsContainer = batchBar.querySelector('div[style*="display: flex; gap: 8px;"]');
-    if (!buttonsContainer) return;
-    
-    // 生成按鈕HTML
-    let buttonsHtml = `
-        <button class="overview-btn hover-primary" onclick="selectAllItems()">
-            ${t('selectAll')}
-        </button>
-        <button class="overview-btn hover-primary" onclick="cancelBatchEdit()">
-            ${t('cancel')}
-        </button>
-        <button class="overview-btn hover-primary" onclick="FolderMoveDialog.show()">
-         ${t('moveToFolder')}
-        </button>
-    `;
-    
-    // 🎯 關鍵：只在純資料夾選取時顯示解散按鈕
-    if (analysis.hasFolders && !analysis.hasItems) {
-        buttonsHtml += `
-            <button class="overview-btn hover-primary" onclick="dissolveFoldersOnly()">
-                ${t('dissolveFolders')}
-            </button>
-        `;
+    const deleteButtonText = document.getElementById('delete-button-text');
+    if (deleteButtonText) {
+        if (analysis.hasFolders && !analysis.hasItems) {
+            deleteButtonText.textContent = t('deleteFolders');
+        } else {
+            deleteButtonText.textContent = t('deleteSelected');
+        }
     }
-    
-    // 刪除按鈕（動態文字）
-    let deleteButtonText = t('deleteSelected');
-    if (analysis.hasFolders && !analysis.hasItems) {
-        deleteButtonText = t('deleteFolders');
-    }
-    
-    buttonsHtml += `
-        <button class="overview-danger-btn" onclick="deleteSelectedItems()">
-            ${deleteButtonText}
-        </button>
-    `;
-    
-    buttonsContainer.innerHTML = buttonsHtml;
 }
 
 // 分析當前選取項目
@@ -1979,10 +2021,13 @@ class FolderManager {
     
     // 取得所有資料夾（從項目中推斷）
     static getFoldersByType(type) {
+        const savedFolders = this.getAllSavedFolders(type);
+        // 獲取有項目的資料夾ID
         const itemsArray = DataOperations.getItems(type);
         const folderIds = [...new Set(itemsArray.map(item => item.folderId).filter(Boolean))];
+        const allFolderIds = [...new Set([...savedFolders.map(f => f.id), ...folderIds])];
         
-        return folderIds.map(folderId => {
+        return allFolderIds.map(folderId => {
             const folderInfo = this.loadFolderInfo(type, folderId);
             const items = this.getFolderItems(type, folderId);
             
@@ -1994,6 +2039,28 @@ class FolderManager {
                 isFolder: true
             };
         });
+    }
+
+    static getAllSavedFolders(type) {
+        const folders = [];
+        const prefix = `characterCreator-folder-${type}-`;
+        
+        // 遍歷 localStorage 找到所有該類型的資料夾
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+                try {
+                    const folderData = JSON.parse(localStorage.getItem(key));
+                    if (folderData) {
+                        folders.push(folderData);
+                    }
+                } catch (error) {
+                    console.warn('讀取資料夾資料失敗:', key, error);
+                }
+            }
+        }
+        
+        return folders;
     }
     
     // 儲存資料夾資訊（只存名稱等基本資料）
@@ -2049,7 +2116,6 @@ class FolderManager {
             ItemCRUD.remove(type, item.id, true);
         });
         
-        // 刪除資料夾資訊
         const key = `characterCreator-folder-${type}-${folderId}`;
         localStorage.removeItem(key);
         
@@ -2172,124 +2238,99 @@ class FolderMoveDialog {
     }
     
     static createDialog(type, existingFolders) {
-        // 創建遮罩層
-        const overlay = document.createElement('div');
-        overlay.id = 'folder-move-overlay';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        `;
-        
-        // 創建對話框內容
-        const dialog = document.createElement('div');
-        dialog.style.cssText = `
-            background: var(--surface-color);
-            border-radius: 12px;
-            padding: 24px;
-            min-width: 400px;
-            max-width: 500px;
-            box-shadow: var(--shadow-large);
-            border: 1px solid var(--border-color);
-        `;
-        
-        dialog.innerHTML = `
-            <div style="margin-bottom: 20px;">
-                <h3 style="margin: 0 0 16px 0; color: var(--text-color); font-size: 1.2em;">
-                    ${t('selectTargetFolder')}
-                </h3>
-                <p style="margin: 0; color: var(--text-muted); font-size: 0.9em;">
-                    ${this.generateMoveDescription()}
-                </p>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <!-- 新增資料夾選項 -->
-                <div class="folder-option" onclick="FolderMoveDialog.createNewFolder('${type}')" 
-                     style="
-                         padding: 12px;
-                         border: 1px solid var(--border-color);
-                         border-radius: 8px;
-                         margin-bottom: 8px;
-                         cursor: pointer;
-                         transition: all 0.2s ease;
-                         display: flex;
-                         align-items: center;
-                         gap: 12px;
-                     "
-                     onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
-                     onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
-                    <span style="font-size: 1.2em;">➕</span>
-                    <span style="color: var(--accent-color); font-weight: 500;">${t('createNewFolder')}</span>
+        // 使用 ModalManager 創建 compact-modal 樣式
+        const content = `
+            <div class="compact-modal-content" style="max-width: 500px;">
+                <div class="compact-modal-header" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        ${IconManager.arrowRight({width: 18, height: 18})}
+                        <h3 class="compact-modal-title">${t('selectTargetFolder')}</h3>
+                    </div>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
                 </div>
                 
-            <!-- 移動到根目錄選項 -->
-            <div class="folder-option" onclick="FolderMoveDialog.moveToRoot('${type}')" 
-                style="
-                    padding: 12px;
-                    border: 1px solid var(--border-color);
-                    border-radius: 8px;
-                    margin-bottom: 8px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                "
-                onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
-                onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
-                <span style="font-size: 1.2em;">🏠</span>
-                <span style="color: var(--text-color);">${t('moveToRoot')}</span>
-            </div>
-                
-                <!-- 現有資料夾列表 -->
-                ${existingFolders.map(folder => `
-                    <div class="folder-option" onclick="FolderMoveDialog.moveToFolder('${type}', '${folder.id}')" 
-                         style="
-                             padding: 12px;
-                             border: 1px solid var(--border-color);
-                             border-radius: 8px;
-                             margin-bottom: 8px;
-                             cursor: pointer;
-                             transition: all 0.2s ease;
-                             display: flex;
-                             align-items: center;
-                             gap: 12px;
-                             justify-content: space-between;
-                         "
-                         onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
-                         onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <span style="font-size: 1.2em;">📁</span>
-                            <span style="color: var(--text-color);">${folder.name}</span>
-                        </div>
-                        <span style="color: var(--text-muted); font-size: 0.85em;">${folder.itemCount} ${t('items')}</span>
+                <p class="compact-modal-desc" style="text-align: left;">
+                    ${this.generateMoveDescription()}
+                </p>
+
+                <div class="compact-section" style="text-align: left; padding: 0;">
+                    <!-- 新增資料夾選項 -->
+                    <div class="folder-option" onclick="FolderMoveDialog.createNewFolder('${type}')" 
+                        style="
+                            padding: 12px;
+                            border: 1px solid var(--border-color);
+                            border-radius: 8px;
+                            margin-bottom: 8px;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                        "
+                        onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
+                        onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
+                        ${IconManager.plus({width: 16, height: 16})}
+                        <span style="color: var(--accent-color); font-weight: 500;">${t('createNewFolder')}</span>
                     </div>
-                `).join('')}
-            </div>
-            
-            <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                <button class="overview-btn hover-primary" onclick="FolderMoveDialog.close()">
-                    ${t('cancel')}
-                </button>
+                    
+                    <!-- 移動到根目錄選項 -->
+                    <div class="folder-option" onclick="FolderMoveDialog.moveToRoot('${type}')" 
+                        style="
+                            padding: 12px;
+                            border: 1px solid var(--border-color);
+                            border-radius: 8px;
+                            margin-bottom: 8px;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                        "
+                        onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
+                        onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
+                        ${IconManager.home({width: 16, height: 16})}
+                        <span style="color: var(--text-color);">${t('moveToRoot')}</span>
+                    </div>
+                    
+                    <!-- 現有資料夾列表 -->
+                    ${existingFolders.map(folder => `
+                        <div class="folder-option" onclick="FolderMoveDialog.moveToFolder('${type}', '${folder.id}')" 
+                            style="
+                                padding: 12px;
+                                border: 1px solid var(--border-color);
+                                border-radius: 8px;
+                                margin-bottom: 8px;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                                display: flex;
+                                align-items: center;
+                                gap: 12px;
+                                justify-content: space-between;
+                            "
+                            onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
+                            onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                ${IconManager.folder({width: 16, height: 16})}
+                                <span style="color: var(--text-color);">${folder.name}</span>
+                            </div>
+                            <span style="color: var(--text-muted); font-size: 0.85em;">${folder.itemCount} ${t('items')}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="compact-modal-footer">
+                    <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">
+                        ${t('cancel')}
+                    </button>
+                </div>
             </div>
         `;
         
-        overlay.appendChild(dialog);
-        document.body.appendChild(overlay);
-        
-        // 點擊遮罩關閉
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                this.close();
-            }
+        const modal = ModalManager.create({
+            title: '',
+            content: content,
+            footer: '',
+            maxWidth: '500px'
         });
     }
 
@@ -2314,42 +2355,43 @@ class FolderMoveDialog {
         this.moveToFolder(type, folderId);
     }
     
-static moveToRoot(type) {
-    const isSelectingFolders = selectedItems[0]?.startsWith('folder-');
-    
-    if (isSelectingFolders) {
-        // 選取的是資料夾：解散
-        selectedItems.forEach(selectedId => {
-            const realFolderId = selectedId.replace('folder-', '');
-            FolderManager.dissolveFolder(type, realFolderId);
-        });
-        this.onMoveComplete(type, t('foldersDissolvedToRootComplete'));
-    } else {
-        // 選取的是一般項目：移動到根目錄
-        FolderManager.moveItemsToFolder(type, selectedItems, null);
-        this.onMoveComplete(type, t('moveToRootComplete'));
+    static moveToRoot(type) {
+        const isSelectingFolders = selectedItems[0]?.startsWith('folder-');
+        
+        if (isSelectingFolders) {
+            let totalMovedItems = 0;
+            selectedItems.forEach(selectedId => {
+                const realFolderId = selectedId.replace('folder-', '');
+                const folderItems = FolderManager.getFolderItems(type, realFolderId);
+                const itemIds = folderItems.map(item => item.id);
+                
+                FolderManager.moveItemsToFolder(type, itemIds, null);
+                totalMovedItems += itemIds.length;
+            });
+            this.onMoveComplete(type, t('folderContentsMovedToRootComplete'));
+        } else {
+            FolderManager.moveItemsToFolder(type, selectedItems, null);
+            this.onMoveComplete(type, t('moveToRootComplete'));
+        }
     }
-}
     
 static moveToFolder(type, folderId) {
     const isSelectingFolders = selectedItems[0]?.startsWith('folder-');
     
     if (isSelectingFolders) {
-        // 選取的是資料夾：解散並移動內容
         let totalMovedItems = 0;
         selectedItems.forEach(selectedId => {
             const realFolderId = selectedId.replace('folder-', '');
             const folderItems = FolderManager.getFolderItems(type, realFolderId);
             const itemIds = folderItems.map(item => item.id);
-            
+
             FolderManager.moveItemsToFolder(type, itemIds, folderId);
-            FolderManager.dissolveFolder(type, realFolderId);
             totalMovedItems += itemIds.length;
         });
         
         const folderInfo = FolderManager.loadFolderInfo(type, folderId);
         const folderName = folderInfo?.name || t('folder');
-        this.onMoveComplete(type, t('foldersDissolvedAndMovedComplete', totalMovedItems, folderName));
+        this.onMoveComplete(type, t('folderContentsMovedComplete', totalMovedItems, folderName));
     } else {
         // 選取的是一般項目：直接移動
         FolderManager.moveItemsToFolder(type, selectedItems, folderId);
@@ -2375,13 +2417,21 @@ static moveToFolder(type, folderId) {
         OverviewManager.onDataChange();
         
         // 儲存資料
-        saveData();
+        saveDataSilent();
         
         // 顯示成功訊息
         NotificationManager.success(message);
     }
     
     static close() {
+        // 處理新的 ModalManager 創建的模態框
+        const modal = document.querySelector('.modal');
+        if (modal) {
+            modal.remove();
+            return;
+        }
+        
+        // 處理舊的模態框結構（向下兼容）
         const overlay = document.getElementById('folder-move-overlay');
         if (overlay) {
             overlay.remove();
@@ -2395,6 +2445,9 @@ class ContextMenuManager {
     
     // 顯示資料夾右鍵選單
     static showFolderMenu(event, type, folderId, folderName) {
+        if (batchEditMode || FavoriteManager.isInEditMode()) {
+            return;
+        }
         event.preventDefault();
         event.stopPropagation();
         
@@ -2429,6 +2482,21 @@ class ContextMenuManager {
                 onmouseover="this.style.background='var(--bg-color)'"
                 onmouseout="this.style.background='transparent'">
                 ${IconManager.edit()} ${t('renameFolder')}
+            </div>
+
+            <div class="context-menu-item" onclick="ContextMenuManager.moveItem('${type}', 'folder-${folderId}')"
+                style="
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 0.85em;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: background 0.2s ease;
+                "
+                onmouseover="this.style.background='var(--bg-color)'"
+                onmouseout="this.style.background='transparent'">
+                ${IconManager.arrowRight()} ${t('organise')}
             </div>
             
             <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
@@ -2479,6 +2547,154 @@ class ContextMenuManager {
         setTimeout(() => {
             document.addEventListener('click', this.handleOutsideClick, true);
         }, 0);
+    }
+
+    static showItemMenu(event, type, itemId, itemName) {
+        if (batchEditMode || FavoriteManager.isInEditMode()) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        
+        // 移除現有選單
+        this.removeMenu();
+        
+        // 創建選單
+        const menu = document.createElement('div');
+        menu.id = 'context-menu';
+        menu.style.cssText = `
+            position: fixed;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: var(--shadow-medium);
+            z-index: 10000;
+            min-width: 140px;
+            padding: 4px 0;
+        `;
+        
+        menu.innerHTML = `
+            <div class="context-menu-item" onclick="ContextMenuManager.toggleFavorite('${type}', '${itemId}')"
+                style="
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 0.85em;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: background 0.2s ease;
+                "
+                onmouseover="this.style.background='var(--bg-color)'"
+                onmouseout="this.style.background='transparent'">
+                ${IconManager.heart()} ${t('toggleFavorite')}
+            </div>
+
+            <div class="context-menu-item" onclick="ContextMenuManager.moveItem('${type}', '${itemId}')"
+                style="
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 0.85em;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: background 0.2s ease;
+                "
+                onmouseover="this.style.background='var(--bg-color)'"
+                onmouseout="this.style.background='transparent'">
+                ${IconManager.arrowRight()} ${t('moveToFolder')}
+            </div>
+            
+            <div class="context-menu-item" onclick="ContextMenuManager.copyItem('${type}', '${itemId}')"
+                style="
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 0.85em;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: background 0.2s ease;
+                "
+                onmouseover="this.style.background='var(--bg-color)'"
+                onmouseout="this.style.background='transparent'">
+                ${IconManager.copy()} ${t('rightClickCopy')}
+            </div>
+            
+            <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
+            
+            <div class="context-menu-item" onclick="ContextMenuManager.deleteItem('${type}', '${itemId}', '${itemName}')"
+                style="
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 0.85em;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    color: var(--danger-color);
+                    transition: background 0.2s ease;
+                "
+                onmouseover="this.style.background='var(--bg-color)'"
+                onmouseout="this.style.background='transparent'">
+                ${IconManager.delete()} ${t('rightClickDelete')}
+            </div>
+        `;
+        
+        // 計算選單位置
+        const x = Math.min(event.clientX, window.innerWidth - 200);
+        const y = Math.min(event.clientY, window.innerHeight - 150);
+        
+        menu.style.left = x + 'px';
+        menu.style.top = y + 'px';
+        
+        document.body.appendChild(menu);
+        this.currentMenu = menu;
+        
+        // 點擊其他地方關閉選單
+        setTimeout(() => {
+            document.addEventListener('click', this.handleOutsideClick, true);
+        }, 0);
+    }
+
+    // 移動項目
+    static moveItem(type, itemId) {
+        this.removeMenu();
+        
+        // 設定選中項目並顯示移動對話框
+        selectedItems = [itemId];
+        FolderMoveDialog.show();
+    }
+
+    // 切換最愛狀態
+    static toggleFavorite(type, itemId) {
+        this.removeMenu();
+        FavoriteManager.toggleItemFavorite(type, itemId);
+        
+        // 立即重新渲染當前頁面以顯示變更
+        if (isHomePage) {
+            OverviewManager.renderCharacters();
+        } else if (isListPage) {
+            OverviewManager.renderItems(listPageType, `${listPageType}-list`);
+        } else if (currentMode === 'userpersona' && !ItemManager.getCurrentItemId()) {
+            ContentRenderer.renderUserPersonaCards();
+        } else if (currentMode === 'loveydovey' && !ItemManager.getCurrentItemId()) {
+            ContentRenderer.renderLoveyDoveyCards();
+        }
+        
+        // 同時更新側邊欄顯示
+        if (typeof renderSidebar === 'function') {
+            renderSidebar();
+        }
+    }
+
+    // 複製項目  
+    static copyItem(type, itemId) {
+        this.removeMenu();
+        ItemCRUD.copy(type, itemId);
+    }
+
+    // 刪除項目
+    static deleteItem(type, itemId, itemName) {
+        this.removeMenu();
+        ItemCRUD.remove(type, itemId);
     }
     
     // 重新命名資料夾
@@ -2595,4 +2811,141 @@ function dissolveFoldersOnly() {
     saveData();
     
     NotificationManager.success(t('foldersDissolvedSuccess'));
+}
+
+function selectAllFolders() {
+    // 獲取當前頁面類型
+    const currentType = isHomePage ? 'character' : 
+                       isListPage ? listPageType :
+                       currentMode === 'userpersona' ? 'userpersona' :
+                       currentMode === 'loveydovey' ? 'loveydovey' : 'character';
+    
+    // 只在根目錄才有資料夾可選
+    if (NavigationManager.getCurrentFolderId()) {
+        alert(t('noFoldersInSubfolder'));
+        return;
+    }
+    
+    // 獲取所有資料夾ID
+    const folders = FolderManager.getFoldersByType(currentType);
+    const folderIds = folders.map(folder => `folder-${folder.id}`);
+    
+    if (folderIds.length === 0) {
+        alert(t('noFoldersToSelect'));
+        return;
+    }
+    
+    selectedItems = folderIds;
+    updateSelectedCount();
+    
+    // 更新視覺狀態
+    folderIds.forEach(folderId => {
+        if (isHomePage || currentMode === 'userpersona' || currentMode === 'loveydovey') {
+            // 卡片模式
+            updateCardVisualState(folderId);
+        } else if (isListPage) {
+            // ➕ **新增** 列表模式
+            updateListItemVisualState(folderId);
+        }
+    });
+}
+
+function createNewFolderInBatch() {
+    const folderName = prompt(t('enterFolderName'));
+    if (!folderName || !folderName.trim()) return;
+    
+    const currentType = isHomePage ? 'character' : 
+                       isListPage ? listPageType :
+                       currentMode === 'userpersona' ? 'userpersona' :
+                       currentMode === 'loveydovey' ? 'loveydovey' : 'character';
+    
+    const folderId = FolderManager.createFolder(currentType, folderName.trim());
+    
+    // 重新渲染頁面以顯示新資料夾
+    OverviewManager.onDataChange();
+    saveData();
+    
+    NotificationManager.success(t('folderCreatedSuccess', folderName.trim()));
+}
+
+function updateSelectAllButtonText() {
+    const selectAllTextElement = document.getElementById('select-all-text');
+    if (!selectAllTextElement) return;
+    
+    // 根據當前頁面類型動態設置文字
+    let buttonText = t('selectAll');
+    
+    if (isHomePage || (currentMode === 'character' && !ItemManager.getCurrentItemId())) {
+        buttonText = t('selectAllCharacters');
+    } else if (currentMode === 'userpersona' && !ItemManager.getCurrentItemId()) {
+        buttonText = t('selectAllCharacters'); // 玩家角色也用角色
+    } else if (currentMode === 'loveydovey' && !ItemManager.getCurrentItemId()) {
+        buttonText = t('selectAllCharacters'); // 卿卿我我也用角色
+    } else if (isListPage) {
+        if (listPageType === 'worldbook') {
+            buttonText = t('selectAllWorldBooks');
+        } else if (listPageType === 'custom') {
+            buttonText = t('selectAllNotebooks');
+        }
+    }
+    
+    selectAllTextElement.textContent = buttonText;
+}
+
+function updateBatchButtonStates() {
+    const analysis = OverviewManager.analyzeSelection();
+    const newFolderBtn = document.querySelector('button[onclick="createNewFolderInBatch()"]');
+    if (newFolderBtn) {
+        if (selectedItems.length > 0) {
+            // 有選取項目時禁用
+            newFolderBtn.disabled = true;
+            newFolderBtn.style.opacity = '0.5';
+            newFolderBtn.style.cursor = 'not-allowed';
+            newFolderBtn.title = t('deselectToCreateFolder'); // 需要新增翻譯
+        } else {
+            // 沒有選取項目時啟用
+            newFolderBtn.disabled = false;
+            newFolderBtn.style.opacity = '1';
+            newFolderBtn.style.cursor = 'pointer';
+            newFolderBtn.title = t('newFolder');
+        }
+    }
+    
+    // 解散資料夾按鈕狀態
+    const dissolveFoldersBtn = document.getElementById('dissolve-folders-btn');
+    if (dissolveFoldersBtn) {
+        if (analysis.hasFolders && !analysis.hasItems) {
+            // 只選中資料夾時啟用
+            dissolveFoldersBtn.disabled = false;
+            dissolveFoldersBtn.style.opacity = '1';
+            dissolveFoldersBtn.style.cursor = 'pointer';
+        } else {
+            // 其他情況變灰
+            dissolveFoldersBtn.disabled = true;
+            dissolveFoldersBtn.style.opacity = '0.5';
+            dissolveFoldersBtn.style.cursor = 'not-allowed';
+        }
+    }
+    
+    // 移動按鈕 - 有選中項目時才能用
+    const moveBtn = document.querySelector('button[onclick="FolderMoveDialog.show()"]');
+    if (moveBtn) {
+        if (selectedItems.length > 0) {
+            moveBtn.disabled = false;
+            moveBtn.style.opacity = '1';
+        } else {
+            moveBtn.disabled = true;
+            moveBtn.style.opacity = '0.5';
+        }
+    }
+    
+    // 刪除按鈕文字動態更新
+    const deleteButtonText = document.getElementById('delete-button-text');
+    if (deleteButtonText) {
+        if (analysis.hasFolders && !analysis.hasItems) {
+            deleteButtonText.textContent = t('deleteFolders');
+        } else {
+            deleteButtonText.textContent = t('deleteSelected');
+        }
+    }
 }
