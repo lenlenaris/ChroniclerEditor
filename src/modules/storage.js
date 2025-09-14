@@ -101,17 +101,13 @@ async function saveDataSilent() {
 
 async function loadData() {
     try {
-        // åˆå§‹åŒ– IndexedDB
         const dbInitialized = await characterDB.init();
         
         if (dbInitialized) {
-            // æª¢æŸ¥æ˜¯å¦éœ€è¦é·ç§» localStorage è³‡æ–™
             const isMigrated = await characterDB.checkMigrationStatus();
             if (!isMigrated) {
                 await characterDB.migrateFromLocalStorage();
             }
-
-            // å¾ž IndexedDB è¼‰å…¥è³‡æ–™
             characters = await characterDB.loadCharacters();
             customSections = await characterDB.loadCustomSections();
             worldBooks = await characterDB.loadWorldBooks();
@@ -120,7 +116,6 @@ async function loadData() {
             
             
         } else {
-            // é™ç´šåˆ° localStorage
             const saved = localStorage.getItem('characterCreatorData');
             if (saved) {
                 characters = JSON.parse(saved);
@@ -141,7 +136,7 @@ async function loadData() {
                 worldBooks = JSON.parse(savedWorldBooks);
             }
 
-            const savedUserPersonas = localStorage.getItem('characterCreatorUserPersonas');  //  æ–°å¢ž
+            const savedUserPersonas = localStorage.getItem('characterCreatorUserPersonas'); 
             if (savedUserPersonas) {
                 userPersonas = JSON.parse(savedUserPersonas);
             }
@@ -159,7 +154,6 @@ async function loadData() {
             }
         });
 
-        // è¨­å®šåˆå§‹ç‹€æ…‹ - ä¿æŒé¦–é ç‹€æ…‹ï¼Œä¸è‡ªå‹•é¸æ“‡ä»»ä½•é …ç›®
         isHomePage = true;
         currentCharacterId = null;
         currentVersionId = null;
@@ -173,51 +167,54 @@ async function loadData() {
         currentLoveyDoveyVersionId = null;
         
         markAsSaved();
-        // é·ç§»èˆŠè³‡æ–™çš„æ™‚é–“æˆ³
+
+        // 遷移舊資料的時間戳
         TimestampManager.migrateOldData();
 
-        // æ¢å¾©æ‰€æœ‰é …ç›®çš„ç‰ˆæœ¬æŽ’åº
-try {
-    [
-        { type: 'character', items: characters },
-        { type: 'worldbook', items: worldBooks },
-        { type: 'custom', items: customSections },
-        { type: 'loveydovey', items: loveyDoveyCharacters } 
-    ].forEach(({ type, items }) => {
-        items.forEach(item => {
-            const savedVersionOrder = DragSortManager.loadVersionOrder(type, item.id);
-            if (savedVersionOrder) {
-                DragSortManager.applyVersionOrder(type, item.id, savedVersionOrder);
-            }
-        });
-    });
-    
-} catch (error) {
-    console.warn('æ¢å¾©ç‰ˆæœ¬æŽ’åºå¤±æ•—:', error);
-}
-        
-        // é¡¯ç¤ºå„²å­˜ç©ºé–“è³‡è¨Š
+        // 恢復所有項目的版本排序 
+        try {
+            [
+                { type: 'character', items: characters },
+                { type: 'worldbook', items: worldBooks },
+                { type: 'custom', items: customSections },
+                { type: 'loveydovey', items: loveyDoveyCharacters } 
+            ].forEach(({ type, items }) => {
+                items.forEach(item => {
+                    const savedVersionOrder = DragSortManager.loadVersionOrder(type, item.id);
+                    if (savedVersionOrder) {
+                        DragSortManager.applyVersionOrder(type, item.id, savedVersionOrder);
+                    }
+                });
+            });
+        } catch (error) {
+            console.warn('恢復版本排序失敗:', error);
+        }
+
+        // 恢復所有類型的自定義【項目】排序
+        try {
+            console.log('正在應用儲存的自定義項目排序...');
+            ['character', 'userpersona', 'loveydovey', 'worldbook', 'custom'].forEach(type => {
+                DragSortManager.applySavedOrder(type);
+            });
+        } catch(error) {
+            console.warn('🥺 恢復自定義項目排序失敗:', error);
+        }
+
+        // 顯示儲存空間資訊
         showStorageInfo();
         
     } catch (error) {
-        console.error('è¼‰å…¥è³‡æ–™å¤±æ•—ï¼š', error);
-        // ç¢ºä¿æœ‰åŸºæœ¬è³‡æ–™çµæ§‹
         characters = characters || [];
         customSections = customSections || [];
         worldBooks = worldBooks || [];
         loveyDoveyCharacters = loveyDoveyCharacters || [];
     }
 
-      //  åˆå§‹åŒ– Token ç·©å­˜ç®¡ç†å™¨
     TokenCacheManager.init();
-    
-    //  å®šæœŸæ¸…ç†éŽæœŸç·©å­˜
-    TokenCacheManager.cleanup();
-    
+    TokenCacheManager.cleanup(); 
     
 }
 
- // IndexedDB ç®¡ç†å™¨
     class CharacterDB {
     constructor() {
         this.db = null;
@@ -226,7 +223,6 @@ try {
         this.isSupported = 'indexedDB' in window;
     }
 
-    // åˆå§‹åŒ–è³‡æ–™åº«
     async init() {
         if (!this.isSupported) {
             

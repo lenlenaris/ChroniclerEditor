@@ -9,10 +9,15 @@ class OverviewManager {
     static isShowingAll = false; 
     static lastProcessParams = null;
 
-   static initialize() {
+static initialize() {
     const savedSort = localStorage.getItem('characterCreator-sortPreference');
     if (savedSort) {
         this.currentSort = savedSort;
+        console.log(`[OverviewManager.initialize] 從 localStorage 恢復排序設定為: "${this.currentSort}"`);
+    } else {
+        // 如果沒有儲存的設定，就用預設值
+        this.currentSort = 'created-desc'; 
+        console.log(`[OverviewManager.initialize] 未找到儲存的排序設定，使用預設值: "${this.currentSort}"`);
     }
     
     const savedTags = localStorage.getItem('characterCreator-selectedTags');
@@ -25,13 +30,9 @@ class OverviewManager {
         }
     }
     
-    // 如果是自定義排序，確保載入保存的順序
-    if (this.currentSort === 'custom') {
-        DragSortManager.applySavedOrder('character');
-    }
-    
-    // 同步下拉選單顯示值
-    this.syncDropdownValue();
+    setTimeout(() => {
+        this.syncDropdownValue();
+    }, 0);
 }
 
 // 修正 OverviewManager.renderOverview 函數，加強事件綁定處理
@@ -468,6 +469,9 @@ static calculateItemTotalTokensWithType(item, type) {
 }
     
 static applySorting(sortValue) {
+    console.log(`%c[applySorting] 被呼叫，傳入的值是: "${sortValue}"`, 'background: #ffc107; color: black;');
+    console.log(`[applySorting] 呼叫前的 this.currentSort 是: "${this.currentSort}"`);
+
     this.currentSort = sortValue;
     this.saveSortPreference(sortValue);
     
@@ -476,7 +480,9 @@ static applySorting(sortValue) {
     this.lastProcessParams = null; // 強制重新處理
     
     // 如果切換到非自定義排序，清除自定義排序
+/*
     if (sortValue !== 'custom') {
+        console.warn(`[applySorting] 偵測到非 custom 排序，準備清除自定義排序...`);
         if (isHomePage) {
             DragSortManager.clearCustomOrder('character');
         } else if (isListPage) {
@@ -486,6 +492,7 @@ static applySorting(sortValue) {
             DragSortManager.clearCustomOrder('loveydovey');
         }
     }
+*/
     
     this.syncDropdownValue();
     
@@ -505,6 +512,7 @@ static applySorting(sortValue) {
         renderSidebar();
     }
 }
+
     // 添加自定義排序方法
     static enableCustomSort() {
         this.currentSort = 'custom';
@@ -982,48 +990,65 @@ static showMoreItems(type) {
     });
 }
 
-    static sortItems(itemList, type) {
-        const folders = itemList.filter(item => item.isFolder);
-        const regularItems = itemList.filter(item => !item.isFolder);
+static sortItems(itemList, type) {
+    // 1. 永遠先把資料夾和常規項目分開
+    const folders = itemList.filter(item => item.isFolder || (item.id && item.id.startsWith('folder-')));
+    const regularItems = itemList.filter(item => !item.isFolder && (!item.id || !item.id.startsWith('folder-')));
+    
+    // 2. 處理自定義排序（它只對常規項目有效）
+    if (this.currentSort === 'custom') {
+        // 在自定義排序模式下，讓資料夾預設按名稱排序，保持整潔
+        folders.sort((a, b) => a.name.localeCompare(b.name));
         
-        if (this.currentSort === 'custom') {
-            const savedOrder = DragSortManager.loadCustomOrder(type);
-            if (savedOrder && savedOrder.length > 0) {
-                const ordered = [];
-                savedOrder.forEach(id => {
-                    const item = itemList.find(i => i.id === id);
-                    if (item) ordered.push(item);
-                });
-                
-                itemList.forEach(item => {
-                    if (!savedOrder.includes(item.id)) {
-                        ordered.push(item);
-                    }
-                });
-                
-                return ordered;
-            }
+        const savedOrder = DragSortManager.loadCustomOrder(type);
+        if (savedOrder && savedOrder.length > 0) {
+            const orderedItems = [];
+            
+            // A. 只對 regularItems 進行排序
+            savedOrder.forEach(id => {
+                const item = regularItems.find(i => i.id === id);
+                if (item) orderedItems.push(item);
+            });
+            
+            // B. 將不在排序列表中的新項目（非資料夾）添加到後面
+            regularItems.forEach(item => {
+                if (!savedOrder.includes(item.id)) {
+                    orderedItems.push(item);
+                }
+            });
+            
+            // C. 最後，將排序好的資料夾放在最前面，後面跟著自定義排序的項目
+            return [...folders, ...orderedItems];
         }
-        
-        const sorted = regularItems.sort((a, b) => {
-            switch (this.currentSort) {
-                case 'name-asc': return a.name.localeCompare(b.name);
-                case 'name-desc': return b.name.localeCompare(a.name);
-                case 'time-desc': return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
-                case 'time-asc': return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0);
-                case 'created-desc': return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-                case 'created-asc': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
-                case 'tokens-desc': 
-                    return this.calculateItemMaxTokens(b, type) - this.calculateItemMaxTokens(a, type);
-                case 'tokens-asc': 
-                    return this.calculateItemMaxTokens(a, type) - this.calculateItemMaxTokens(b, type);
-                default: return 0;
-            }
-        });
-        
-        const sortedWithFavorites = this.applyFavoritePriority(sorted);
-        return [...folders, ...sortedWithFavorites];
     }
+    
+    // 3. 建立一個通用的排序器，用於所有標準排序
+    const sorter = (a, b) => {
+        switch (this.currentSort) {
+            case 'name-asc': return a.name.localeCompare(b.name);
+            case 'name-desc': return b.name.localeCompare(a.name);
+            case 'time-desc': return new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0);
+            case 'time-asc': return new Date(a.updatedAt || a.createdAt || 0) - new Date(b.updatedAt || b.createdAt || 0);
+            case 'created-desc': return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            case 'created-asc': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+            case 'tokens-desc': 
+                return this.calculateItemMaxTokens(b, type) - this.calculateItemMaxTokens(a, type);
+            case 'tokens-asc': 
+                return this.calculateItemMaxTokens(a, type) - this.calculateItemMaxTokens(b, type);
+            default: return 0;
+        }
+    };
+    
+    // 4. 分別對資料夾和常規項目進行排序
+    const sortedFolders = folders.sort(sorter);
+    const sortedItems = regularItems.sort(sorter);
+    
+    // 5. 對排序後的常規項目套用「最愛優先」
+    const sortedItemsWithFavorites = this.applyFavoritePriority(sortedItems);
+    
+    // 6. 組合最終結果
+    return [...sortedFolders, ...sortedItemsWithFavorites];
+}
 
 static calculateItemMaxTokens(item, type) {
     if (!item || !item.versions || item.versions.length === 0) return 0;

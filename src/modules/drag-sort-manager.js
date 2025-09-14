@@ -113,7 +113,7 @@ class DragSortManager {
         return sortable;
     }
 
-    // 處理重新排序
+// 處理重新排序
 static handleReorder(type, container, itemSelector, evt, onReorder) {
     // 🚀 立即處理數據更新，不等待動畫
     const items = Array.from(container.querySelectorAll(itemSelector))
@@ -124,18 +124,16 @@ static handleReorder(type, container, itemSelector, evt, onReorder) {
     // 🚀 立即應用新排序到數據
     this.applyNewOrder(type, newOrder);
     
-    // 🚀 立即切換到自定義排序模式（無延遲）
-    if (type === 'character' || type === 'userpersona') {  //  添加玩家角色支援
-        OverviewManager.currentSort = 'custom';
-        OverviewManager.saveSortPreference('custom');
+    // 🚀 【核心修改】立即切換到自定義排序模式並儲存這個偏好
+    OverviewManager.currentSort = 'custom';
+    OverviewManager.saveSortPreference('custom'); // 確保 'custom' 被寫入 localStorage
         
-        // 立即更新下拉選單顯示
-        const dropdown = document.querySelector('.sort-dropdown');
-        if (dropdown) dropdown.value = 'custom';
-        
-        //  立即同步側邊欄排序（支援所有類型）
-        this.syncSidebarOrder(type);
-    }
+    // 立即更新下拉選單顯示
+    const dropdown = document.querySelector('.overview-sort-dropdown') || document.querySelector('.sort-dropdown');
+    if (dropdown) dropdown.value = 'custom';
+    
+    //  立即同步側邊欄排序（支援所有類型）
+    this.syncSidebarOrder(type);
     
     // 🚀 使用 requestAnimationFrame 優化重新渲染時機
     if (onReorder) {
@@ -144,8 +142,6 @@ static handleReorder(type, container, itemSelector, evt, onReorder) {
             onReorder(newOrder, evt.oldIndex, evt.newIndex);
         });
     }
-    
-    
 }
 
     //  同步側邊欄排序（支援所有類型）
@@ -564,7 +560,9 @@ static applyNewOrder(type, newOrder) {
     // 💾 保存自定義排序偏好
     static saveCustomOrder(type, orderedIds) {
         const key = `characterCreator-customOrder-${type}`;
-        localStorage.setItem(key, JSON.stringify(orderedIds));
+        const value = JSON.stringify(orderedIds);
+        console.log(`%c[saveCustomOrder] 正在儲存 ${type} 的排序...`, 'color: #28a745;', { key: key, value: value });
+        localStorage.setItem(key, value);
     }
 
     // 📖 載入自定義排序偏好
@@ -574,32 +572,50 @@ static applyNewOrder(type, newOrder) {
         return saved ? JSON.parse(saved) : null;
     }
 
-    // 🎯 應用保存的排序（在數據載入後調用）
+// 🎯 應用保存的排序（在數據載入後調用）
 static applySavedOrder(type) {
+    console.log(`[applySavedOrder] 正在嘗試為 ${type} 套用儲存的排序...`);
     const savedOrder = this.loadCustomOrder(type);
+    
     if (savedOrder && savedOrder.length > 0) {
+        console.log(`[applySavedOrder] 找到 ${type} 的儲存順序:`, savedOrder);
+        
+        let targetArray;
         switch (type) {
             case 'character':
+                targetArray = characters;
+                console.log(`[applySavedOrder] 套用前 characters 順序 (前5項):`, characters.slice(0, 5).map(c => c.id));
                 this.reorderArray(characters, savedOrder);
+                console.log(`[applySavedOrder] 套用後 characters 順序 (前5項):`, characters.slice(0, 5).map(c => c.id));
                 break;
             case 'userpersona':
+                targetArray = userPersonas;
                 this.reorderArray(userPersonas, savedOrder);
                 break;
             case 'worldbook':
+                targetArray = worldBooks;
                 this.reorderArray(worldBooks, savedOrder);
                 break;
             case 'custom':
+                targetArray = customSections;
                 this.reorderArray(customSections, savedOrder);
                 break;
+            case 'loveydovey':
+                targetArray = loveyDoveyCharacters;
+                this.reorderArray(loveyDoveyCharacters, savedOrder);
+                break;
         }
+    } else {
+        console.log(`[applySavedOrder] 未找到 ${type} 的儲存順序。`);
     }
 }
 
-    // 清除自定義排序
-    static clearCustomOrder(type) {
-        const key = `characterCreator-customOrder-${type}`;
-        localStorage.removeItem(key);
-    }
+// 清除自定義排序
+static clearCustomOrder(type) {
+    const key = `characterCreator-customOrder-${type}`;
+    console.warn(`%c[clearCustomOrder] 正在清除 ${type} 的自定義排序！`, 'color: #dc3545;', { key: key });
+    localStorage.removeItem(key);
+}
 
     // 🎯 銷毀特定容器的 Sortable 實例
     static destroySortable(containerSelector) {
@@ -677,58 +693,34 @@ if (document.querySelector('#worldBookContent')) {
         }, 200);
     }
 
-    //  專門為列表頁面初始化拖曳功能
+//  專門為列表頁面初始化拖曳功能
 static initializeListPageDragSort(pageType) {
+    const containerSelector = `#${pageType}-list`;
+    const container = document.querySelector(containerSelector);
     
-    
-    if (pageType === 'worldbook') {
-        const container = document.querySelector('#worldbook-list');
-        
-        
-        if (container) {
-            const items = container.querySelectorAll('.list-item:not(.add-item-card)');
-            
-            
-            this.enableDragSort({
-                containerSelector: '#worldbook-list',
-                itemSelector: '.list-item:not(.add-item-card)',
-                type: 'worldbook',
-                mode: 'list',
-                onReorder: () => {
-    
-    OverviewManager.enableCustomSort();
-    const dropdown = document.querySelector('.sort-dropdown');
-    if (dropdown) dropdown.value = 'custom';
-    
-    //  重新渲染列表和側邊欄
-    OverviewManager.renderItems('worldbook', 'worldbook-list');
-    renderSidebar(); // 同步更新側邊欄
-}
-            });
-        }
-    } else if (pageType === 'custom') {
-        const container = document.querySelector('#custom-list');
-        
-        
-        if (container) {
-            const items = container.querySelectorAll('.list-item:not(.add-item-card)');
-            
-            
-            this.enableDragSort({
-                containerSelector: '#custom-list',
-                itemSelector: '.list-item:not(.add-item-card)',
-                type: 'custom',
-                mode: 'list',
-                onReorder: () => {
-    
-    OverviewManager.enableCustomSort();
-    const dropdown = document.querySelector('.sort-dropdown');
-    if (dropdown) dropdown.value = 'custom';
-    OverviewManager.renderItems('custom', 'custom-list');
-    renderSidebar(); // 同步更新側邊欄
-}
-            });
-        }
+    if (container) {
+        this.enableDragSort({
+            containerSelector: containerSelector,
+            itemSelector: '.list-item:not(.add-item-card)',
+            type: pageType, // 使用動態的 pageType
+            mode: 'list',
+            onReorder: () => {
+                // 1. 啟用自定義排序模式
+                OverviewManager.enableCustomSort();
+                
+                // 2. 更新下拉選單的顯示值 (使用更通用的選擇器)
+                const dropdown = document.querySelector('.overview-sort-dropdown') || document.querySelector('.sort-dropdown');
+                if (dropdown) {
+                    dropdown.value = 'custom';
+                }
+                
+                // 3. 根據正確的 pageType 重新渲染列表和側邊欄
+                OverviewManager.renderItems(pageType, containerSelector);
+                if (typeof renderSidebar === 'function') {
+                    renderSidebar();
+                }
+            }
+        });
     }
 }
 
