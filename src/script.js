@@ -2611,6 +2611,21 @@ function selectAllItems() {
     }
     
     allItems = allItems.filter(item => !item.isFolder);
+    
+    // 🆕 清空之前的選擇（確保互斥）
+    if (selectedItems.length > 0) {
+        // 清除之前選中項目的視覺狀態
+        selectedItems.forEach(itemId => {
+            if (isHomePage || currentMode === 'userpersona' || currentMode === 'loveydovey') {
+                // 卡片模式
+                clearCardVisualState(itemId);
+            } else if (isListPage) {
+                // 列表模式
+                clearListItemVisualState(itemId);
+            }
+        });
+    }
+    
     selectedItems = allItems.map(item => item.id);
     updateSelectedCount();
     
@@ -2626,6 +2641,73 @@ function selectAllItems() {
     } else if (currentMode === 'loveydovey') {
         ContentRenderer.renderLoveyDoveyCards();
     }
+}
+
+// 清除卡片視覺狀態
+function clearCardVisualState(itemId) {
+    const card = document.getElementById(`card-${itemId}`) || 
+                 document.querySelector(`[data-character-id="${itemId}"]`) ||
+                 document.querySelector(`[data-persona-id="${itemId}"]`) ||
+                 document.getElementById(`folder-card-${itemId.replace('folder-', '')}`); 
+    
+    if (!card) return;
+    
+    const overlay = card.querySelector('.selection-overlay');
+    const checkbox = card.querySelector('.selection-checkbox');
+    const nameElement = card.querySelector('.character-name, .persona-name, .folder-name'); 
+    
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+    
+    if (checkbox) {
+        checkbox.checked = false;
+    }
+    
+    if (nameElement) {
+        nameElement.style.color = 'var(--text-color)';
+        nameElement.style.fontWeight = nameElement.classList.contains('folder-name') ? '600' : '500'; 
+    }
+}
+
+// 清除列表項目視覺狀態
+function clearListItemVisualState(itemId) {
+    let listItem;
+    if (itemId.startsWith('folder-')) {
+        const realFolderId = itemId.replace('folder-', '');
+        // 🔧 使用多重查詢確保找到元素
+        listItem = document.querySelector(`[data-folder-id="${realFolderId}"]`) ||
+                   document.getElementById(`folder-list-item-${realFolderId}`) ||
+                   document.getElementById(`list-item-folder-${realFolderId}`);
+    } else {
+        listItem = document.getElementById(`list-item-${itemId}`);
+    }
+    
+    if (!listItem) {
+        console.warn('找不到列表項目:', itemId);
+        return;
+    }
+    
+    const checkbox = listItem.querySelector('.list-selection-checkbox');
+    const nameElement = listItem.querySelector('.list-item-name');
+    const overlay = listItem.querySelector('.selection-overlay');
+    
+    if (checkbox) {
+        checkbox.checked = false;
+    }
+    
+    if (nameElement) {
+        nameElement.style.color = 'var(--text-color)';
+        nameElement.style.fontWeight = nameElement.classList.contains('folder-name') ? '600' : '500';
+    }
+    
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+    
+    // 恢復預設邊框和背景
+    listItem.style.borderColor = 'var(--border-color)';
+    listItem.style.backgroundColor = 'var(--surface-color)';
 }
 
 function toggleItemSelection(itemId) {

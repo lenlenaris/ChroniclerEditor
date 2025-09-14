@@ -996,31 +996,29 @@ static sortItems(itemList, type) {
     const regularItems = itemList.filter(item => !item.isFolder && (!item.id || !item.id.startsWith('folder-')));
     
     // 2. 處理自定義排序（它只對常規項目有效）
-    if (this.currentSort === 'custom') {
-        // 在自定義排序模式下，讓資料夾預設按名稱排序，保持整潔
-        folders.sort((a, b) => a.name.localeCompare(b.name));
+if (this.currentSort === 'custom') {
+    folders.sort((a, b) => a.name.localeCompare(b.name));
+    
+    const savedOrder = DragSortManager.loadCustomOrder(type);
+    if (savedOrder && savedOrder.length > 0) {
+        const orderedItems = [];
         
-        const savedOrder = DragSortManager.loadCustomOrder(type);
-        if (savedOrder && savedOrder.length > 0) {
-            const orderedItems = [];
-            
-            // A. 只對 regularItems 進行排序
-            savedOrder.forEach(id => {
-                const item = regularItems.find(i => i.id === id);
-                if (item) orderedItems.push(item);
-            });
-            
-            // B. 將不在排序列表中的新項目（非資料夾）添加到後面
-            regularItems.forEach(item => {
-                if (!savedOrder.includes(item.id)) {
-                    orderedItems.push(item);
-                }
-            });
-            
-            // C. 最後，將排序好的資料夾放在最前面，後面跟著自定義排序的項目
-            return [...folders, ...orderedItems];
-        }
+        savedOrder.forEach(id => {
+            const item = regularItems.find(i => i.id === id);
+            if (item) orderedItems.push(item);
+        });
+        
+        regularItems.forEach(item => {
+            if (!savedOrder.includes(item.id)) {
+                orderedItems.push(item);
+            }
+        });
+        
+        return [...folders, ...orderedItems];
     }
+    // 🆕 沒有儲存的排序時，保持當前順序並應用最愛優先
+    return [...folders, ...this.applyFavoritePriority(regularItems)];
+}
     
     // 3. 建立一個通用的排序器，用於所有標準排序
     const sorter = (a, b) => {
@@ -3010,6 +3008,20 @@ function selectAllFolders() {
         return;
     }
     
+    // 🆕 清空之前的選擇（確保互斥）
+    if (selectedItems.length > 0) {
+        // 清除之前選中項目的視覺狀態
+        selectedItems.forEach(itemId => {
+            if (isHomePage || currentMode === 'userpersona' || currentMode === 'loveydovey') {
+                // 卡片模式
+                clearCardVisualState(itemId);
+            } else if (isListPage) {
+                // 列表模式
+                clearListItemVisualState(itemId);
+            }
+        });
+    }
+    
     selectedItems = folderIds;
     updateSelectedCount();
     
@@ -3019,7 +3031,7 @@ function selectAllFolders() {
             // 卡片模式
             updateCardVisualState(folderId);
         } else if (isListPage) {
-            // ➕ **新增** 列表模式
+            // 列表模式
             updateListItemVisualState(folderId);
         }
     });

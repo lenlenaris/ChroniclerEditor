@@ -113,31 +113,34 @@ class DragSortManager {
         return sortable;
     }
 
-// 處理重新排序
+
+// ===== 替換整個 DragSortManager.handleReorder() 函數 =====
 static handleReorder(type, container, itemSelector, evt, onReorder) {
-    // 🚀 立即處理數據更新，不等待動畫
+    // 🆕 第一步：立即設定為自定義排序模式
+    OverviewManager.currentSort = 'custom';
+    OverviewManager.saveSortPreference('custom');
+    
+    // 立即更新下拉選單顯示
+    const dropdown = document.querySelector('.overview-sort-dropdown') || document.querySelector('.sort-dropdown');
+    if (dropdown) dropdown.value = 'custom';
+    
+    // 🚀 立即處理資料更新
     const items = Array.from(container.querySelectorAll(itemSelector))
         .filter(el => !el.getAttribute('onclick')?.includes('addCharacterFromHome'));
     
     const newOrder = items.map(item => this.extractItemData(item, type));
     
-    // 🚀 立即應用新排序到數據
+    // 🚀 應用新排序到資料
     this.applyNewOrder(type, newOrder);
     
-    // 🚀 【核心修改】立即切換到自定義排序模式並儲存這個偏好
-    OverviewManager.currentSort = 'custom';
-    OverviewManager.saveSortPreference('custom'); // 確保 'custom' 被寫入 localStorage
-        
-    // 立即更新下拉選單顯示
-    const dropdown = document.querySelector('.overview-sort-dropdown') || document.querySelector('.sort-dropdown');
-    if (dropdown) dropdown.value = 'custom';
+    // 🆕 強制清除 OverviewManager 的快取
+    OverviewManager.invalidateCache();
     
-    //  立即同步側邊欄排序（支援所有類型）
+    // 🚀 立即同步側邊欄排序
     this.syncSidebarOrder(type);
     
     // 🚀 使用 requestAnimationFrame 優化重新渲染時機
     if (onReorder) {
-        // 延遲到下一幀，讓 SortableJS 的動畫先完成
         requestAnimationFrame(() => {
             onReorder(newOrder, evt.oldIndex, evt.newIndex);
         });
@@ -359,8 +362,14 @@ static updateVersionUI(type, itemId) {
     
 }
 
-    // 🔍 提取項目數據
+
 static extractItemData(item, type) {
+    // 🆕 優先檢查資料夾
+    const folderId = item.getAttribute('data-folder-id');
+    if (folderId) {
+        return { id: `folder-${folderId}`, element: item };
+    }
+    
     switch (type) {
         case 'character':
             const characterOnClick = item.getAttribute('onclick');
@@ -390,12 +399,10 @@ static extractItemData(item, type) {
         case 'custom':
             const onClickAttr = item.getAttribute('onclick');
             if (onClickAttr) {
-                //  支援列表頁面的 selectItem 調用
                 if (onClickAttr.includes('selectItem')) {
                     const match = onClickAttr.match(/selectItem\([^,]+,\s*'([^']+)'/);
                     return { id: match ? match[1] : null, element: item };
                 }
-                // 支援側邊欄的 toggleItemVersions 調用
                 else if (onClickAttr.includes('toggleItemVersions')) {
                     const match = onClickAttr.match(/'([^']+)'/);
                     return { id: match ? match[1] : null, element: item };
@@ -404,7 +411,6 @@ static extractItemData(item, type) {
             break;
             
         case 'worldbook-entry':
-            // 世界書條目：從 data-entry-id 屬性提取 ID
             const entryId = item.getAttribute('data-entry-id');
             return { id: entryId, element: item };
     }
@@ -533,21 +539,31 @@ static applyNewOrder(type, newOrder) {
     markAsChanged();
 }
 
-    // 🔄 重新排序陣列
     static reorderArray(sourceArray, orderedIds) {
         const reorderedArray = [];
+        const folderIds = [];
+        const regularIds = [];
         
-        // 按照新順序添加項目
+        // 🆕 分離資料夾 ID 和一般項目 ID
         orderedIds.forEach(id => {
+            if (id.startsWith('folder-')) {
+                folderIds.push(id);
+            } else {
+                regularIds.push(id);
+            }
+        });
+        
+        // 只對一般項目進行重新排序
+        regularIds.forEach(id => {
             const item = sourceArray.find(item => item.id === id);
             if (item) {
                 reorderedArray.push(item);
             }
         });
 
-        // 添加不在排序列表中的項目（新項目）
+        // 添加不在排序列表中的新項目
         sourceArray.forEach(item => {
-            if (!orderedIds.includes(item.id)) {
+            if (!regularIds.includes(item.id)) {
                 reorderedArray.push(item);
             }
         });
