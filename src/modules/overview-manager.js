@@ -1859,16 +1859,7 @@ ${(() => {
         }
     }
     return '';
-})()}
-"
-onmouseover="
-    this.style.borderColor='var(--accent-color)'; 
-    this.style.backgroundColor='rgba(255, 255, 255, 0.1)';
-"
-onmouseout="
-    this.style.borderColor='var(--border-color)'; 
-    this.style.backgroundColor='transparent';
-">
+})()}">
 
         <!-- 選中覆蓋層 -->
         <div class="selection-overlay" style="

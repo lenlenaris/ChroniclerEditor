@@ -283,15 +283,21 @@ class ExportManager {
     }
 }
 
-    //匯出完整備份
-    static exportAllData() {
-        const exportData = {
+//匯出完整備份
+static exportAllData() {
+    // 收集所有類型的資料夾資訊
+    const folders = this.collectAllFolderData();
+    
+    const exportData = {
         // 所有資料
         characters: characters,
         customSections: customSections,
         worldBooks: worldBooks,
         userPersonas: userPersonas,
         loveyDoveyCharacters: loveyDoveyCharacters,
+        
+        // 🆕 資料夾資訊
+        folders: folders,
         
         // 所有設定
         settings: {
@@ -310,11 +316,45 @@ class ExportManager {
         
         // 元資料
         exportDate: new Date().toISOString(),
-        version: '2.0.0' 
+        version: '2.1.0'  // 🔧 版本號升級，表示支援資料夾
     };
     
     const filename = `chronicler_complete_backup_${new Date().toISOString().split('T')[0]}.json`;
     FileDownloader.downloadJSON(exportData, filename);
+}
+
+// 收集所有資料夾資訊
+static collectAllFolderData() {
+    const folders = {};
+    const supportedTypes = ['character', 'userpersona', 'loveydovey', 'worldbook', 'custom'];
+    
+    supportedTypes.forEach(type => {
+        // 收集該類型的所有資料夾
+        const typeFolders = [];
+        const prefix = `characterCreator-folder-${type}-`;
+        
+        // 遍歷 localStorage 找到該類型的所有資料夾
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(prefix)) {
+                try {
+                    const folderData = JSON.parse(localStorage.getItem(key));
+                    if (folderData) {
+                        typeFolders.push(folderData);
+                    }
+                } catch (error) {
+                    console.warn('讀取資料夾資料失敗:', key, error);
+                }
+            }
+        }
+        
+        // 如果該類型有資料夾，就加入到匯出資料中
+        if (typeFolders.length > 0) {
+            folders[type] = typeFolders;
+        }
+    });
+    
+    return folders;
 }
 
     /**
@@ -918,7 +958,7 @@ return `
         
         const gradient = ctx.createLinearGradient(0, 0, 0, 600);
         gradient.addColorStop(0, '#f7f5f3');
-        gradient.addColorStop(1, '#e2e8f0');
+        gradient.addColorStop(1, '#CEDAE9');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, 400, 600);
         
@@ -2355,6 +2395,14 @@ setTimeout(() => {
                 localStorage.setItem('characterCreator-selectedTags', data.settings.selectedTags);
             }
         }
+
+        // 恢復資料夾結構
+        if (data.folders) {
+            console.log('檢測到資料夾資訊，開始恢復資料夾結構...');
+            this.restoreAllFolders(data.folders);
+        } else {
+            console.log('此備份不包含資料夾資訊（可能是舊版備份）');
+        }
         
         // 第三階段：重置狀態變數
         currentCharacterId = characters[0]?.id || null;
@@ -2472,6 +2520,31 @@ setTimeout(() => {
         return { ...baseEntry, ...extraProperties };
     }
 
+    // 恢復所有資料夾結構
+    static restoreAllFolders(foldersData) {
+        let totalRestored = 0;
+        
+        // 遍歷每個類型的資料夾
+        Object.keys(foldersData).forEach(type => {
+            const typeFolders = foldersData[type];
+            if (Array.isArray(typeFolders)) {
+                typeFolders.forEach(folderInfo => {
+                    try {
+                        // 重建資料夾到 localStorage
+                        const key = `characterCreator-folder-${type}-${folderInfo.id}`;
+                        localStorage.setItem(key, JSON.stringify(folderInfo));
+                        totalRestored++;
+                    } catch (error) {
+                        console.warn(`恢復資料夾失敗 ${type}/${folderInfo.id}:`, error);
+                    }
+                });
+            }
+        });
+        
+        console.log(`成功恢復 ${totalRestored} 個資料夾`);
+        return totalRestored;
+    }
+
     // 統一的錯誤處理和通知
     static showError(message) {
         NotificationManager.error(message);
@@ -2576,7 +2649,8 @@ setTimeout(() => {
                         key.startsWith('drag-sort-') ||  
                         key.startsWith('version-sort-') ||   
                         key.startsWith('textarea-height-') || 
-                        key.startsWith('loveydovey-collapse-') 
+                        key.startsWith('loveydovey-collapse-') ||
+                        key.startsWith('characterCreator-folder-') 
                     )) {
                         keysToRemove.push(key);
                     }
