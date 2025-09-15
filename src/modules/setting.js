@@ -719,6 +719,17 @@ function handleMenuAction(event) {
                 case 'exportAllData': exportAllData(); break;
                 case 'importAllData': importAllData(); break;
                 case 'showClearDataConfirm': showClearDataConfirm(); break;
+                
+                // 🔧 新增：手機版專用的模態框處理
+                case 'showColorPickerOnMobile': 
+                    openModalOnMobile(() => showColorPicker()); 
+                    break;
+                case 'showOtherSettingsOnMobile': 
+                    openModalOnMobile(() => showOtherSettings()); 
+                    break;
+                case 'showClearDataConfirmOnMobile': 
+                    openModalOnMobile(() => showClearDataConfirm()); 
+                    break;
             }
         } catch (error) {
             console.error("執行選單動作時出錯:", action, error);
@@ -773,10 +784,10 @@ function generateFunctionMenu() {
     return `
         <div style="background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: var(--shadow-medium); min-width: 140px; padding: 4px 0;">
             <!-- 介面設定 -->
-            <div class="function-option" data-action="showColorPicker" style="padding: 8px 12px; cursor: pointer; font-size: 0.85em; display: flex; align-items: center; gap: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='var(--bg-color)'" onmouseout="this.style.background='transparent'">
+            <div class="function-option" data-action="showColorPickerOnMobile" style="padding: 8px 12px; cursor: pointer; font-size: 0.85em; display: flex; align-items: center; gap: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='var(--bg-color)'" onmouseout="this.style.background='transparent'">
                 ${IconManager.palette()} ${t('customInterface')}
             </div>
-            <div class="function-option" data-action="showOtherSettings" style="padding: 8px 12px; cursor: pointer; font-size: 0.85em; display: flex; align-items: center; gap: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='var(--bg-color)'" onmouseout="this.style.background='transparent'">
+            <div class="function-option" data-action="showOtherSettingsOnMobile" style="padding: 8px 12px; cursor: pointer; font-size: 0.85em; display: flex; align-items: center; gap: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='var(--bg-color)'" onmouseout="this.style.background='transparent'">
                 ${IconManager.settings()} ${t('otherSettings')}
             </div>
             
@@ -799,14 +810,12 @@ function generateFunctionMenu() {
             <div class="function-option" data-action="importAllData" style="padding: 8px 12px; cursor: pointer; font-size: 0.85em; display: flex; align-items: center; gap: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='var(--bg-color)'" onmouseout="this.style.background='transparent'">
                 ${IconManager.import()} ${t('importData')}
             </div>
-            <div class="function-option" data-action="showClearDataConfirm" style="padding: 8px 12px; cursor: pointer; font-size: 0.85em; display: flex; align-items: center; gap: 8px; color: var(--danger-color); transition: background 0.2s ease;" onmouseover="this.style.background='var(--bg-color)'" onmouseout="this.style.background='transparent'">
+            <div class="function-option" data-action="showClearDataConfirmOnMobile" style="padding: 8px 12px; cursor: pointer; font-size: 0.85em; display: flex; align-items: center; gap: 8px; color: var(--danger-color); transition: background 0.2s ease;" onmouseover="this.style.background='var(--bg-color)'" onmouseout="this.style.background='transparent'">
                 ${IconManager.delete()} ${t('clearAllData')}
             </div>
         </div>
     `;
 }
-
-
 
 // 搜尋功能
 function handleSearchInput(searchValue) {
