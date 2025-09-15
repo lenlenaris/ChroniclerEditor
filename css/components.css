@@ -171,6 +171,95 @@
     font-size: var(--font-sm);
 }
 
+/* 世界書複製按鈕樣式 */
+.copy-btn {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.copy-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* 卿卿我我新增按鈕樣式 */
+.loveydovey-add-btn {
+    width: 100%;
+    background: var(--header-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-color);
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    outline: none;
+}
+
+.loveydovey-add-btn:hover {
+    background: var(--bg-color);
+    border-color: var(--primary-color);
+}
+
+/* 禁用狀態 */
+.loveydovey-add-btn:disabled {
+    cursor: not-allowed;
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.loveydovey-add-btn:disabled:hover {
+    background: var(--header-bg);
+    border-color: var(--border-color);
+}
+
+/* 透明背景版本 */
+.loveydovey-add-btn-transparent {
+    width: 100%;
+    background: transparent; 
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-color);
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    outline: none;
+}
+
+.loveydovey-add-btn-transparent:hover {
+    background: var(--bg-color);  
+    border-color: var(--primary-color);
+}
+
 /* 第3區塊：表單元件 */
 /* 表單與輸入欄位 */
 .field-group {
