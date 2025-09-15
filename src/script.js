@@ -2171,11 +2171,9 @@ function switchToItem(type, itemId) {
 }
 
 function selectSidebarItem(type, id, subId = null) {
-        // ✨ 新增：智能記憶體清理
+        // 智能記憶體清理
     if (currentMode && ItemManager.getCurrentItemId() && 
         (currentMode !== type || ItemManager.getCurrentItemId() !== id)) {
-        
-        
         
         // 收集舊角色的圖片進行清理（延遲執行，確保不影響切換速度）
         setTimeout(() => {
@@ -2264,10 +2262,10 @@ requestAnimationFrame(() => {
     
 
 updateAllPageStats();
-    // ✨ 新增：滾動定位到選中的版本
     setTimeout(() => {
         scrollToSelectedVersion(type, id, subId);
-    }, 150); // 等待渲染和展開動畫完成
+    }, 150);
+    updateMobileBreadcrumb();
 }
 
 function updateSidebarSelectionOnly(oldItemId, newItemId, newVersionId, type) {
@@ -2405,6 +2403,7 @@ function selectItem(type, itemId, versionId = null, searchOptions = null) {
                 scrollToSearchResult(type, searchOptions.scrollToField, searchOptions.highlightText);
             }
         }
+        updateMobileBreadcrumb();
     }, 300); // 延長等待時間，確保渲染完成
 }
 
@@ -2443,6 +2442,7 @@ function goToHomePage() {
             OverviewManager.updateTagDisplay();
         }
     }, 50);
+    updateMobileBreadcrumb();
 }
 
 // 進入列表頁面
@@ -2454,6 +2454,7 @@ function enterListPage(type) {
         goToHomePage();
         // 只展開角色區塊
         expandSidebarSection('character');
+        updateMobileBreadcrumb();
         return;
     }
     if (type === 'loveydovey') {
@@ -2477,6 +2478,7 @@ function enterListPage(type) {
         expandSidebarSection('loveydovey');
         
         renderAll();
+        updateMobileBreadcrumb();
         return;
     }
     
@@ -2501,6 +2503,7 @@ function enterListPage(type) {
         expandSidebarSection('userpersona');
         
         renderAll();
+        updateMobileBreadcrumb();
         return;
     }
     
@@ -2528,6 +2531,7 @@ function enterListPage(type) {
     expandSidebarSection(type);
     
     renderAll();
+    updateMobileBreadcrumb();
 }
 
 //  批量編輯功能
@@ -2939,6 +2943,7 @@ function selectCharacterFromHome(characterId) {
         
         // ✨ 新增：觸發滾動定位
         scrollToSelectedVersion('character', characterId, character?.versions[0]?.id);
+        updateMobileBreadcrumb();
     }, 200); // 增加等待時間，確保渲染完成
 }
 

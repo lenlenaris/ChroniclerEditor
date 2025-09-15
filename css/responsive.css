@@ -97,6 +97,11 @@
     display: none;
 }
 
+.mobile-top-nav {
+    display: none;
+}
+
+
 /* 第3區塊：手機響應式  */
 @media (max-width: 768px) {
     
@@ -131,21 +136,77 @@
         display: flex !important;
         align-items: center;
         padding: 12px 16px;
-        background: transparent; /* 🔧 改為透明 */
-        border-bottom: none; /* 🔧 移除邊框 */
+        background: transparent;
+        border-bottom: none;
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         z-index: 1001;
-        height: 48px;
+        height: 40px;
         box-sizing: border-box;
         /* box-shadow: var(--shadow-light); */ /* 🔧 移除陰影 */
+    }
+
+    /* 手機版導航列 */
+    .mobile-top-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+        background: var(--main-content-bg);
+        border-bottom: 0px solid var(--border-color);
+        height: 40px;
+        display: flex !important;
+        align-items: center;
+    }
+
+    .mobile-nav-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0 16px;
+        height: 100%;
+    }
+
+    .mobile-nav-hamburger,
+    .mobile-nav-save {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .mobile-nav-hamburger:hover,
+    .mobile-nav-save:hover {
+        background: var(--bg-color);
+        color: var(--primary-color);
+    }
+
+    .mobile-nav-breadcrumb {
+        flex: 1;
+        text-align: left;
+        font-size: 0.9em;
+        font-weight: 500;
+        color: var(--text-color);
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        margin: 0 12px;
     }
     
     /* 🔧 更新：移除主內容的上邊距 */
     .main-content {
-        margin-top: 0; /* 🔧 改為 0，移除空隙 */
+        margin-top: 40px !important;
     }
     
     /* 🔧 新增：手機版標題組容器 */

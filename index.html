@@ -51,7 +51,7 @@
         <h1 class="sidebar-app-title" onclick="goToHomePage()">Chronicler Editor</h1>
     </div>
     <div class="sidebar-title-container">
-        <span class="sidebar-app-version">v 0.1.5 beta</span>
+        <span class="sidebar-app-version">v 0.1.6 beta</span>
     </div>
 </div>
 
@@ -241,12 +241,22 @@
        <!-- 主要區域包裝 -->
 <div class="main-wrapper">
 <!-- 手機版頭部 -->
-<div class="mobile-header">
-    <div class="mobile-title-group">
-        <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">
+<div class="mobile-top-nav">
+    <div class="mobile-nav-content">
+        <!-- 左側漢堡選單 -->
+        <button class="mobile-nav-hamburger" onclick="toggleMobileSidebar()">
             <script>document.write(IconManager.panelLeft({width: 16, height: 16, style: 'color: var(--text-muted);'}))</script>
         </button>
-        <h1 class="mobile-app-title" onclick="goToHomePage()">Chronicler Editor</h1>
+        
+        <!-- 中間動態麵包屑 -->
+        <div class="mobile-nav-breadcrumb" id="mobile-nav-breadcrumb">
+            <!-- 動態內容會在這裡 -->
+        </div>
+        
+        <!-- 右側儲存按鈕 -->
+        <button class="collapsed-icon-btn" onclick="saveData()" title="Save">
+            <script>document.write(IconManager.save({width: 16, height: 16}))</script>
+        </button>
     </div>
 </div>
 

@@ -2320,6 +2320,10 @@ class NavigationManager {
                 breadcrumbContainer.replaceWith(newContainer);
             }
         }
+        // 同時更新手機版麵包屑（如果存在的話）
+        if (typeof updateMobileBreadcrumb === 'function') {
+            updateMobileBreadcrumb();
+        }
     }
     
     // 退出資料夾回到根目錄
