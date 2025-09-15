@@ -84,21 +84,114 @@
     
 }
 
+/* 預設隱藏手機版頭部 */
+.mobile-header {
+    display: none;
+}
+
+.mobile-menu-btn {
+    display: none;
+}
+
+.mobile-app-title {
+    display: none;
+}
 
 /* 第3區塊：手機響應式  */
 @media (max-width: 768px) {
     
-
-
     .bottom-container {
-        flex-direction: column;
+        flex-direction: row;
     }
     
     .sidebar {
-        width: 100%;
-        max-height: 40vh;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
+        display: none;
+    }
+
+    /* 🔧 新增：手機版強制隱藏收合圖示列表 */
+    .sidebar[style*="position: fixed"] #sidebar-collapsed-icons {
+        display: none !important;
+    }
+    
+    /* 🔧 確保手機版側邊欄顯示完整內容 */
+    .sidebar[style*="position: fixed"] .sidebar-content {
+        display: block !important;
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+    }
+    
+    .sidebar[style*="position: fixed"] .sidebar-footer {
+        display: block !important;
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+    }
+
+
+    .mobile-header {
+        display: flex !important;
+        align-items: center;
+        padding: 12px 16px;
+        background: transparent; /* 🔧 改為透明 */
+        border-bottom: none; /* 🔧 移除邊框 */
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+        height: 48px;
+        box-sizing: border-box;
+        /* box-shadow: var(--shadow-light); */ /* 🔧 移除陰影 */
+    }
+    
+    /* 🔧 更新：移除主內容的上邊距 */
+    .main-content {
+        margin-top: 0; /* 🔧 改為 0，移除空隙 */
+    }
+    
+    /* 🔧 新增：手機版標題組容器 */
+    .mobile-title-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+    
+    /* 🔧 更新：漢堡按鈕 - 模仿電腦版樣式 */
+    .mobile-menu-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+    
+    .mobile-menu-btn:hover {
+        background: var(--bg-color);
+        color: var(--primary-color);
+    }
+    
+    /* 🔧 更新：手機版標題 - 模仿電腦版樣式 */
+    .mobile-app-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        line-height: 1;
+        flex: 1;
+    }
+    
+    .mobile-app-title:hover {
+        color: var(--primary-color);
     }
     
     .versions-container.compare-view {
