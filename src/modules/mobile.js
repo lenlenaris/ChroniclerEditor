@@ -233,16 +233,25 @@ function updateMobileBreadcrumb() {
     
     let breadcrumbText = '';
     let isClickable = false;
+    let clickAction = null;
     
     // 判斷是否為編輯模式
     const currentItemId = ItemManager && ItemManager.getCurrentItemId ? ItemManager.getCurrentItemId() : null;
     
     if (currentItemId) {
-        // 編輯模式
+        // 編輯模式 - 讓麵包屑可點擊回到對應的總覽頁面
         breadcrumbText = getMobileBreadcrumbForEdit();
-        isClickable = false;
+        isClickable = true;
+        clickAction = () => {
+            // 根據當前模式回到對應的總覽頁面
+            if (currentMode === 'character') {
+                goToHomePage(); // 角色卡回到首頁
+            } else {
+                enterListPage(currentMode); // 其他類型回到對應列表頁
+            }
+        };
     } else {
-        // 總覽模式 - 複用電腦版邏輯
+        // 總覽模式 - 復用電腦版邏輯
         try {
             const currentPageInfo = OverviewManager.getCurrentPageInfo();
             const breadcrumbs = NavigationManager.getBreadcrumbs();
@@ -251,6 +260,9 @@ function updateMobileBreadcrumb() {
             if (isInFolder && breadcrumbs.length > 1) {
                 breadcrumbText = `${currentPageInfo.name} / ${breadcrumbs[1]}`;
                 isClickable = true; // 在資料夾內時可以點擊返回
+                clickAction = () => {
+                    NavigationManager.exitFolder();
+                };
             } else {
                 breadcrumbText = currentPageInfo.name;
                 isClickable = false; // 在根目錄時不可點擊
@@ -262,20 +274,16 @@ function updateMobileBreadcrumb() {
         }
     }
     
-    console.log('🍞 麵包屑內容:', breadcrumbText, '可點擊:', isClickable); // 測試用
-    
     // 更新內容和樣式
     if (breadcrumbElement.textContent !== breadcrumbText) {
         breadcrumbElement.textContent = breadcrumbText;
     }
     
     // 設定點擊行為和樣式
-    if (isClickable) {
+    if (isClickable && clickAction) {
         breadcrumbElement.style.cursor = 'pointer';
         breadcrumbElement.style.color = 'var(--text-color)';
-        breadcrumbElement.onclick = () => {
-            NavigationManager.exitFolder();
-        };
+        breadcrumbElement.onclick = clickAction;
         
         // hover效果
         breadcrumbElement.onmouseover = () => {

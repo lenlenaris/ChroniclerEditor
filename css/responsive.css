@@ -104,6 +104,16 @@
 
 /* 第3區塊：手機響應式  */
 @media (max-width: 768px) {
+
+    /* 隱藏電腦版麵包屑 */
+    .breadcrumb-nav {
+        display: none !important;
+    }
+    
+    /* 隱藏電腦版麵包屑的容器 */
+    .breadcrumb-nav + * {
+        margin-top: 0 !important;
+    }
     
     .bottom-container {
         flex-direction: row;
@@ -156,10 +166,13 @@
         right: 0;
         z-index: 1001;
         background: var(--main-content-bg);
-        border-bottom: 0px solid var(--border-color);
+        border-bottom: none !important;
+        box-shadow: none !important;
         height: 40px;
         display: flex !important;
         align-items: center;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important; 
     }
 
     .mobile-nav-content {
@@ -204,10 +217,32 @@
         margin: 0 12px;
     }
     
-    /* 🔧 更新：移除主內容的上邊距 */
     .main-content {
-        margin-top: 40px !important;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--main-content-bg); /* 保持原背景色 */
+        margin-left: 0;
+        margin-top: 0 !important; /* 🆕 移除上邊距 */
+        
+        /* 🆕 全屏覆蓋設定 */
+        position: fixed !important;
+        top: 40px !important; /* 導航條下方開始 */
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: calc(100vh - 40px) !important; /* 扣掉導航條高度 */
     }
+    
+    /* 🆕 確保內容區域也配合 */
+    .content-area {
+        background: var(--main-content-bg) !important; /* 保持一致 */
+        margin-top: 0 !important;
+        padding-top: 12px !important; /* 給一點上內距 */
+    }
+    
     
     /* 🔧 新增：手機版標題組容器 */
     .mobile-title-group {
