@@ -537,6 +537,25 @@
         margin-bottom: 5px;
     }
 
+    .overview-create-card-plus {
+    font-size: 2em !important; /* 縮小 + 號 */
+    margin-bottom: 4px !important;
+    }
+
+    .overview-create-card-text {
+        font-size: 0.75em !important; /* 縮小文字 */
+        line-height: 1.2 !important;
+        padding: 15px;
+    }
+
+    /* 手機版卡片圓角調整 */
+    .overview-create-card-body,
+    .overview-card-body,
+    .overview-folder-card-body,
+    .overview-folder-card-stack {
+        border-radius: 2px !important;
+    }
+
 
 }
 

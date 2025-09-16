@@ -1852,14 +1852,16 @@ static generateUnifiedCards(itemList, type, config) {
 
 // ===== 統一新增卡片生成 =====
 static generateCreateCard(type, config) {
+    const uniqueCreateClass = `create-${type}-card`;
+
     return `
-        <div class="home-card create-${type}-card" onclick="ItemCRUD.add('${type}')" 
-             style="cursor: pointer; width: ${config.width}; transition: all 0.2s ease;">
-            <div style="width: 100%; height: ${config.height}; border: 2px dashed var(--border-color); border-radius: 8px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;"
-                 onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
-                 onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
-                <div style="color: var(--text-muted); font-size: 3em; margin-bottom: 8px; opacity: 0.7;">+</div>
-                <span style="font-size: 0.9em; color: var(--text-muted); font-weight: 500; text-align: center; line-height: 2.0; opacity: 0.7;">
+        <div class="home-card overview-card overview-create-card ${uniqueCreateClass}" 
+             onclick="ItemCRUD.add('${type}')" 
+             style="aspect-ratio: ${config.aspectRatio}; width: ${config.width};">
+            
+            <div class="overview-create-card-body">
+                <div class="overview-create-card-plus">+</div>
+                <span class="overview-create-card-text">
                     ${t(config.createText)}
                 </span>
             </div>
