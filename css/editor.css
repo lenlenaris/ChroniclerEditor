@@ -37,7 +37,7 @@
     font-size: 1.5em !important;
     font-weight: 700 !important;
     margin: 0 !important;
-    padding: var(--padding-lg) !important;
+    padding: 8px !important;
     border: 1px solid transparent !important;
     border-radius: var(--radius-md) !important;
     background: transparent !important;
@@ -193,8 +193,8 @@
     color: var(--accent-color);
     background: transparent;
     border: 1px solid transparent;
-    padding: 4px 12px;
-    border-radius: var(--radius-sm);
+    padding: 5px 8px;
+    border-radius: 0px; /* 保持圓角 */
     transition: all 0.2s ease;
     margin: 0;
     flex: 1 1 350px;
@@ -506,6 +506,7 @@
     display: flex;
     gap: 8px;
     flex-shrink: 0;
+
 }
 
 .empty-state {
@@ -524,5 +525,136 @@
 .loading-sub-text {
     font-size: 0.9em;
     opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+
+    /* 手機版角色編輯頁面優化 */
+    .character-version-content {
+        padding: 12px 8px; /* 減少內邊距 */
+    }
+
+    /* 手機版基本資訊區域調整 */
+    .character-basic-info {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+    }
+
+    /* 手機版頭像區域 - 置中縮小 */
+    .character-basic-info .avatar-section {
+        order: -1; /* 確保頭像在最上方 */
+        align-self: center;
+    }
+
+    .character-basic-info .avatar-preview {
+        height: 220px !important;
+        margin: 0 auto;
+    }
+
+    /* 手機版基本資訊欄位 - 改為一行一個 */
+    .character-basic-info-row {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .basic-info-fields {
+        width: 100%;
+        max-width: none;
+    }
+
+    /* 手機版版本面板邊距調整 */
+    .version-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 15px 0 !important; /* 移除左右邊距，避免超出 */
+    padding: 16px 12px !important; /* 減少內邊距 */
+    box-sizing: border-box !important; /* 確保邊距包含在寬度內 */
+    overflow-x: hidden !important; /* 防止水平滾動 */
+    }
+
+    /* 🔧 版本面板內部容器也要配合 */
+    .version-header-container {
+        width: 100% !important;
+        margin: 0 !important;
+        overflow-x: hidden !important;
+    }
+
+    /* 🔧 版本標題行也要防止溢出 */
+    .version-header {
+        flex-direction: row !important; /* 改回水平排列 */
+        align-items: center !important;
+        gap: 8px !important;
+        min-width: auto !important;
+        overflow: visible !important;
+    }
+
+    /* 🔧 版本標題輸入框調整 */
+    .version-title {
+        width: 100% !important;
+        min-width: auto !important; /* 移除最小寬度 */
+        flex: 1 1 auto !important;
+        max-width: none !important;
+        order: 2;
+    }
+
+    /* 🔧 版本控制按鈕組換行顯示 */
+    .version-controls {
+        display: flex !important;
+        flex: 0 0 auto !important; /* 不拉伸，保持緊湊 */
+        justify-content: flex-end !important;
+        flex-wrap: nowrap !important; /* 不換行，保持在一行 */
+        gap: 4px !important; /* 縮小間距讓按鈕更緊湊 */
+        order: 2 !important; /* 按鈕在右邊 */
+        min-width: auto !important;
+    }
+
+    .version-button-group {
+        gap: 4px;
+    }
+
+    /* 🔧 版本控制按鈕調整 */
+    .version-panel-btn {
+        padding: 6px 8px !important; /* 縮小內邊距 */
+        font-size: 0.8em !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important; /* 按鈕不被壓縮 */
+    }
+
+    /* 🔧 如果有標籤選擇器也要適配 */
+    .version-controls select {
+        flex: 0 0 auto !important;
+        min-width: 120px !important;
+        max-width: 100% !important;
+    }
+
+    /* 手機版版本內容容器邊距 */
+    .character-version-content {
+        width: 100%; /* 手機版滿寬 */
+        margin: 0;
+        padding: 0 8px; /* 給一點內邊距避免貼邊 */
+    }
+
+    /* 🔧 版本容器本身也要調整 */
+    .versions-container.single-view,
+    .versions-container.compare-view {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0px !important; /* 給整體一點邊距 */
+        box-sizing: border-box !important;
+    }
+
+    /* 🔧 角色標題欄也要配合 */
+    .character-header-bar {
+        margin: 0 0 15px 0 !important;
+        max-width: 100% !important;
+        padding: 12px 15px !important; /* 稍微縮小內邊距 */
+    }
+
+
+
+
 }
 

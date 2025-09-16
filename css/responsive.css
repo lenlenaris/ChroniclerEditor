@@ -450,7 +450,7 @@
     .content-area {
         background: var(--main-content-bg) !important; /* 保持一致 */
         margin-top: 0 !important;
-        padding-top: 12px !important; /* 給一點上內距 */
+        padding: 12px 15px 12px 15px!important; /* 給一點上內距 */
     }
     
     
@@ -709,7 +709,7 @@
 
     /* 移除卡片列表外層的左右邊距，實現滿版 */
     .overview-card-list-container {
-        padding: 0 !important;
+        padding: 10px !important;
     }
 
     /* 調整卡片本身的大小和樣式 */
