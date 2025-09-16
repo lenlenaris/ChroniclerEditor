@@ -1,0 +1,390 @@
+/* 第5區塊：編輯器頂部控制  */
+/* 角色標題與控制區域 */
+.character-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px 15px 20px;
+    background: var(--content-bg);
+    border-radius: var(--radius-lg);
+    margin-bottom: 15px; /* 原本內聯的 margin-bottom */
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-light);
+    box-sizing: border-box;
+}
+
+.character-header-bar.single-mode {
+    max-width: 60%;
+    margin: 0 auto var(--spacing-xl) auto;
+}
+
+.character-header-bar.compare-mode {
+    max-width: 100%;
+    margin: 0 auto var(--spacing-xl) auto;
+}
+
+.character-title-section {
+    flex: 1 1 auto !important;
+    min-width: 120px !important;
+    overflow: hidden !important;
+    display: flex;
+    align-items: center;
+    gap: 0px;
+    margin-right: 8px;
+}
+
+.character-main-title-fixed {
+    font-size: 1.5em !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    padding: var(--padding-lg) !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--radius-md) !important;
+    background: transparent !important;
+    color: var(--text-color) !important;
+    transition: all 0.2s ease !important;
+    height: 36px !important; /* 🆕 從內聯移過來 */
+    min-width: 80px !important;
+    flex: 1 1 0px !important;
+    max-width: 700px !important;
+    width: auto !important;
+    box-sizing: border-box !important; /* 🆕 確保邊距計算正確 */
+}
+
+.character-main-title-fixed:focus {
+    outline: none !important;
+    border-color: var(--primary-color) !important;
+    background: var(--bg-color) !important;
+}
+
+.character-main-title-fixed:hover {
+    border-color: var(--border-color) !important;
+}
+
+.character-main-title {
+    font-size: 1.4em !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    padding: var(--padding-md) !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--radius-md) !important;
+    background: transparent !important;
+    color: var(--text-color) !important;
+    transition: all 0.2s ease !important;
+}
+
+.character-main-title:focus {
+    outline: none !important;
+    border-color: var(--primary-color) !important;
+    background: var(--bg-color) !important;
+}
+
+.character-main-title:hover {
+    border-color: var(--border-color) !important;
+}
+
+.character-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: nowrap !important; 
+    min-width: 0 !important;
+    flex-shrink: 0 !important;
+}
+/* 控制按鈕適當縮小 */
+.character-controls > * {
+    flex-shrink: 1 !important;
+}
+/* 版本標題欄內部容器 */
+.character-header-inner {
+    width: 98%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 版本面板容器 */
+.version-header-container {
+    width: 98%;
+    margin: 0 auto;
+}
+
+/* 版本標題行 */
+.version-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    min-width: 500px;
+    overflow-x: auto;
+    margin-bottom: -10px;
+}
+
+/* 版本控制按鈕組 */
+.version-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    min-width: 140px;
+}
+
+/* 版本標籤行 */
+.version-tags-row {
+    margin: 0px 0 8px 0;
+    padding: 0 12px;
+}
+
+/* 版本統計樣式 */
+.version-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85em;
+    color: var(--text-muted);
+    padding: 0 12px;
+}
+
+.version-stats.has-tags {
+    margin-top: 4px;
+}
+
+.version-stats.no-tags {
+    margin-top: 8px;
+}
+
+/* 版本分隔線 */
+.version-divider {
+    border-top: 1px solid var(--border-color);
+    margin: 5px 0 20px 0;
+}
+
+
+.version-panel {
+    background: var(--content-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xxl);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-light);
+}
+
+.version-panel:hover {
+    box-shadow: var(--shadow-medium);
+}
+
+.version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: -10px;
+    padding-bottom: var(--spacing-lg);
+    gap: 12px;
+    width: 100%;
+    min-width: 500px;
+    overflow-x: auto;
+}
+
+.version-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--accent-color);
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    margin: 0;
+    flex: 1 1 350px;
+    min-width: 350px;
+    max-width: none;
+}
+
+.version-title:hover {
+    border-color: var(--border-color);
+}
+
+.version-title:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: var(--bg-color);
+}
+
+
+/* 圖示按鈕保持固定大小 */
+.btn-edit-header {
+    flex-shrink: 0 !important;
+    min-width: 36px !important;
+}
+
+/* 世界書選擇器 */
+.select-edit-header {
+    padding: 8px 12px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 4px; 
+    background: var(--surface-color); 
+    color: var(--text-color);
+    font-size: 0.85em;
+    width: auto !important; 
+    min-width: 100px !important; 
+    max-width: 280px !important; 
+    flex: 0 1 280px !important;
+    height: 36px;
+    cursor: pointer;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    flex-shrink: 1 !important; 
+}
+
+/* 視圖切換開關 */
+.view-toggle-switch {
+    position: relative;
+    border: 0px solid color-mix(in srgb, var(--accent-color) 60%, transparent);
+    border-radius: 6px;
+    padding: 2px;
+    background: color-mix(in srgb, var(--accent-color) 40%, transparent);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    overflow: hidden;
+    width: auto !important; /* 🔧 改為自動寬度 */
+    min-width: auto !important; /* 🔧 移除固定最小寬度 */
+    flex-shrink: 0 !important; /* 🔧 保持不被壓縮 */
+}
+/* 🆕 滑動背景的樣式 */
+.toggle-background {
+    position: absolute;
+    top: 2px;
+    height: calc(100% - 4px);
+    background: var(--accent-color);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    width: calc(50% - 2px);
+}
+
+/* 🆕 單一模式的背景位置 */
+.view-toggle-switch.single-mode .toggle-background {
+    left: 2px;
+}
+
+/* 🆕 對比模式的背景位置 */
+.view-toggle-switch.compare-mode .toggle-background {
+    right: 2px;
+}
+
+/* 🆕 文字容器的基本樣式 */
+.toggle-text {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    font-size: 0.85em;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    white-space: nowrap;
+    color: var(--text-color);
+}
+
+/* 🆕 激活狀態的文字顏色 */
+.view-toggle-switch.single-mode .toggle-text.single {
+    color: white;
+}
+
+.view-toggle-switch.compare-mode .toggle-text.compare {
+    color: white;
+}
+
+/* 編輯頁頂部控制欄按鈕 */
+.btn-edit-header {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 500;
+    font-size: var(--font-md);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-color);
+    
+    /* 編輯頁專用樣式（整合自內聯樣式） */
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.existing-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.timestamp-text {
+    font-size: 0.75em;
+    opacity: 0.8;
+}
+
+/* 版本標籤彈窗 */
+.version-tag-modal {
+    position: fixed;
+    top: auto;
+    right: auto;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px;
+    box-shadow: var(--shadow-medium);
+    z-index: 10000;
+    display: none;
+    min-width: 200px;
+}
+
+/* 版本標籤輸入框（field-input 的專用版本） */
+.version-tag-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+/* 版本標籤建議列表 */
+.version-tag-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 120px;
+    overflow-y: auto;
+    z-index: 10001;
+    display: none;
+}
+
+/* 版本標籤建議項目 */
+.version-tag-suggestion {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s ease;
+    font-size: 0.85em;
+}
+
+.version-tag-suggestion:hover {
+    background: var(--border-color);
+}

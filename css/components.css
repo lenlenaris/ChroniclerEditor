@@ -74,6 +74,8 @@
     display: inline-flex;  
     align-items: center;
     gap: 6px;
+    height: 32px;
+    min-width: 32px; 
 }
 
 /* 總覽頁危險操作按鈕（刪除用） */

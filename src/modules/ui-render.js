@@ -113,14 +113,14 @@ static renderItemHeader(item) {
     const itemTypeDisplay = this.getItemTypeDisplay(itemType);
     
     return `
-        <div class="character-header-bar ${viewMode}-mode" style="margin-bottom: 15px;">
-        <div style="width: 98%; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
-        <div class="character-title-section" style="display: flex; align-items: center; gap: 0px; flex: 1; margin-right: 8px;">
+            <div class="character-header-bar ${viewMode}-mode">
+            <div class="character-header-inner">
+            <div class="character-title-section">
             <input type="text" class="character-main-title-fixed title-font" value="${item.name}" 
     onchange="updateItemName('${itemType}', '${item.id}', this.value)" 
     placeholder="${itemTypeDisplay}${t('name')}">
         </div>
-    <div class="character-controls" style="display: flex; align-items: center; gap: 8px;">
+    <div class="character-controls">
     <button class="btn-edit-header hover-primary" 
         onclick="VersionCRUD.add('${itemType}', '${item.id}')"
         title="${t('addVersion')}">
@@ -210,19 +210,15 @@ static renderVersionPanel(item, version, explicitItemType = null) {
     const tagsArray = hasTagsSupport ? TagManager.normalizeToArray(version.tags || '') : [];
     const hasExistingTags = tagsArray.length > 0;
     
-    return `
-    <div style="width: 98%; margin: 0 auto;">
-        <!-- 第一行：版本標題與按鈕（移除原來的標籤區域） -->
-        <div class="version-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; width: 100%; min-width: 500px; overflow-x: auto; margin-bottom: -10px;">
-            <input type="text" class="version-title title-font" value="${version.name}" 
-    onchange="updateVersionName('${itemType}', '${item.id}', '${version.id}', this.value)"
-    style="font-size: 1.2em; font-weight: 600; margin: 0; padding: 4px 12px; color: var(--accent-color); flex: 1 1 350px; min-width: 350px; max-width: none;"
-                oninput="this.style.width = Math.max(350, this.scrollWidth + 20) + 'px'">
-
-            <!-- 右側只保留標籤按鈕+版本按鈕 -->
-            <div style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto; justify-content: flex-end; min-width: 140px;">
+return `
+<div class="version-header-container">
+    <div class="version-header">
+        <input type="text" class="version-title title-font" value="${version.name}" 
+onchange="updateVersionName('${itemType}', '${item.id}', '${version.id}', this.value)"
+            oninput="this.style.width = Math.max(350, this.scrollWidth + 20) + 'px'">
+        <div class="version-controls">
                 ${hasTagsSupport ? `
-    <button class="version-panel-btn hover-primary" style="height: 32px; min-width: 32px;" onclick="ContentRenderer.showVersionTagModal('version-tags-${version.id}', '${itemType}', '${item.id}', '${version.id}', 'tags')" title="${t('addTag')}">
+    <button class="version-panel-btn hover-primary" onclick="ContentRenderer.showVersionTagModal('version-tags-${version.id}', '${itemType}', '${item.id}', '${version.id}', 'tags')" title="${t('addTag')}">
         ${IconManager.bookmark({width: 14, height: 14})}
     </button>
 ` : ''}
@@ -234,24 +230,23 @@ static renderVersionPanel(item, version, explicitItemType = null) {
 
         <!-- 第二行：標籤顯示區域（只在有標籤時顯示） -->
         ${hasTagsSupport && hasExistingTags ? `
-            <div class="version-tags-row" style="margin: 0px 0 8px 0; padding: 0 12px;">
-                <div class="existing-tags" id="tags-display-version-tags-${version.id}" style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <div class="version-tags-row">
+                <div class="existing-tags" id="tags-display-version-tags-${version.id}">
                     ${tagsArray.map(tag => this.createVersionTagElement(tag, `version-tags-${version.id}`, itemType, item.id, version.id, 'tags')).join('')}
                 </div>
             </div>
         ` : ''}
 
         <!-- 字數統計與時間戳 -->
-        <div class="version-stats" id="${itemType}-version-stats-${version.id}" 
-            style="display: flex; justify-content: space-between; font-size: 0.85em; color: var(--text-muted); padding: 0 12px; margin-top: ${hasTagsSupport && hasExistingTags ? '4px' : '8px'};">
+        <div class="version-stats ${hasTagsSupport && hasExistingTags ? 'has-tags' : 'no-tags'}" id="${itemType}-version-stats-${version.id}">
             <span class="stats-text" id="version-stats-text-${version.id}">
     ${this.getCachedVersionStats(version, itemType)}
 </span>
-            <span class="timestamp-text" style="font-size: 0.75em; opacity: 0.8;">${TimestampManager.formatTimestamp(version.updatedAt)}</span>
+            <span class="timestamp-text">${TimestampManager.formatTimestamp(version.updatedAt)}</span>
         </div>
         
         <!-- 分隔線 -->
-        <div style="border-top: 1px solid var(--border-color); margin: 5px 0 20px 0;"></div>
+        <div class="version-divider"></div>
         
         <!--  標籤輸入彈窗 -->
         ${hasTagsSupport ? this.createVersionTagModal(version.id, itemType, item.id, 'tags') : ''}
@@ -280,45 +275,18 @@ static getCachedVersionStats(version, itemType) {
     return stats.formatted;
 }
 
-//  簡化版：只建立彈窗，不建立標籤顯示區域
 static createVersionTagModal(versionId, itemType, itemId, fieldName) {
     return `
-        <div class="version-tag-modal" id="version-tag-modal-version-tags-${versionId}" style="
-            position: fixed;
-            top: auto;
-            right: auto;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 8px;
-            box-shadow: var(--shadow-medium);
-            z-index: 10000;
-            display: none;
-            min-width: 200px;
-        ">
+        <div class="version-tag-modal" id="version-tag-modal-version-tags-${versionId}">
             <input type="text" 
                    id="version-tag-input-version-tags-${versionId}" 
-                   class="field-input"
+                   class="field-input version-tag-input"
                    placeholder="${t('enterTagName')}"
-                   style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85em;"
                    onkeydown="ContentRenderer.handleVersionTagKeydown(event, 'version-tags-${versionId}', '${itemType}', '${itemId}', '${versionId}', '${fieldName}')"
                    oninput="ContentRenderer.showVersionTagSuggestions('version-tags-${versionId}', '${itemType}', '${itemId}', '${versionId}', '${fieldName}')"
                    onblur="ContentRenderer.hideVersionTagModal('version-tags-${versionId}')">
 
-            <div class="version-tag-suggestions" id="version-suggestions-version-tags-${versionId}" style="
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: var(--surface-color);
-                border: 1px solid var(--border-color);
-                border-top: none;
-                border-radius: 0 0 4px 4px;
-                max-height: 120px;
-                overflow-y: auto;
-                z-index: 10001;
-                display: none;
-            "></div>
+            <div class="version-tag-suggestions" id="version-suggestions-version-tags-${versionId}"></div>
         </div>
     `;
 }
@@ -352,15 +320,7 @@ static showVersionTagSuggestions(id, itemType, itemId, versionId, fieldName) {
     
     if (suggestions.length > 0) {
         suggestionsDiv.innerHTML = suggestions.map(tag => `
-            <div class="version-tag-suggestion" style="
-                padding: 8px 12px;
-                cursor: pointer;
-                border-bottom: 1px solid var(--border-color);
-                transition: background 0.2s ease;
-                font-size: 0.85em;
-            " onmousedown="ContentRenderer.selectVersionTagSuggestion('${tag}', '${id}', '${itemType}', '${itemId}', '${versionId}', '${fieldName}')"
-            onmouseover="this.style.background='var(--border-color)'"
-            onmouseout="this.style.background=''">
+            <div class="version-tag-suggestion" onmousedown="ContentRenderer.selectVersionTagSuggestion('${tag}', '${id}', '${itemType}', '${itemId}', '${versionId}', '${fieldName}')">
                 ${tag}
             </div>
         `).join('');

@@ -182,48 +182,6 @@ textarea[id^="characterQuote-"] {
 }
 
 
-.version-panel {
-    background: var(--content-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xxl);
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-light);
-}
-
-.version-panel:hover {
-    box-shadow: var(--shadow-medium);
-}
-
-.version-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0px;
-    padding-bottom: var(--spacing-lg);
-}
-
-.version-title {
-    font-size: 1.5em;
-    font-weight: 500;
-    color: var(--accent-color);
-    background: transparent;
-    border: 1px solid transparent;
-    padding: var(--padding-xs);
-    border-radius: var(--radius-sm);
-    transition: all 0.2s ease;
-}
-
-.version-title:hover {
-    border-color: var(--border-color);
-}
-
-.version-title:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    background: var(--bg-color);
-}
-
 
 .view-controls {
     display: flex;

@@ -42,7 +42,9 @@
     }
     
     .character-controls {
-        justify-content: center;
+        justify-content: center !important;
+        flex-wrap: wrap !important; /* 🔧 手機版允許換行 */
+        gap: 8px !important;
     }
 
         .character-main-title-fixed {
@@ -246,6 +248,12 @@
     .versions-container.single-view,
     .character-header-bar.single-mode {
         max-width: 90%;
+    }
+
+    .character-controls {
+        justify-content: center !important;
+        flex-wrap: wrap !important; /* 🔧 手機版允許換行 */
+        gap: 8px !important;
     }
 
         .select-edit-header {
