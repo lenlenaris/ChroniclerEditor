@@ -39,34 +39,28 @@ static initialize() {
 static renderOverview(type, options = {}) {
     const defaultOptions = {
         showImport: false,
-        maxWidth: '100%'
     };
     
     // 根據類型設定預設值
     const typeDefaults = {
         'character': { 
             showImport: true, 
-            maxWidth: '100%',
             gridId: 'character-grid'
         },
         'userpersona': { 
             showImport: false, 
-            maxWidth: '100%',
             gridId: 'userpersona-grid' 
         },
         'loveydovey': { 
             showImport: false, 
-            maxWidth: '100%',
             gridId: 'loveydovey-grid'
         },
         'worldbook': { 
             showImport: true, 
-            maxWidth: '70%',
             gridId: `${type}-list`
         },
         'custom': { 
             showImport: false, 
-            maxWidth: '70%',
             gridId: `${type}-list`
         }
     };
@@ -1068,7 +1062,6 @@ static calculateItemMaxTokens(item, type) {
             this.generateAddButton(type);
     }
 
-    // 生成單個列表項目
     static generateListItem(item, type) {
         // 資料夾特殊處理
         if (item.isFolder) {
@@ -1076,75 +1069,35 @@ static calculateItemMaxTokens(item, type) {
             const folderName = folderInfo?.name || item.name;
             
            return `
-    <div class="list-item folder-list-item" 
-        onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('folder-${item.originalFolderId}')` : `NavigationManager.enterFolder('${type}', '${item.originalFolderId}', '${folderName}')`}"
-        oncontextmenu="ContextMenuManager.showFolderMenu(event, '${type}', '${item.originalFolderId}', '${folderName}')"
-        data-folder-id="${item.originalFolderId}"
-        id="folder-list-item-${item.originalFolderId}"
-        style="
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-        "
-        onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
-        onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='var(--surface-color)'">
+            <div class="list-item folder-list-item" 
+                onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('folder-${item.originalFolderId}')` : `NavigationManager.enterFolder('${type}', '${item.originalFolderId}', '${folderName}')`}"
+                oncontextmenu="ContextMenuManager.showFolderMenu(event, '${type}', '${item.originalFolderId}', '${folderName}')"
+                data-folder-id="${item.originalFolderId}"
+                id="folder-list-item-${item.originalFolderId}">
 
-                    <!-- 選擇框（批量編輯模式下顯示） -->
+                <!-- 選擇框容器 -->
+                <div class="list-item-selection-box">
                     ${batchEditMode || FavoriteManager.isInEditMode() ? `
-                        <div style="position: absolute; top: 16px; left: 16px; z-index: 10;">
-                            <input type="checkbox" class="list-selection-checkbox"
-                                style="width: 18px; height: 18px; cursor: pointer; pointer-events: none;">
-                        </div>
-                        <div style="margin-left: 40px;">
-                    ` : '<div>'}
-                    
-<!--  單行顯示：資料夾名稱和統計 -->
-<div style="
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-right: ${!batchEditMode ? '0px' : '0px'};
-    height: 60px;
-">
-    <div class="list-item-name" style="
-        font-size: 1.1em; 
-        font-weight: 600; 
-        color: var(--text-color);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    ">
-        ${IconManager.folder({width: 24, height: 24, strokeWidth: 1, style: 'color: var(--text-muted);'})}
-${folderName}
-    </div>
-    <span style="font-size: 0.9em; color: var(--text-muted);">
-        ${item.itemCount} ${t('items')}
-    </span>
-</div>
-                    
-                    </div>
-                    
-                    <!-- 選中覆蓋層 -->
-                    <div class="selection-overlay" style="
-                        position: absolute; 
-                        top: 0; 
-                        left: 0; 
-                        right: 0; 
-                        bottom: 0; 
-                        background: rgba(92, 193, 255, 0.4); 
-                        border: 3px solid #66b3ff; 
-                        border-radius: 8px; 
-                        z-index: 5;
-                        pointer-events: none;
-                        box-sizing: border-box;
-                        display: none;
-                    "></div>
+                        <input type="checkbox" class="list-selection-checkbox" style="width: 18px; height: 18px; cursor: pointer; pointer-events: none;">
+                    ` : ''}
                 </div>
+
+                <!-- 主要內容 -->
+                <div class="list-item-content">
+                    <div class="list-item-header">
+                        <div class="list-item-name">
+                            ${IconManager.folder({width: 24, height: 24, strokeWidth: 1.5, style: 'color: var(--text-muted);'})}
+                            <span>${folderName}</span>
+                        </div>
+                        <div class="list-item-stats">
+                            ${item.itemCount} ${t('items')}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 選中覆蓋層 -->
+                <div class="selection-overlay"></div>
+            </div>
             `;
         }
         
@@ -1163,65 +1116,39 @@ ${folderName}
                 onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('${item.id}')` : `selectItem('${type}', '${item.id}')`}"
                 oncontextmenu="ContextMenuManager.showItemMenu(event, '${type}', '${item.id}', '${item.name}')"
                 data-item-id="${item.id}"
-                id="list-item-${item.id}"
-                style="
-                    background: var(--surface-color);
-                    border: 1px solid var(--border-color);
-                    border-radius: 8px;
-                    padding: 20px;
-                    margin-bottom: 16px;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    position: relative;
-                "
-                onmouseover="if (!batchEditMode) { this.style.borderColor='var(--accent-color)'; const deleteBtn = this.querySelector('.delete-btn'); if(deleteBtn) deleteBtn.style.display='block' }"
-                onmouseout="if (!batchEditMode) { this.style.borderColor='var(--border-color)'; const deleteBtn = this.querySelector('.delete-btn'); if(deleteBtn) deleteBtn.style.display='none' }">
+                id="list-item-${item.id}">
 
-                <!-- 選擇框（批量編輯模式下顯示） -->
-                ${batchEditMode || FavoriteManager.isInEditMode() ? `
-                    <div style="position: absolute; top: 16px; left: 16px; z-index: 10;">
-                        <input type="checkbox" class="list-selection-checkbox"
-                            style="width: 18px; height: 18px; cursor: pointer; pointer-events: none;">
-                    </div>
-                    <div style="margin-left: 40px;">
-                ` : '<div>'}
-                
-                    <!--  標題行（包含標籤） -->
-                    <div style="
-                        display: flex; 
-                        justify-content: space-between; 
-                        align-items: center; 
-                        margin-bottom: 8px;
-                        margin-right: ${!batchEditMode ? '50px' : '0px'};
-                    ">
-                        <div class="list-item-name" style="
-                            font-size: 1.1em; 
-                            font-weight: 600; 
-                            color: var(--text-color);
-                            flex: 1;
-                        ">
+                <!-- 選擇框容器 -->
+                <div class="list-item-selection-box">
+                    ${batchEditMode || FavoriteManager.isInEditMode() ? `
+                        <input type="checkbox" class="list-selection-checkbox" style="width: 18px; height: 18px; cursor: pointer; pointer-events: none;">
+                    ` : ''}
+                </div>
+
+                <!-- 主要內容 -->
+                <div class="list-item-content">
+                    <div class="list-item-header">
+                        <div class="list-item-name">
                             ${FavoriteManager.getDisplayName(item)}
                         </div>
-                        
-
                     </div>
-                    
-                    <!-- 統計行 -->
-                    <div style="font-size: 0.9em; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
-                        <span>${timestamp}</span>
-                        <span>${stats}</span>
+                    <div class="list-item-footer">
+                        <span class="list-item-timestamp">${timestamp}</span>
+                        <span class="list-item-stats">${stats}</span>
                     </div>
-                
                 </div>
                 
                 <!-- 刪除按鈕 -->
-    ${!batchEditMode ? `
-        <button class="delete-btn" onclick="event.stopPropagation(); ItemCRUD.remove('${type}', '${item.id}')"
-            style="position: absolute; top: 12px; right: 12px; display: none;"
-            title="${t('delete')}">
-        ${IconManager.delete({style: 'vertical-align: middle;'})}
-    </button>
-    ` : ''}
+                <div class="list-item-actions">
+                    ${!batchEditMode ? `
+                        <button class="delete-btn" onclick="event.stopPropagation(); ItemCRUD.remove('${type}', '${item.id}')" title="${t('delete')}">
+                            ${IconManager.delete({style: 'vertical-align: middle;'})}
+                        </button>
+                    ` : ''}
+                </div>
+
+                <!-- 選中覆蓋層 -->
+                <div class="selection-overlay"></div>
             </div>
         `;
     }
@@ -1294,25 +1221,13 @@ static getItemStats(item, type) {
         };
         
         return `
-            <div class="add-item-card" onclick="ItemCRUD.add('${type}')"
-                style="
-                    border: 2px dashed var(--border-color);
-                    border-radius: 8px;
-                    padding: 12px;
-                    text-align: center;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    background: transparent;
-                    margin-bottom: 16px;
-                "
-                onmouseover="this.style.borderColor='var(--accent-color)'; this.style.backgroundColor='var(--bg-color)'"
-                onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent'">
-                <div style="color: var(--text-muted); font-size: 2em; margin-bottom: 4px;">+</div>
-                <div style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 8px;">
-     ${type === 'worldbook' ? t('clickToAddWorldBookOrImport') : 
-  type === 'custom' ? t('clickToAddNotebook') : 
-  `${t('clickToAdd')} ${t(typeKeyMap[type] || 'item')}`}
-</div>
+            <div class="add-item-card" onclick="ItemCRUD.add('${type}')">
+                <div class="add-item-icon">${IconManager.plus({width: 32, height: 32})}</div>
+                <div class="add-item-text">
+                    ${type === 'worldbook' ? t('clickToAddWorldBookOrImport') : 
+                     type === 'custom' ? t('clickToAddNotebook') : 
+                     `${t('clickToAdd')} ${t(typeKeyMap[type] || 'item')}`}
+                </div>
             </div>
         `;
     }
@@ -1329,8 +1244,7 @@ static renderBreadcrumbNav() {
     // 構建麵包屑內容
     let breadcrumbContent = `
         <span class="sidebar-section-title" style="margin-left: 0;">${currentPageInfo.name}</span>
-        ${totalRootCount > 0 ? `<span style="font-size: 0.8em; color: var(--text-muted); margin-left: 4px; margin-top: 3px;">${totalRootCount}</span>` : ''}
-
+        ${totalRootCount > 0 ? `<span class="breadcrumb-count">${totalRootCount}</span>` : ''}
     `;
     
     if (isInFolder) {
@@ -1341,31 +1255,20 @@ static renderBreadcrumbNav() {
         
         breadcrumbContent = `
             <span class="sidebar-section-title" style="margin-left: 0;">${currentPageInfo.name}</span>
-            <span style="color: var(--text-muted); margin: 0 3px;">/</span>
+            <span class="breadcrumb-separator">/</span>
             <span class="sidebar-section-title" style="margin-left: 0;">${breadcrumbs[1]}</span>
-            ${folderCount > 0 ? `<span style="font-size: 0.8em; color: var(--text-muted); margin-left: 4px; margin-top: 3px;">${folderCount}</span>` : ''}
-
+            ${folderCount > 0 ? `<span class="breadcrumb-count">${folderCount}</span>` : ''}
         `;
     }
     
+    const breadcrumbClass = isInFolder ? 'clickable' : 'non-clickable';
+    const mouseEvents = isInFolder ? 
+        `onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'"` : '';
+    const clickEvent = isInFolder ? `onclick="NavigationManager.exitFolder()"` : '';
+    
     return `
-        <div style="padding: 0 32px; margin-bottom: 8px;">
-            <div class="breadcrumb-nav" style="
-    padding: 20px 5px; 
-    font-size: 1.1em; 
-    color: var(--text-muted);
-    border-bottom: 1px solid var(--border-color);
-    height: 32px; 
-    line-height: 16px;  
-    box-sizing: border-box; 
-    ${isInFolder ? 'cursor: pointer;' : 'cursor: default;'}
-    transition: color 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0px;
-    overflow: hidden; 
-            " ${isInFolder ? `onclick="NavigationManager.exitFolder()"` : ''}
-            ${isInFolder ? `onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-muted)'"` : ''}>
+        <div class="breadcrumb-container">
+            <div class="breadcrumb-nav ${breadcrumbClass}" ${clickEvent} ${mouseEvents}>
                 ${breadcrumbContent}
             </div>
         </div>
@@ -1542,16 +1445,14 @@ static renderBatchOperationsBars() {
     `;
 }
 
-
 static renderOverviewLayout(config) {
-    const { type, showImport = false, gridId, maxWidth = '90%' } = config;
+    const { type, showImport = false, gridId } = config; // 移除了 maxWidth
     const isListPage = (type === 'worldbook' || type === 'custom');
     const breadcrumbHtml = this.renderBreadcrumbNav();
     
     if (isListPage) {
-        // 🆕 修改後的列表頁結構 - 支援分區顯示
         return `
-            <div style="max-width: ${maxWidth}; margin: 0 auto; margin-top: 0px; padding: 0px;">
+            <div class="list-page-container">
 
                 ${breadcrumbHtml}
                 
@@ -1586,13 +1487,13 @@ static renderOverviewLayout(config) {
             </div>
         `;
     } else {
-        // 保持原有的卡片頁結構不變
+        // 卡片頁結構保持不變，但同樣可以改用 class 增加一致性
         const gridClass = type === 'loveydovey' ? 'userpersona-grid loveydovey-grid' : 
                          type === 'userpersona' ? 'userpersona-grid' : 'character-grid';
         const minWidth = type === 'loveydovey' ? '220px' : '160px';
         
         return `
-            <div style="max-width: ${maxWidth}; margin: 0 auto; margin-top: 0px; padding: 0px;">
+            <div class="card-page-container">
                 ${breadcrumbHtml}
 
                 ${this.renderOverviewControls({ type, showImport })}

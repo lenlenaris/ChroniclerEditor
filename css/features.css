@@ -891,3 +891,218 @@
     opacity: 0.7;
     padding: 0 4px; /* 增加一點內邊距防止文字貼邊 */
 }
+
+/* 第7區塊：總覽列表頁樣式 */
+/* =================================
+   總覽列表頁 (List Page) 樣式
+   ================================= */
+
+/* 列表項基礎容器 */
+.list-item {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.list-item:hover {
+    border-color: var(--accent-color);
+    background-color: var(--bg-color);
+}
+
+.list-item:hover .list-item-actions .delete-btn {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 資料夾列表項的特殊 hover 效果 */
+.folder-list-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+/* 選擇框容器 */
+.list-item-selection-box {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.list-item:not(:has(.list-selection-checkbox)) .list-item-selection-box {
+    display: none;
+}
+
+/* 主要內容容器 */
+.list-item-content {
+    flex: 1;
+    min-width: 0; /* 確保內容可以被壓縮 */
+}
+
+/* 內容頭部（名稱、標籤等） */
+.list-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+/* 項目名稱 */
+.list-item-name {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 內容底部（時間、統計） */
+.list-item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+.list-item-stats {
+    white-space: nowrap;
+}
+
+.list-item-timestamp {
+    white-space: nowrap;
+}
+
+/* 操作按鈕容器（刪除等） */
+.list-item-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
+.list-item-actions .delete-btn {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+/* 新增項目卡片 */
+.add-item-card {
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 80px;
+}
+
+.add-item-card:hover {
+    border-color: var(--accent-color);
+    background-color: var(--bg-color);
+}
+
+.add-item-icon {
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+.add-item-text {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+/* 列表選中覆蓋層 */
+.list-item .selection-overlay {
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: rgba(92, 193, 255, 0.4);
+    border: 3px solid #66b3ff;
+    border-radius: 10px;
+    z-index: 5;
+    pointer-events: none;
+    box-sizing: border-box;
+    display: none;
+}
+
+/* 總覽頁容器佈局 */
+.card-page-container,
+.list-page-container {
+    margin: 0 auto;
+}
+
+.card-page-container {
+    max-width: 100%;
+}
+
+.list-page-container {
+    max-width: 70%;
+}
+
+/* 麵包屑外層容器 */
+.breadcrumb-container {
+    padding: 0 32px;
+    margin-bottom: 8px;
+}
+
+/* 麵包屑導航主體 */
+.breadcrumb-nav {
+    padding: 20px 5px;
+    font-size: 1.1em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
+    height: 32px;
+    line-height: 16px;
+    box-sizing: border-box;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0px;
+    overflow: hidden;
+}
+
+/* 可點擊的麵包屑樣式 */
+.breadcrumb-nav.clickable {
+    cursor: pointer;
+}
+
+/* 不可點擊的麵包屑樣式 */
+.breadcrumb-nav.non-clickable {
+    cursor: default;
+}
+
+/* 麵包屑數量標籤 */
+.breadcrumb-count {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    margin-left: 4px;
+    margin-top: 3px;
+}
+
+/* 麵包屑分隔符 */
+.breadcrumb-separator {
+    color: var(--text-muted);
+    margin: 0 3px;
+}
