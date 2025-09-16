@@ -506,10 +506,11 @@
     
     
     .character-header-bar {
-        flex-direction: column;
-        gap: var(--spacing-lg);
-        align-items: stretch;
-        padding: 12px 15px;
+        flex-direction: column !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+        padding: 12px 15px !important;
+        margin-bottom: 12px !important;
     }
 
     .character-header-bar > div {
@@ -517,29 +518,70 @@
         gap: 12px !important;
         align-items: stretch !important;
     }
-    
+
+    /* 🔧 第一行：角色名 + 操作按鈕 */
+    .character-header-inner {
+        width: 100% !important;
+        margin: 0 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+        order: 1 !important;
+    }
+        
     .character-title-section {
-        text-align: center;
+        flex: 1 1 auto !important;
+        min-width: 0 !important; /* 允許收縮 */
         margin-right: 0 !important;
+        text-align: left !important;
     }
 
+    /* 🔧 角色名稱輸入框更緊湊 */
     .character-main-title-fixed {
+        font-size: 1.2em !important;
+        font-weight: 600 !important;
+        padding: 6px 8px !important;
+        height: 32px !important;
         min-width: 100px !important;
-        max-width: none !important;
-        flex: 1 1 auto !important;
-        width: 100% !important;
     }
     
-    .character-controls {
-        justify-content: center !important;
-        flex-wrap: wrap !important; /* 🔧 手機版允許換行 */
-        gap: 8px !important;
+    .character-controls > .btn-edit-header {
+        order: 1 !important;
+        width: 28px !important;
+        height: 28px !important;
+        padding: 4px !important;
+        font-size: 0.8em !important;
+        min-width: 28px !important;
     }
-    .select-edit-header {
+
+        /* 🔧 操作按鈕縮小 */
+    .btn-edit-header {
+        width: 28px !important;
+        height: 28px !important;
+        padding: 4px !important;
+        font-size: 0.8em !important;
+        min-width: 28px !important;
+    }
+
+    /* 🔧 第二行：世界書選擇器 + 對比開關 */
+    .character-header-second-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
         width: 100% !important;
-        min-width: 200px !important;
-        max-width: none !important;
+    }
+
+    /* 🔧 世界書選擇器調整 */
+    .select-edit-header {
+        order: 2 !important;
         flex: 1 1 auto !important;
+        height: 32px !important;
+        font-size: 0.8em !important;
+        padding: 6px 8px !important;
+        min-width: 120px !important;
+        max-width: none !important;
     }
 
         .select-edit-header option {
@@ -549,13 +591,16 @@
         white-space: nowrap;
     }
 
+    /* 🔧 對比開關調整 */
     .view-toggle-switch {
+        order: 3 !important;
+        height: 32px !important;
         min-width: 80px !important;
-        flex-shrink: 0 !important; /* 🔧 絕對不被壓縮 */
+        flex-shrink: 0 !important;
     }
     
     .toggle-text {
-        padding: 0 4px !important;
+        padding: 0 6px !important;
         font-size: 0.75em !important;
     }
 

@@ -84,11 +84,10 @@
 }
 
 .character-controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    flex-wrap: nowrap !important; 
-    min-width: 0 !important;
+    display: flex !important;
+    gap: 4px !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
     flex-shrink: 0 !important;
 }
 /* 控制按鈕適當縮小 */
@@ -213,12 +212,6 @@
 }
 
 
-/* 圖示按鈕保持固定大小 */
-.btn-edit-header {
-    flex-shrink: 0 !important;
-    min-width: 36px !important;
-}
-
 /* 世界書選擇器 */
 .select-edit-header {
     padding: 8px 12px; 
@@ -316,7 +309,8 @@
     outline: none;
     background: transparent;
     color: var(--text-color);
-    
+    flex-shrink: 0 !important;
+    min-width: 36px !important;
     /* 編輯頁專用樣式（整合自內聯樣式） */
     height: 36px;
     display: flex;
@@ -644,13 +638,6 @@
         margin: 0 !important;
         padding: 0px !important; /* 給整體一點邊距 */
         box-sizing: border-box !important;
-    }
-
-    /* 🔧 角色標題欄也要配合 */
-    .character-header-bar {
-        margin: 0 0 15px 0 !important;
-        max-width: 100% !important;
-        padding: 12px 15px !important; /* 稍微縮小內邊距 */
     }
 
 
