@@ -979,14 +979,24 @@ setTimeout(() => {
         }
 
         // 統一的按鈕組渲染
-        static createVersionButtonGroup(itemType, itemId, versionId, showDelete = true) {
-            return `
-                <div class="version-button-group">
-                    <button class="version-panel-btn hover-primary" onclick="VersionCRUD.copy('${itemType}', '${itemId}', '${versionId}')">${t('copy')}</button>
-                    ${showDelete ? `<button class="version-panel-btn hover-primary" onclick="VersionCRUD.remove('${itemType}', '${itemId}', '${versionId}')">${t('delete')}</button>` : ''}
-                </div>
-            `;
-        }
+    static createVersionButtonGroup(itemType, itemId, versionId, showDelete = true) {
+        return `
+            <div class="version-button-group">
+                <button class="version-panel-btn hover-primary" 
+                        onclick="VersionCRUD.copy('${itemType}', '${itemId}', '${versionId}')"
+                        title="${t('copy')}">
+                    ${IconManager.copy({width: 14, height: 14})}
+                </button>
+                ${showDelete ? `
+                    <button class="version-panel-btn hover-primary" 
+                            onclick="VersionCRUD.remove('${itemType}', '${itemId}', '${versionId}')"
+                            title="${t('delete')}">
+                        ${IconManager.delete({width: 14, height: 14})}
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    }
         
         static renderEmptyState() {
             return `<div class="empty-state">${t('selectCharacter') || '請選擇一個項目'}</div>`;
