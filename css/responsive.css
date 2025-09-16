@@ -382,7 +382,7 @@
 @media (max-width: 768px) {
     .overview-controls {
         flex-wrap: wrap;
-        padding: 0px 8px 16px 16px; /* 減少上下內邊距從 12px 到 8px */
+        padding: 0px 0px 16px 0px; /* 減少上下內邊距從 12px 到 8px */
         gap: 8px;
         margin-bottom: 0px; /* 減少下邊距從 16px 到 12px */
         margin-top: -5px; /* 確保沒有上邊距 */
@@ -484,6 +484,60 @@
         justify-content: center;
         text-align: center;
     }
+
+    /* 總覽頁卡片列表手機版 */
+    .character-grid,
+    .userpersona-grid {
+        margin-top: 0px;
+        gap: 8px 28px;
+        grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)) !important;
+    }
+
+    .loveydovey-grid {
+        grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)) !important;
+    }
+
+    /* 移除卡片列表外層的左右邊距，實現滿版 */
+    .overview-card-list-container {
+        padding: 0 !important;
+    }
+
+    /* 調整卡片本身的大小和樣式 */
+    .overview-card {
+        width: 100% !important; /* 寬度由網格決定 */
+    }
+
+    .overview-card-body {
+        height: auto !important; /* 高度由寬度和長寬比自動計算 */
+        margin-bottom: 8px !important;
+        box-shadow: none !important;
+        border-radius: 2px !important;
+    }
+
+    .overview-folder-card-body,
+    .overview-folder-card-stack {
+        height: auto !important;
+        border-radius: 2px !important;
+    }
+
+    .overview-card-name {
+        font-size: 0.85em !important;
+        line-height: 1.2 !important;
+        margin-bottom: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2; /* 最多顯示兩行 */
+        line-clamp: 2;
+    }
+
+    .overview-folder-name {
+        font-size: 0.9em !important;
+        margin-bottom: 5px;
+    }
+
+
 }
 
 /* 第4區塊：響應式匯出區域 */

@@ -39,7 +39,7 @@ static initialize() {
 static renderOverview(type, options = {}) {
     const defaultOptions = {
         showImport: false,
-        maxWidth: '90%'
+        maxWidth: '100%'
     };
     
     // 根據類型設定預設值
@@ -1599,9 +1599,8 @@ static renderOverviewLayout(config) {
                 
                 ${this.renderBatchOperationsBars()}
                 
-                <!-- 卡片容器 -->
-                <div style="padding: 0px 32px 32px 32px; background: transparent; border-radius: 12px;">
-                    <div class="${gridClass}" id="${gridId}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(${minWidth}, 1fr)); gap: 60px;">
+                <div class="overview-card-list-container">
+                    <div class="${gridClass}" id="${gridId}" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(${minWidth}, 1fr));">
                         <!-- 卡片會在這裡渲染 -->
                     </div>
                 </div>
@@ -1750,165 +1749,66 @@ static renderCards(type, folderId = null) {
 }
 
 
-
 // ===== 統一卡片HTML生成 =====
 static generateUnifiedCards(itemList, type, config) {
     return itemList.map((item, index) => {
         if (item.isFolder) {
+            // --- 資料夾卡片 ---
+            const folderItems = FolderManager.getFolderItems(type, item.originalFolderId);
+            const imageField = type === 'loveydovey' ? 'profileImage' : 'avatar';
+            
+            const getImageUrl = (index) => {
+                if (folderItems.length > index && folderItems[index] && folderItems[index].versions[0]) {
+                    const imageUrl = folderItems[index].versions[0][imageField];
+                    return imageUrl ? `background-image: url('${BlobManager.getBlobUrl(imageUrl)}');` : '';
+                }
+                return '';
+            };
+
             return `
-<div class="home-card folder-card" 
-    onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('folder-${item.originalFolderId}')` : `NavigationManager.enterFolder('${type}', '${item.originalFolderId}', '${item.name}')`}"
-    oncontextmenu="ContextMenuManager.showFolderMenu(event, '${type}', '${item.originalFolderId}', '${item.name}')"
-    data-folder-id="${item.originalFolderId}"
-    id="folder-card-${item.originalFolderId}"
-    style="aspect-ratio: ${config.aspectRatio}; width: ${config.width}; transition: all 0.2s ease; position: relative; cursor: pointer;">
-    
-<!-- 第三層卡片（最底層） -->
-<div style="
-    position: absolute;
-    width: 100%; 
-    height: ${config.height}; 
-    aspect-ratio: ${config.aspectRatio}; 
-    border-radius: 5px; 
-    background: transparent;
-    border: 1px solid var(--border-color); 
-    transform: rotate(-3deg) translate(-8px, 3px);
-    z-index: 1;
-    opacity: 0.5;
-    pointer-events: none;
-${(() => {
-    const folderItems = FolderManager.getFolderItems(type, item.originalFolderId);
-    if (folderItems.length >= 3 && folderItems[2] && folderItems[2].versions[0]) {
-        const imageField = type === 'loveydovey' ? 'profileImage' : 'avatar';
-        const imageUrl = folderItems[2].versions[0][imageField];
-        if (imageUrl) {
-            return `background-image: url('${BlobManager.getBlobUrl(imageUrl)}'); background-size: cover; background-position: center;`;
-        }
-    }
-    return '';
-})()}
-"></div>
-    
-<!-- 第二層卡片（中間層） -->
-<div style="
-    position: absolute;
-    width: 100%; 
-    height: ${config.height}; 
-    aspect-ratio: ${config.aspectRatio}; 
-    border-radius: 5px; 
-    background: transparent;
-    border: 1px solid var(--border-color); 
-    transform: rotate(2deg) translate(5px, -4px);
-    z-index: 2;
-    opacity: 0.7;
-    pointer-events: none;
-${(() => {
-    const folderItems = FolderManager.getFolderItems(type, item.originalFolderId);
-    if (folderItems.length >= 2 && folderItems[1] && folderItems[1].versions[0]) {
-        const imageField = type === 'loveydovey' ? 'profileImage' : 'avatar';
-        const imageUrl = folderItems[1].versions[0][imageField];
-        if (imageUrl) {
-            return `background-image: url('${BlobManager.getBlobUrl(imageUrl)}'); background-size: cover; background-position: center;`;
-        }
-    }
-    return '';
-})()}
-"></div>
-    
-<!-- 第一層卡片（最上層，主要內容） -->
-<div style="
-    position: relative;
-    width: 100%; 
-    height: ${config.height}; 
-    aspect-ratio: ${config.aspectRatio}; 
-    border-radius: 5px; 
-    background: transparent;
-    border: 1px solid var(--border-color); 
-    display: flex; 
-    flex-direction: column;
-    align-items: center; 
-    justify-content: center; 
-    z-index: 3;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-${(() => {
-    const folderItems = FolderManager.getFolderItems(type, item.originalFolderId);
-    if (folderItems.length >= 1 && folderItems[0] && folderItems[0].versions[0]) {
-        const imageField = type === 'loveydovey' ? 'profileImage' : 'avatar';
-        const imageUrl = folderItems[0].versions[0][imageField];
-        if (imageUrl) {
-            return `background-image: url('${BlobManager.getBlobUrl(imageUrl)}'); background-size: cover; background-position: center;`;
-        }
-    }
-    return '';
-})()}">
-
-        <!-- 選中覆蓋層 -->
-        <div class="selection-overlay" style="
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            right: 0; 
-            bottom: 0; 
-            background: rgba(92, 193, 255, 0.4); 
-            border: 3px solid #66b3ff; 
-            border-radius: 5px; 
-            z-index: 5;
-            pointer-events: none;
-            box-sizing: border-box;
-            display: none;
-        "></div>
-
-        <!-- 選取框 -->
-        ${batchEditMode || FavoriteManager.isInEditMode() ? `
-            <div style="position: absolute; top: 8px; left: 8px; z-index: 10;">
-                <input type="checkbox" class="selection-checkbox"
-                    style="
-                        width: 20px; 
-                        height: 20px; 
-                        cursor: pointer; 
-                        pointer-events: none;
-                        background: white;
-                        border: 2px solid #666;
-                        border-radius: 3px;
-                    ">
+            <div class="home-card folder-card overview-card"
+                onclick="${batchEditMode || FavoriteManager.isInEditMode() ? `toggleItemSelection('folder-${item.originalFolderId}')` : `NavigationManager.enterFolder('${type}', '${item.originalFolderId}', '${item.name}')`}"
+                oncontextmenu="ContextMenuManager.showFolderMenu(event, '${type}', '${item.originalFolderId}', '${item.name}')"
+                data-folder-id="${item.originalFolderId}"
+                id="folder-card-${item.originalFolderId}"
+                style="aspect-ratio: ${config.aspectRatio}; width: ${config.width};">
+                
+                <!-- 堆疊背景 (🔧 移除固定的 height) -->
+                <div class="overview-folder-card-stack stack-3" style="aspect-ratio: ${config.aspectRatio}; ${getImageUrl(2)}"></div>
+                <div class="overview-folder-card-stack stack-2" style="aspect-ratio: ${config.aspectRatio}; ${getImageUrl(1)}"></div>
+                
+                <!-- 卡片主體 (🔧 移除固定的 height) -->
+                <div class="overview-folder-card-body" style="aspect-ratio: ${config.aspectRatio}; ${getImageUrl(0)}">
+                    <!-- 選中覆蓋層 -->
+                    <div class="selection-overlay"></div>
+                    
+                    <!-- 選擇框 -->
+                    ${batchEditMode || FavoriteManager.isInEditMode() ? `
+                        <div style="position: absolute; top: 8px; left: 8px; z-index: 10;">
+                            <input type="checkbox" class="selection-checkbox" style="width: 20px; height: 20px; cursor: pointer; pointer-events: none; background: white; border: 2px solid #666; border-radius: 3px;">
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <!-- 資料夾名稱 -->
+                <div class="overview-folder-name-container">
+                    <span class="overview-folder-name">
+                        ${IconManager.folder({width: 16, height: 16, style: 'color: var(--text-muted);'})}
+                        ${item.name}
+                    </span>
+                </div>
             </div>
-        ` : ''}
-    
-        
-    </div>
-    
-<!-- 資料夾名稱 -->
-<div style="text-align: center; padding: 0 8px; margin-top: 12px;">
-    <span class="folder-name" style="
-        font-size: 1em; 
-        color: var(--text-color); 
-        font-weight: 600; 
-        line-height: 1.3; 
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-    ">
-        ${IconManager.folder({width: 16, height: 16, style: 'color: var(--text-muted);'})}
-        ${item.name}
-
-    </span>
-</div>
-</div>
             `;
         }
         
-        // 原有的項目卡片邏輯（完全保持不變）
+        // --- 一般項目卡片 (🔧 移除固定的 height) ---
         const firstVersion = item.versions[0];
         const imageUrl = firstVersion[config.imageField];
         let normalClickAction;
         if (config.clickParams) {
-            // selectItem 類型的函數需要額外參數
             const params = config.clickParams.map(p => `'${p}'`).join(', ');
             normalClickAction = `${config.clickFn}(${params}, '${item.id}')`;
         } else {
-            // selectCharacterFromHome 類型的函數只需要 ID
             normalClickAction = `${config.clickFn}('${item.id}')`;
         }
 
@@ -1917,77 +1817,31 @@ ${(() => {
             normalClickAction;
         
         return `
-            <div class="home-card" 
+            <div class="home-card overview-card" 
                 onclick="${clickAction}"
                 oncontextmenu="ContextMenuManager.showItemMenu(event, '${type}', '${item.id}', '${item.name}')"
                 ${config.dataAttr}="${item.id}"
                 id="card-${item.id}"
-                style="aspect-ratio: ${config.aspectRatio}; width: ${config.width}; transition: all 0.2s ease; position: relative; cursor: pointer;">
+                style="aspect-ratio: ${config.aspectRatio}; width: ${config.width};">
                 
-                <!-- 卡片主體 -->
-                <div style="
-                    flex: 1 1 auto; 
-                    width: 100%; 
-                    height: ${config.height}; 
-                    aspect-ratio: ${config.aspectRatio}; 
-                    border-radius: 5px; 
-                    overflow: hidden; 
-                    background: transparent; 
-                    border: 1px solid var(--border-color); 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center; 
-                    margin-bottom: 12px; 
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-                    position: relative;
-                ">
-                    ${imageUrl ? 
-                        `<img src="${BlobManager.getBlobUrl(imageUrl)}" style="width: 100%; height: 100%; object-fit: cover;" alt="${item.name}">` :
-                        ``
-                    }
+                <!-- 卡片主體 (🔧 移除固定的 height) -->
+                <div class="overview-card-body" style="aspect-ratio: ${config.aspectRatio};">
+                    ${imageUrl ? `<img src="${BlobManager.getBlobUrl(imageUrl)}" class="overview-card-image" alt="${item.name}">` : ''}
                     
                     <!-- 選中覆蓋層 -->
-                    <div class="selection-overlay" style="
-                        position: absolute; 
-                        top: 0; 
-                        left: 0; 
-                        right: 0; 
-                        bottom: 0; 
-                        background: rgba(92, 193, 255, 0.4); 
-                        border: 3px solid #66b3ff; 
-                        border-radius: 5px; 
-                        z-index: 5;
-                        pointer-events: none;
-                        box-sizing: border-box;
-                        display: none;
-                    "></div>
+                    <div class="selection-overlay"></div>
                     
-                    <!-- 選擇框（批量編輯模式下顯示） -->
+                    <!-- 選擇框 -->
                     ${batchEditMode || FavoriteManager.isInEditMode() ? `
                         <div style="position: absolute; top: 8px; left: 8px; z-index: 10;">
-                            <input type="checkbox" class="selection-checkbox"
-                                   style="
-                                       width: 20px; 
-                                       height: 20px; 
-                                       cursor: pointer; 
-                                       pointer-events: none;
-                                       background: white;
-                                       border: 2px solid #666;
-                                       border-radius: 3px;
-                                   ">
+                            <input type="checkbox" class="selection-checkbox" style="width: 20px; height: 20px; cursor: pointer; pointer-events: none; background: white; border: 2px solid #666; border-radius: 3px;">
                         </div>
                     ` : ''}
                 </div>
                 
                 <!-- 項目名稱 -->
-                <div style="text-align: center; padding: 0 8px;">
-                    <span class="${config.nameClass}" style="
-                        font-size: 1em; 
-                        color: var(--text-color); 
-                        font-weight: 500; 
-                        line-height: 1.3; 
-                        display: block;
-                    ">
+                <div class="overview-card-name-container">
+                    <span class="${config.nameClass} overview-card-name">
                         ${FavoriteManager.getDisplayName(item)}
                     </span>
                 </div>
