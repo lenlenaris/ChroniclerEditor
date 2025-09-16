@@ -255,6 +255,7 @@
     justify-content: center;
     gap: 8px;
     outline: none;
+    margin-top: 16px;
 }
 
 .loveydovey-add-btn-transparent:hover {

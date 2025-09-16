@@ -2149,7 +2149,7 @@ class FolderMoveDialog {
         const content = `
             <div class="compact-modal-content" style="max-width: 500px;">
                 <div class="compact-modal-header" style="justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="custom-field-right-controls">
                         ${IconManager.arrowRight({width: 18, height: 18})}
                         <h3 class="compact-modal-title">${t('selectTargetFolder')}</h3>
                     </div>

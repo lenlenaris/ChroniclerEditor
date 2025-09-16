@@ -337,7 +337,7 @@ class WorldBookRenderer {
     // 渲染世界書版本內容
     static renderWorldBookVersionContent(worldBook, version) {
         return `
-        <div style="width: 98%; margin: 0 auto;">
+        <div class="character-version-content">
             <!-- 條目列表 -->
             <div class="entries-container" data-world-book-id="${worldBook.id}" data-version-id="${version.id}">
                 ${version.entries.length > 0 ? `
@@ -386,20 +386,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
           <!-- Entry header -->
 <div class="entry-header" style="display: grid; grid-template-columns: 24px 24px 36px 1fr 52px 150px 60px 60px 60px 40px 40px; gap: 8px; margin: 10px; align-items: center;">
     <!-- Drag handle -->
-    <div class="drag-handle" style="
-        cursor: grab;
-        color: var(--text-muted);
-        padding: 4px;
-        border-radius: 4px;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 20px;
-        height: 20px;
-        flex-shrink: 0;
-    " onmouseover="this.style.color='var(--text-color)'; this.style.backgroundColor='var(--border-color)'"
-       onmouseout="this.style.color='var(--text-muted)'; this.style.backgroundColor='transparent'">
+    <div class="drag-handle custom-field-drag-handle">
         ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
     </div>
     
@@ -562,14 +549,14 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
         <div class="entry-section">
             <!-- Keywords with logic -->
 <div style="display: grid; grid-template-columns: 1fr 120px; gap: 8px; margin-bottom: 8px;">
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('primaryKeywords')}</label>
         <input type="text" class="field-input compact-input" 
             placeholder="${t('keywordsPlaceholder')}"
             value="${entry.key.join(', ')}"
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'key', this.value)">
     </div>
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('keywordLogic')}</label>
         <select class="field-input compact-input" 
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'selectiveLogic', parseInt(this.value))">
@@ -582,7 +569,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
 </div>
 
             <!-- Secondary filters -->
-            <div class="field-group" style="margin-bottom: 8px;">
+            <div class="field-group creator-notes-group">
                 <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('secondaryFilters')}</label>
                 <input type="text" class="field-input compact-input" 
                     placeholder="${t('secondaryKeysPlaceholder')}"
@@ -591,7 +578,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
             </div>
             
             <!-- Content -->
-            <div class="field-group" style="margin-bottom: 8px;">
+            <div class="field-group creator-notes-group">
                 <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em; display: flex; justify-content: space-between; align-items: center;">
                     <span>
                         ${t('entryContentLabel')}
@@ -619,7 +606,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
                 
 <!-- Group and automation settings -->
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; align-items: end;">
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <label class="field-label" style="margin-bottom: 0; font-size: 0.85em;">${t('includeGroups')}</label>
             <div style="display: flex; align-items: center; gap: 6px; background: var(--header-bg); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color);">
@@ -634,7 +621,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
             placeholder="${t('groupPlaceholder')}"
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'group', this.value)">
     </div>
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <div style="height: 24px; display: flex; align-items: center; margin-bottom: 4px;">
             <label class="field-label" style="margin-bottom: 0; font-size: 0.8em;">${t('automationId')}</label>
         </div>
@@ -646,7 +633,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
 
                 <!-- Triggers 觸發時機設定 -->
                 <div style="margin-bottom: 12px;">
-                    <div class="field-group" style="margin-bottom: 0;">
+                    <div class="field-group no-bottom-margin">
                         <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('filterToGenerationTriggers')}</label>
                         <div class="triggers-input-container" style="position: relative;">
                             <div class="field-input compact-input triggers-display" 
@@ -700,7 +687,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
 
                <!-- Three-value dropdown settings -->
 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('caseSensitive')}</label>
         <select class="field-input compact-input" 
             onchange="updateWorldBookEntryAdvanced('${worldBookId}', '${versionId}', '${entry.id}', 'caseSensitive', this.value)">
@@ -709,7 +696,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
             <option value="false" ${entry.caseSensitive === false ? 'selected' : ''}>${t('no')}</option>
         </select>
     </div>
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('matchWholeWords')}</label>
         <select class="field-input compact-input" 
             onchange="updateWorldBookEntryAdvanced('${worldBookId}', '${versionId}', '${entry.id}', 'matchWholeWords', this.value)">
@@ -718,7 +705,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
             <option value="false" ${entry.matchWholeWords === false ? 'selected' : ''}>${t('no')}</option>
         </select>
     </div>
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('useGroupScoring')}</label>
         <select class="field-input compact-input" 
             onchange="updateWorldBookEntryAdvanced('${worldBookId}', '${versionId}', '${entry.id}', 'useGroupScoring', this.value)">
@@ -757,19 +744,19 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
     <!-- Right: Value settings -->
     <div style="justify-self: end;">
 <div style="display: grid; grid-template-columns: 150px 150px 150px; gap: 8px; margin-bottom: 8px;">
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('stickyValue')}</label>
         <input type="number" class="field-input compact-input" value="${entry.sticky || 0}" 
             style="width: 150px;"
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'sticky', parseInt(this.value))">
     </div>
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('cooldownValue')}</label>
         <input type="number" class="field-input compact-input" value="${entry.cooldown || 0}" 
             style="width: 150px;"
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'cooldown', parseInt(this.value))">
     </div>
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('groupWeight')}</label>
         <input type="number" class="field-input compact-input" value="${entry.groupWeight || 100}" min="1" max="100"
             style="width: 150px;"
@@ -777,7 +764,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
     </div>
 </div>
 <div style="display: grid; grid-template-columns: 150px 150px 150px; gap: 8px;">
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('recursionLevel')}</label>
         <input type="number" class="field-input compact-input" 
             id="delay-value-${entry.id}"
@@ -787,13 +774,13 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
             ${entry.delayUntilRecursion && entry.delayUntilRecursion > 0 ? '' : 'disabled'}
             onchange="updateDelayUntilRecursionValue('${worldBookId}', '${versionId}', '${entry.id}', parseInt(this.value))">
     </div>
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('delayValue')}</label>
         <input type="number" class="field-input compact-input" value="${entry.delay || 0}" 
             style="width: 150px;"
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'delay', parseInt(this.value))">
     </div>
-    <div class="field-group" style="margin-bottom: 0;">
+    <div class="field-group no-bottom-margin">
         <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('scanDepth')}</label>
         <input type="number" class="field-input compact-input" value="${entry.scanDepth || ''}" 
             placeholder="${t('scanDepthplaceholder')}"

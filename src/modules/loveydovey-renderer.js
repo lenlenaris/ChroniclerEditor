@@ -436,21 +436,7 @@ static renderAdditionalInfoList(character, version) {
                 
                 <div style="display: flex; align-items: flex-start; gap: 8px; flex: 1;">
                     <!-- 拖曳控制柄 -->
-                    <div class="drag-handle" style="
-                        cursor: grab;
-                        color: var(--text-muted);
-                        padding: 4px;
-                        border-radius: 4px;
-                        transition: all 0.2s ease;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        width: 20px;
-                        height: 20px;
-                        margin-top: 2px;
-                        flex-shrink: 0;
-                    " onmouseover="this.style.color='var(--text-color)'; this.style.backgroundColor='var(--border-color)'"
-                       onmouseout="this.style.color='var(--text-muted)'; this.style.backgroundColor='transparent'">
+                    <div class="drag-handle custom-field-drag-handle">
                         ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
                     </div>
                     
@@ -527,21 +513,7 @@ static renderCreatorEventsFields(character, version) {
     
     <div style="display: flex; align-items: flex-start; gap: 8px; flex: 1;">
     <!-- 拖曳控制柄 -->
-    <div class="drag-handle" style="
-        cursor: grab;
-        color: var(--text-muted);
-        padding: 4px;
-        border-radius: 4px;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 20px;
-        height: 20px;
-        margin-top: 2px;
-        flex-shrink: 0;
-    " onmouseover="this.style.color='var(--text-color)'; this.style.backgroundColor='var(--border-color)'"
-       onmouseout="this.style.color='var(--text-muted)'; this.style.backgroundColor='transparent'">
+    <div class="drag-handle custom-field-drag-handle">
         ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
     </div>
         

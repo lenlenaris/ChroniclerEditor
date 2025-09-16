@@ -388,3 +388,105 @@
 .version-tag-suggestion:hover {
     background: var(--border-color);
 }
+
+/* 角色版本內容主容器 */
+.character-version-content {
+    width: 98%;
+    margin: 0 auto;
+}
+
+/* 角色基本資訊第一行：創作者 + 版本 */
+.character-basic-info-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+/* 取消 field-group 下邊距的輔助 class */
+.field-group.no-bottom-margin {
+    margin-bottom: 0;
+}
+
+/* creatorNotes 區塊專用樣式 */
+.field-group.creator-notes-group {
+    margin-bottom: 8px;
+}
+
+.field-label.creator-notes-label {
+    margin-bottom: 4px;
+}
+
+/* creatorNotes textarea 固定高度樣式 */
+.field-input.creator-notes-textarea {
+    height: 148px;
+    resize: none !important;
+    min-height: 148px;
+    max-height: 148px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* 自定義欄位頂部控制列 */
+.custom-field-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+/* 左側控制組（拖曳 + 標題） */
+.custom-field-left-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 右側控制組（全螢幕 + 統計 + 刪除） */
+.custom-field-right-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 自定義欄位拖曳控制柄 */
+.custom-field-drag-handle {
+    cursor: grab;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.custom-field-drag-handle:hover {
+    color: var(--text-color);
+    background-color: var(--border-color);
+}
+
+/* 自定義欄位名稱輸入框 */
+.custom-field-name-input {
+    padding: 4px 8px;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--text-color);
+    min-width: 250px;
+    width: auto;
+}
+
+/* 自定義欄位統計文字 */
+.custom-field-stats {
+    color: var(--text-muted);
+}
+
+/* 自定義欄位內容輸入框 */
+.custom-field-textarea {
+    min-height: 200px;
+    max-height: 70vh;
+    resize: vertical;
+}

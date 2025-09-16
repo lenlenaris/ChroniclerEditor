@@ -571,7 +571,7 @@ static rerenderVersionPanel(itemType, itemId, versionId) {
         // 渲染角色版本內容
 static renderCharacterVersionContent(character, version) {
     return `
-    <div style="width: 98%; margin: 0 auto;">
+    <div class="character-version-content">
         <div class="character-basic-info">
             <div class="avatar-section">
                 <div class="avatar-preview ${version.avatar ? '' : 'avatar-upload-placeholder'}" 
@@ -684,7 +684,7 @@ static renderUserPersonaBasicFields(userPersona, version) {
 static renderCharacterBasicFields(character, version) {
     return `
         <!-- 第一行：創作者 + 角色版本 -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
+        <div class="character-basic-info-row">
             ${this.createTextFieldWithStats({
                 id: `creator-${version.id}`,
                 label: t('creator'),
@@ -698,7 +698,7 @@ static renderCharacterBasicFields(character, version) {
                 withFullscreen: false,
                 extraClass: '',
                 showStats: false
-            }).replace('class="field-group"', 'class="field-group" style="margin-bottom: 0;"')}
+            }).replace('class="field-group"', 'class="field-group no-bottom-margin"')}
 
             ${this.createTextFieldWithStats({
                 id: `charVersion-${version.id}`,
@@ -713,23 +713,22 @@ static renderCharacterBasicFields(character, version) {
                 withFullscreen: false,
                 extraClass: '',
                 showStats: false
-            }).replace('class="field-group"', 'class="field-group" style="margin-bottom: 0;"')}
+            }).replace('class="field-group"', 'class="field-group no-bottom-margin"')}
         </div>
 
 
 <!-- 第二行：創作者備註 -->
-<div class="field-group" style="margin-bottom: 8px;">
-    <label class="field-label" style="margin-bottom: 4px;">
+<div class="field-group creator-notes-group">
+    <label class="field-label creator-notes-label">
         ${t('creatorNotes')}
         <button class="fullscreen-btn" onclick="openFullscreenEditor('creatorNotes-${version.id}', \`${t('creatorNotes')}\`)" title="${t('fullscreenEdit')}">⛶</button>
     </label>
-    <textarea class="field-input" id="creatorNotes-${version.id}" 
+    <textarea class="field-input creator-notes-textarea" id="creatorNotes-${version.id}" 
     placeholder="${t('notesPlaceholder')}"
-    style="height: 148px; resize: none !important; min-height: 148px; max-height: 148px; overflow-y: auto; box-sizing: border-box;"
     oninput="updateField('character', '${character.id}', '${version.id}', 'creatorNotes', this.value);">${version.creatorNotes || ''}</textarea>
 </div>
         <!-- 第三行：嵌入標籤（使用新的視覺化標籤輸入） -->
-        <div class="field-group" style="margin-bottom: 0;">
+        <div class="field-group no-bottom-margin">
             <label class="field-label">${t('tags')}</label>
             ${TagInputManager.createTagInput({
                 id: `tags-${version.id}`,
@@ -782,17 +781,17 @@ return basicFieldsHTML;
         // 渲染自定義版本內容
         static renderCustomVersionContent(section, version) {
             return `
-            <div style="width: 98%; margin: 0 auto;">
+            <div class="character-version-content">
                 <!-- 動態欄位區域 -->
                 <div id="custom-fields-${version.id}" data-section-id="${section.id}" data-version-id="${version.id}">
                     ${version.fields.map(field => this.renderCustomField(section.id, version.id, field)).join('')}
                 </div>
                 
                <!-- 新增欄位按鈕 -->
-<button class="loveydovey-add-btn-transparent" onclick="addCustomField('${section.id}', '${version.id}')" style="margin-top: 16px;">
-    ${IconManager.plus({width: 16, height: 16})}
-    ${t('addField')}
-</button>
+                <button class="loveydovey-add-btn-transparent" onclick="addCustomField('${section.id}', '${version.id}')">
+                    ${IconManager.plus({width: 16, height: 16})}
+                    ${t('addField')}
+                </button>
                 </div>
             `;
         }
@@ -801,48 +800,32 @@ return basicFieldsHTML;
 static renderCustomField(sectionId, versionId, field) {
     return `
         <div class="field-group sortable-item" id="field-${field.id}" data-field-id="${field.id}">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-    <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="custom-field-header">
+            <div class="custom-field-left-controls">
         <!-- 拖曳控制柄 -->
-        <div class="drag-handle" style="
-            cursor: grab;
-            color: var(--text-muted);
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        " onmouseover="this.style.color='var(--text-color)'; this.style.backgroundColor='var(--border-color)'"
-           onmouseout="this.style.color='var(--text-muted)'; this.style.backgroundColor='transparent'">
+        <div class="drag-handle custom-field-drag-handle">
             ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
         </div>
         
-        <input type="text" class="version-title title-font" value="${field.name}"
-                        onchange="updateCustomFieldName('${sectionId}', '${versionId}', '${field.id}', this.value)"
-                        placeholder="${t('fieldNamePlaceholder')}"
-                        style="padding: 4px 8px; font-size: 0.9em; font-weight: 500; color: var(--text-color); min-width: 250px; width: auto;">
+        <input type="text" class="version-title title-font custom-field-name-input" value="${field.name}"
+                onchange="updateCustomFieldName('${sectionId}', '${versionId}', '${field.id}', this.value)"
+                placeholder="${t('fieldNamePlaceholder')}">
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="custom-field-right-controls">
                 <button class="fullscreen-btn" onclick="openFullscreenEditor('custom-field-${field.id}', '${field.name}')" 
                             title="${t('fullscreenEdit')}">⛶</button>
-                    <span class="field-stats" data-target="custom-field-${field.id}" style=" color: var(--text-muted);">${field.content ? field.content.length : 0} ${t('chars')} / ${field.content ? countTokens(field.content) : 0} ${t('tokens')}</span>
+                    <span class="field-stats custom-field-stats" data-target="custom-field-${field.id}">${field.content ? field.content.length : 0} ${t('chars')} / ${field.content ? countTokens(field.content) : 0} ${t('tokens')}</span>
 
-                    
-                    <button class="delete-btn" 
+            <button class="delete-btn" 
                 onclick="confirmRemoveCustomField('${sectionId}', '${versionId}', '${field.id}')"
                 title="${t('deleteField')}">
             ${IconManager.delete()}
             </button>
                 </div>
             </div>
-            <textarea class="field-input" id="custom-field-${field.id}" 
-    placeholder="${t('customFieldPlaceholder')}"
-    style="min-height: 200px; max-height: 70vh; resize: vertical;"
-    oninput="updateField('custom', '${sectionId}', '${versionId}', 'customField-${field.id}', this.value);">${field.content}</textarea>
+            <textarea class="field-input custom-field-textarea" id="custom-field-${field.id}" 
+                placeholder="${t('customFieldPlaceholder')}"
+                oninput="updateField('custom', '${sectionId}', '${versionId}', 'customField-${field.id}', this.value);">${field.content}</textarea>
         </div>
     `;
 }
@@ -873,7 +856,7 @@ static renderCustomFieldsContainer(section, version) {
         </div>
         
         <!-- 新增欄位按鈕 -->
-        <button class="loveydovey-add-btn-transparent" onclick="addCustomField('${section.id}', '${version.id}')" style="margin-top: 16px;">
+        <button class="loveydovey-add-btn-transparent" onclick="addCustomField('${section.id}', '${version.id}')">
             ${IconManager.plus({width: 16, height: 16})}
             ${t('addField')}
         </button>
@@ -1009,7 +992,7 @@ ${isFirstMessage ? `<button class="version-panel-btn hover-primary" onclick="eve
             const charCount = TagManager.normalizeToString(tagsArray).length;
             
             return `
-                <div class="field-group" style="margin-bottom: 0;">
+                <div class="field-group no-bottom-margin">
                     <label class="field-label">
                         ${label}
                         <span class="field-stats" data-target="${id}" style="margin-left: 12px; font-size: 0.85em; color: var(--text-muted);">
@@ -1365,22 +1348,9 @@ function renderAlternateGreetingsModalContent(character, version) {
                      
                     <!-- 標題列 -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="custom-field-right-controls">
                             <!-- 拖曳控制柄 -->
-                            <div class="drag-handle" style="
-                                cursor: grab;
-                                color: var(--text-muted);
-                                padding: 4px;
-                                border-radius: 4px;
-                                transition: all 0.2s ease;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                width: 20px;
-                                height: 20px;
-                                flex-shrink: 0;
-                            " onmouseover="this.style.color='var(--text-color)'; this.style.backgroundColor='var(--border-color)'"
-                               onmouseout="this.style.color='var(--text-muted)'; this.style.backgroundColor='transparent'">
+                            <div class="drag-handle custom-field-drag-handle">
                                 ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
                             </div>
                             
@@ -1397,7 +1367,7 @@ function renderAlternateGreetingsModalContent(character, version) {
                     </div>
 
                     <!-- 內容區域 -->
-                    <div class="field-group" style="margin-bottom: 0;">
+                    <div class="field-group no-bottom-margin">
                         <textarea class="field-input" 
           id="alternateGreeting-modal-${version.id}-${index}" 
           placeholder="${t('alternateGreetingPlaceholder')}"
@@ -1576,7 +1546,7 @@ class ConfirmationRenderer {
         const content = `
             <div class="compact-modal-content">
                 <div class="compact-modal-header" style="justify-content: left;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="custom-field-right-controls">
                         ${iconHtml}
                         <h3 class="compact-modal-title">${title}</h3>
                     </div>
