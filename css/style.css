@@ -476,6 +476,114 @@ textarea[id^="characterQuote-"] {
     justify-content: flex-end;
 }
 
+.alternate-greetings-modal {
+    max-width: 800px !important; 
+    max-height: 85% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* 替代問候語模態框標題區域調整 */
+.alternate-greetings-modal .compact-modal-header {
+    justify-content: space-between;
+}
+
+/* 替代問候語模態框內容容器（寬版） */
+.alternate-greetings-modal-content {
+    max-width: 800px;
+    max-height: 85%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 模態框標題圖標組 */
+.modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* 替代問候語內容滾動容器 */
+.alternate-greetings-content {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 0px;
+    padding-right: 12px;
+}
+
+/* 模態框顯示狀態 */
+.modal.show {
+    display: block;
+}
+
+/* 替代問候語新增按鈕容器 */
+.alternate-greetings-add-container {
+    margin: 0px 0 20px 0;
+}
+
+/* 替代問候語空狀態 */
+.alternate-greetings-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px;
+    font-style: italic;
+}
+
+/* 替代問候語項目容器 */
+.alternate-greeting-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: var(--header-bg);
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* 替代問候語項目標題列 */
+.alternate-greeting-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* 替代問候語標題文字 */
+.alternate-greeting-title {
+    margin: 0;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* 替代問候語刪除按鈕容器 */
+.alternate-greeting-delete {
+    flex-shrink: 0;
+}
+
+/* 替代問候語文本區域 */
+.alternate-greeting-textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* 替代問候語底部工具列 */
+.alternate-greeting-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+}
+
+/* 替代問候語統計文字 */
+.alternate-greeting-stats {
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
 /* 底部欄位區域 */
 .bottom-fields {
     margin-top: var(--spacing-3xl);
@@ -738,9 +846,6 @@ details summary::marker {
     z-index: 9999 !important;
 }
 
-.modal.show {
-    display: flex;
-}
 
 .modal-content {
     background-color: var(--content-bg);
@@ -923,6 +1028,65 @@ details summary::marker {
     display: none;
 }
 
+/* 確認對話框副文字區塊容器 */
+.confirm-modal-subtext {
+    text-align: center;
+    padding: 0;
+}
+
+/* 確認對話框副文字內容 */
+.confirm-modal-subtext-content {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+/* 確認對話框標題區域（左對齊） */
+.confirm-modal-header {
+    justify-content: left;
+}
+
+/* 確認對話框底部按鈕區域（右對齊） */
+.confirm-modal-footer {
+    justify-content: right;
+    margin-top: 25px;
+}
+
+/* 確認對話框列表項目文字樣式 */
+.confirm-modal-list-item {
+    font-size: 0.75em;
+    color: var(--text-muted);
+}
+
+/* 確認對話框列表區塊容器 */
+.confirm-modal-list-section {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+/* 確認對話框列表標題容器 */
+.confirm-modal-list-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 確認對話框列表內容容器 */
+.confirm-modal-list-content {
+    overflow-y: auto;
+}
+
+/* 確認對話框說明區塊內容 */
+.confirm-modal-info-content {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* 確認對話框描述文字 */
+.confirm-modal-description {
+    text-align: center;
+    margin-top: 30px;
+}
 
 
 

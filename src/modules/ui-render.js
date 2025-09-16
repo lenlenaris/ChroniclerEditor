@@ -823,7 +823,7 @@ static renderCustomField(sectionId, versionId, field) {
             </button>
                 </div>
             </div>
-            <textarea class="field-input custom-field-textarea" id="custom-field-${field.id}" 
+            <textarea class="field-input standard-textarea" id="custom-field-${field.id}" 
                 placeholder="${t('customFieldPlaceholder')}"
                 oninput="updateField('custom', '${sectionId}', '${versionId}', 'customField-${field.id}', this.value);">${field.content}</textarea>
         </div>
@@ -951,13 +951,13 @@ setTimeout(() => {
                 extraClass = '', showStats = true, customStyle = ''
             } = config;
             
-            const defaultTextareaStyle = customStyle || 'min-height: 200px; max-height: 70vh; resize: vertical;';
-            
+            const textareaClass = customStyle ? '' : 'standard-textarea';
+
             const inputElement = isTextarea ? 
-    `<textarea class="field-input ${extraClass}" id="${id}" 
-        placeholder="${placeholder}"
-        style="${defaultTextareaStyle}"
-        oninput="updateField('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value);">${value}</textarea>` :
+            `<textarea class="field-input ${extraClass} ${textareaClass}" id="${id}" 
+                placeholder="${placeholder}"
+                ${customStyle ? `style="${customStyle}"` : ''}
+                oninput="updateField('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value);">${value}</textarea>` :
     `<input type="text" class="field-input ${extraClass}" id="${id}" 
         placeholder="${placeholder}"
         oninput="updateField('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value);" 
@@ -971,59 +971,25 @@ setTimeout(() => {
                         ${label}
                         ${showStats ? `<span class="field-stats" data-target="${id}">0 ${t('chars')}${isTextarea ? ' / 0 ' + t('tokens') : ''}</span>` : ''}
                         ${withFullscreen && isTextarea ? `<button class="fullscreen-btn" onclick="event.stopPropagation(); openFullscreenEditor('${id}', '${label}')" title="${t('fullscreenEdit')}">⛶</button>` : ''}
-${isFirstMessage ? `<button class="version-panel-btn hover-primary" onclick="event.stopPropagation(); openAlternateGreetingsModal('${itemId}', '${versionId}');" title="${t('manageAlternateGreetings')}" style="float: right; height: 24px; font-size: 0.85em; z-index: 1000; position: relative; pointer-events: auto;">${t('alternateGreetings')}</button>` : ''}
-
-
+                        ${isFirstMessage ? `<button class="version-panel-btn hover-primary alternate-greetings-btn" onclick="event.stopPropagation(); openAlternateGreetingsModal('${itemId}', '${versionId}');" title="${t('manageAlternateGreetings')}">${t('alternateGreetings')}</button>` : ''}
                     </label>
                     ${inputElement}
                 </div>
             `;
         }
 
-            // 創建標籤欄位（帶統計）
-        static createTagFieldWithStats(config) {
-            const {
-                id, label, placeholder, value = '', 
-                itemType, itemId, versionId, fieldName
-            } = config;
-            
-            // 計算標籤統計
-            const tagsArray = TagManager.normalizeToArray(value);
-            const charCount = TagManager.normalizeToString(tagsArray).length;
-            
+        // 統一的按鈕組渲染
+        static createVersionButtonGroup(itemType, itemId, versionId, showDelete = true) {
             return `
-                <div class="field-group no-bottom-margin">
-                    <label class="field-label">
-                        ${label}
-                        <span class="field-stats" data-target="${id}" style="margin-left: 12px; font-size: 0.85em; color: var(--text-muted);">
-                            ${charCount} ${t('chars')}
-                        </span>
-                    </label>
-                    ${TagInputManager.createTagInput({
-                        id: id,
-                        value: value,
-                        itemType: itemType,
-                        itemId: itemId,
-                        versionId: versionId,
-                        fieldName: fieldName,
-                        placeholder: placeholder
-                    })}
+                <div class="version-button-group">
+                    <button class="version-panel-btn hover-primary" onclick="VersionCRUD.copy('${itemType}', '${itemId}', '${versionId}')">${t('copy')}</button>
+                    ${showDelete ? `<button class="version-panel-btn hover-primary" onclick="VersionCRUD.remove('${itemType}', '${itemId}', '${versionId}')">${t('delete')}</button>` : ''}
                 </div>
             `;
         }
-
-    // 統一的按鈕組渲染
-    static createVersionButtonGroup(itemType, itemId, versionId, showDelete = true) {
-    return `
-        <div style="display: flex; gap: 8px; flex-shrink: 0;">
-    <button class="version-panel-btn hover-primary" onclick="VersionCRUD.copy('${itemType}', '${itemId}', '${versionId}')" style="height: 32px;">${t('copy')}</button>
-    ${showDelete ? `<button class="version-panel-btn hover-primary" onclick="VersionCRUD.remove('${itemType}', '${itemId}', '${versionId}')" style="height: 32px;">${t('delete')}</button>` : ''}
-</div>
-    `;
-}
         
         static renderEmptyState() {
-            return `<div style="text-align: center; padding: 80px; color: var(--text-muted);">${t('selectCharacter') || '請選擇一個項目'}</div>`;
+            return `<div class="empty-state">${t('selectCharacter') || '請選擇一個項目'}</div>`;
         }
         
         static renderHomePage(container) {
@@ -1152,7 +1118,7 @@ function renderSidebar() {
 
     const userPersonaContainer = document.getElementById('userPersonaContent');
     if (userPersonaContainer) {
-        userPersonaContainer.innerHTML = renderItemList('userpersona', userPersonas, currentUserPersonaId, currentUserPersonaVersionId); // 👈 修正：用正確的容器
+        userPersonaContainer.innerHTML = renderItemList('userpersona', userPersonas, currentUserPersonaId, currentUserPersonaVersionId);
     }
 
     const loveyDoveyContainer = document.getElementById('loveyDoveyContent');
@@ -1216,25 +1182,24 @@ function renderSidebarVersion(item, version, type, currentVersionId) {
         }
     }
     
-   const stats = getCachedStatsForSidebar(version, type);
-
+    const stats = getCachedStatsForSidebar(version, type);
     
-return `
-    <div class="version-item ${isVersionActive ? 'active' : ''}" 
-         data-action="selectSidebarItem"
-         data-type="${type}"
-         data-item-id="${item.id}"
-         data-version-id="${version.id}">
-            <div style="display: flex; flex-direction: column; width: 100%; gap: 2px;">
-                <div style="display: flex; align-items: center; gap: 6px;">
+    return `
+        <div class="version-item ${isVersionActive ? 'active' : ''}" 
+             data-action="selectSidebarItem"
+             data-type="${type}"
+             data-item-id="${item.id}"
+             data-version-id="${version.id}">
+            <div class="version-item-content">
+                <div class="version-item-header">
                     ${VersionUtils.getVersionIcon(version, type)}
-                    <span style="font-weight: 500; flex: 1; text-align: left;">
+                    <span class="version-item-name">
                         ${version.name}
                     </span>
                 </div>
-                <div style="text-align: right; font-size: 0.7em; font-style: italic; color: ${isVersionActive ? 'var(--accent-color)' : 'var(--text-muted)'}; opacity: 0.8; padding-right: 2px;">
-    ${stats.formatted}
-</div>
+                <div class="version-item-stats">
+                    ${stats.formatted}
+                </div>
             </div>
         </div>
     `;
@@ -1258,18 +1223,17 @@ function openAlternateGreetingsModal(characterId, versionId) {
     modal.className = 'modal';
     modal.id = 'alternate-greetings-modal';
     modal.style.display = 'block';
-    
     modal.innerHTML = `
-        <div class="compact-modal-content" style="max-width: 800px; max-height: 85%; overflow: hidden; display: flex; flex-direction: column;">
-            <div class="compact-modal-header" style="justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+        <div class="compact-modal-content alternate-greetings-modal">
+            <div class="compact-modal-header">
+                <div class="modal-title-group">
                     ${IconManager.messageSquare({width: 18, height: 18})}
                     <h3 class="compact-modal-title">${t('manageAlternateGreetings')}</h3>
                 </div>
                 <button class="close-modal" onclick="closeAlternateGreetingsModal()">×</button>
             </div>
             
-            <div id="alternate-greetings-container" style="flex: 1; overflow-y: auto; margin-top: 0px;">
+            <div id="alternate-greetings-container" class="alternate-greetings-content">
                 ${renderAlternateGreetingsModalContent(character, version)}
             </div>
         </div>
@@ -1322,7 +1286,7 @@ function renderAlternateGreetingsModalContent(character, version) {
     const alternateGreetings = version.alternateGreetings || [];
     
     return `
-        <div style="margin: 0px 0 20px 0;">
+        <div class="alternate-greetings-add-container">
             <button class="loveydovey-add-btn" onclick="addAlternateGreetingInModal('${character.id}', '${version.id}')">
                 ${IconManager.plus({width: 16, height: 16})}
                 ${t('addAlternateGreeting')}
@@ -1331,62 +1295,49 @@ function renderAlternateGreetingsModalContent(character, version) {
         
         <div id="alternate-greetings-list-${version.id}">
             ${alternateGreetings.length === 0 ? `
-                <div style="text-align: center; color: var(--text-muted); padding: 40px; font-style: italic;">
+                <div class="alternate-greetings-empty">
                     ${t('noAlternateGreetings')}
                 </div>
             ` : alternateGreetings.map((greeting, index) => `
-                <div class="alternate-greeting-item" 
-                     style="
-                         border: 1px solid var(--border-color);
-                         border-radius: 8px;
-                         padding: 12px 16px;
-                         margin-bottom: 16px;
-                         background: var(--header-bg);
-                         position: relative;
-                         transition: all 0.2s ease;
-                     ">
+                <div class="alternate-greeting-item">
                      
                     <!-- 標題列 -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div class="alternate-greeting-header">
                         <div class="custom-field-right-controls">
                             <!-- 拖曳控制柄 -->
                             <div class="drag-handle custom-field-drag-handle">
                                 ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
                             </div>
                             
-                            <h4 style="margin: 0; font-size: 0.95em; font-weight: 600; color: var(--text-color);">
+                            <h4 class="alternate-greeting-title">
                                 ${t('alternateGreeting')} ${index + 1}
                             </h4>
                         </div>
                         
-                        <button class="delete-btn" 
-                                onclick="deleteAlternateGreetingInModal('${character.id}', '${version.id}', ${index})"
-                                style="flex-shrink: 0;">
+                        <button class="delete-btn alternate-greeting-delete" 
+                                onclick="deleteAlternateGreetingInModal('${character.id}', '${version.id}', ${index})">
                             ${IconManager.delete()}
                         </button>
                     </div>
 
                     <!-- 內容區域 -->
                     <div class="field-group no-bottom-margin">
-                        <textarea class="field-input" 
+                        <textarea class="field-input alternate-greeting-textarea" 
           id="alternateGreeting-modal-${version.id}-${index}" 
           placeholder="${t('alternateGreetingPlaceholder')}"
-          style="width: 100%; min-height: 120px; resize: vertical;"
           oninput="updateAlternateGreetingInModal('${character.id}', '${version.id}', ${index}, this.value);"
           onfocus="showAdditionalFullscreenBtn(this);"
           onblur="hideAdditionalFullscreenBtn(this);">${greeting}</textarea>
                         
                         <!-- 底部工具列 -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                        <div class="alternate-greeting-toolbar">
                             <button class="fullscreen-btn-base fullscreen-btn-toolbar" 
         onclick="openFullscreenEditor('alternateGreeting-modal-${version.id}-${index}', '${t('alternateGreeting')} ${index + 1}')"
-        title="${t('fullscreenEdit')}"
-        style="opacity: 0; visibility: hidden; transform: translateX(-8px); transition: all 0.2s ease;">
+        title="${t('fullscreenEdit')}">
     ⛶
 </button>
                             
-                            <div class="field-stats" data-target="alternateGreeting-modal-${version.id}-${index}" 
-                                 style="font-size: 0.85em; color: var(--text-muted);">
+                            <div class="field-stats alternate-greeting-stats" data-target="alternateGreeting-modal-${version.id}-${index}">
                                 ${greeting.length} ${t('chars')} / ${countTokens(greeting)} ${t('tokens')}
                             </div>
                         </div>
@@ -1523,8 +1474,8 @@ class ConfirmationRenderer {
         
         // 生成副文字區塊
         const subTextHtml = subText ? `
-            <div class="compact-section" style="text-align: center; padding: 0;">
-                <div style="color: var(--text-muted); font-size: 0.9em;">
+            <div class="compact-section confirm-modal-subtext">
+                <div class="confirm-modal-subtext-content">
                     ${subText}
                 </div>
             </div>
@@ -1542,10 +1493,11 @@ class ConfirmationRenderer {
             listPosition: listSection?.position || 'after-description',
             infoPosition: infoSection?.position || 'after-description'
         });
+        
         const cancelButtonAction = cancelAction || "this.closest('.modal').remove()";
         const content = `
             <div class="compact-modal-content">
-                <div class="compact-modal-header" style="justify-content: left;">
+                <div class="compact-modal-header confirm-modal-header">
                     <div class="custom-field-right-controls">
                         ${iconHtml}
                         <h3 class="compact-modal-title">${title}</h3>
@@ -1554,7 +1506,7 @@ class ConfirmationRenderer {
                 
                 ${contentSections}
 
-                <div class="compact-modal-footer" style="justify-content: right; margin-top: 25px;">
+                <div class="compact-modal-footer confirm-modal-footer">
                     <button class="overview-btn hover-primary" onclick="${cancelButtonAction}">${cancelText}</button>
                     <button class="${confirmButtonClass}" onclick="${confirmAction}">${confirmText}</button>
                 </div>
@@ -1588,17 +1540,17 @@ class ConfirmationRenderer {
         const itemsHtml = items.map(item => {
             // 如果是純文字，包裝成基本 div；如果已是 HTML，直接使用
             return typeof item === 'string' && !item.includes('<') ? 
-                `<div style="font-size: 0.75em; color: var(--text-muted);">${item}</div>` : 
+                `<div class="confirm-modal-list-item">${item}</div>` : 
                 item;
         }).join('');
 
         return `
-            <div class="compact-section list-style" style="text-align: left; margin-bottom: 20px;">
-                <div class="compact-section-title" style="display: flex; align-items: center; gap: 8px;">
+            <div class="compact-section list-style confirm-modal-list-section">
+                <div class="compact-section-title confirm-modal-list-title">
                     ${titleIconHtml}
                     ${title}
                 </div>
-                <div style="max-height: ${maxHeight}; overflow-y: auto;">
+                <div class="confirm-modal-list-content" style="max-height: ${maxHeight};">
                     ${itemsHtml}
                 </div>
             </div>
@@ -1622,7 +1574,7 @@ class ConfirmationRenderer {
 
         return `
             <div class="compact-section list-style">
-                <div style="font-size: 0.85em; color: var(--text-muted); line-height: 1.4;">
+                <div class="confirm-modal-info-content">
                     ${fullContent}
                 </div>
             </div>
@@ -1634,7 +1586,7 @@ class ConfirmationRenderer {
      */
     static arrangeContentSections({ description, listSectionHtml, infoSectionHtml, subTextHtml, listPosition, infoPosition }) {
         const descriptionHtml = `
-            <p class="compact-modal-desc" style="text-align: center; margin-top: 30px;">
+            <p class="compact-modal-desc confirm-modal-description">
                 ${description}
             </p>
         `;
@@ -1684,7 +1636,7 @@ function renderSidebarItem(item, type, currentItemId, currentVersionId) {
                 <span class="expand-icon"><span class="arrow-icon arrow-right"></span></span>
                 <div class="character-info">
                     <span>${FavoriteManager.getDisplayName(item)}</span>
-                    <span style="font-size: 0.8em; opacity: 0.7;">${item.versions.length}</span>
+                    <span class="character-version-count">${item.versions.length}</span>
                 </div>
             </div>
             <div class="version-list" id="${type}-versions-${item.id}">
@@ -1832,7 +1784,7 @@ function renderItemList(type, items, currentItemId, currentVersionId) {
 
 
 
-//  新增：基本介面渲染
+// 新增：基本介面渲染
 function renderBasicUI() {
     renderSidebar();
     updateLanguageUI();
@@ -1841,9 +1793,9 @@ function renderBasicUI() {
     if (isHomePage) {
         // 首頁：顯示載入提示
         document.getElementById('contentArea').innerHTML = `
-            <div style="text-align: center; padding: 80px; color: var(--text-muted);">
-                <div style="font-size: 1.1em; margin-bottom: 12px;">${t('loadingCharacters')}</div>
-                <div style="font-size: 0.9em; opacity: 0.7;">${t('pleaseWait')}</div>
+            <div class="empty-state">
+                <div class="loading-main-text">${t('loadingCharacters')}</div>
+                <div class="loading-sub-text">${t('pleaseWait')}</div>
             </div>
         `;
         
@@ -1858,7 +1810,7 @@ function renderBasicUI() {
         renderContent();
     }
     
-    //  確保在所有渲染完成後調用 initAutoResize
+    // 確保在所有渲染完成後調用 initAutoResize
     setTimeout(() => {
         if (typeof initAutoResize === 'function') {
             initAutoResize();

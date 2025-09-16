@@ -484,9 +484,45 @@
     color: var(--text-muted);
 }
 
-/* 自定義欄位內容輸入框 */
-.custom-field-textarea {
+/* 通用的標準 textarea 樣式（自定義欄位 + 統一文字欄位） */
+.standard-textarea {
     min-height: 200px;
     max-height: 70vh;
     resize: vertical;
 }
+
+/* 替代問候語管理按鈕 */
+.alternate-greetings-btn {
+    float: right;
+    height: 24px !important;
+    font-size: 0.85em;
+    z-index: 1000;
+    position: relative;
+    pointer-events: auto;
+}
+
+/* 版本按鈕組容器樣式 */
+.version-button-group {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 80px;
+    color: var(--text-muted);
+}
+
+/* 載入狀態主要文字 */
+.loading-main-text {
+    font-size: 1.1em;
+    margin-bottom: 12px;
+}
+
+/* 載入狀態副文字 */
+.loading-sub-text {
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
