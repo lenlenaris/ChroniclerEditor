@@ -1426,7 +1426,7 @@ static renderBreadcrumbNav() {
         const config_data = typeConfig[type];
         
         return `
-            <div class="overview-controls" style="display: flex; gap: 12px; align-items: center; padding: 16px 32px; background: transparent; border-radius: 8px; margin-bottom: 16px; border: 0px solid var(--border-color); min-height: 48px; margin-top: 0px;">
+            <div class="overview-controls">
                 
                 <!-- 新增按鈕 -->
                 <button class="overview-btn hover-primary" onclick="ItemCRUD.add('${type}')" title="${t(config_data.tooltip)}">
@@ -1475,7 +1475,7 @@ static renderBreadcrumbNav() {
                 </button>
 
                 <!-- 已選標籤顯示區域 -->
-                <div id="selected-tags" style="display: flex; gap: 4px; flex: 1;"></div>
+                <div id="selected-tags"></div>
             </div>
         `;
     }
@@ -1483,21 +1483,12 @@ static renderBreadcrumbNav() {
 static renderBatchOperationsBars() {
     return `
         <!-- 批量操作列（默認隱藏） -->
-        <div id="batch-operations-bar" style="display: ${batchEditMode ? 'block' : 'none'}; padding: 0px 32px; margin-bottom: 28px;">
-            <div style="
-                background: var(--surface-color); 
-                border: 1px solid var(--border-color); 
-                border-radius: 8px; 
-                padding: 12px 20px; 
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center;
-                font-size: 0.9em;
-            ">
-                <div style="color: var(--text-color);">
+        <div id="batch-operations-bar" class="batch-operations-bar" style="display: ${batchEditMode ? 'block' : 'none'};">
+            <div class="batch-operations-content">
+                <div class="batch-operations-left">
                     ${t('selectedCount')}<span id="selected-count">0</span>
                 </div>
-                <div style="display: flex; gap: 8px;">
+                <div class="batch-operations-right">
                     <button class="overview-btn hover-primary" onclick="selectAllItems()">
                         <span id="select-all-text">${t('selectAll')}</span>
                     </button>
@@ -1530,21 +1521,12 @@ static renderBatchOperationsBars() {
         </div>
 
         <!-- 愛心操作列 -->
-        <div id="favorite-operations-bar" style="display: none; padding: 0px 32px; margin-bottom: 28px;">
-            <div style="
-                background: var(--surface-color); 
-                border: 1px solid var(--border-color); 
-                border-radius: 8px; 
-                padding: 12px 20px; 
-                display: flex; 
-                justify-content: space-between; 
-                align-items: center;
-                font-size: 0.9em;
-            ">
-                <div style="color: var(--text-color);">
+        <div id="favorite-operations-bar" class="favorite-operations-bar" style="display: none;">
+            <div class="favorite-operations-content">
+                <div class="favorite-operations-left">
                     ${t('selectedFavoriteCount')}<span id="selected-favorite-count">0</span>
                 </div>
-                <div style="display: flex; gap: 8px;">
+                <div class="favorite-operations-right">
                     <button class="overview-btn hover-primary" onclick="selectAllItems()">
                         ${t('selectAll')}
                     </button>

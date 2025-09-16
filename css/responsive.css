@@ -374,6 +374,118 @@
     }
 }
 
+/* 總覽頁手機響應式 */
+/* =================================
+   手機版響應式樣式 (768px以下)
+   ================================= */
+
+@media (max-width: 768px) {
+    .overview-controls {
+        flex-wrap: wrap;
+        padding: 0px 8px 16px 16px; /* 減少上下內邊距從 12px 到 8px */
+        gap: 8px;
+        margin-bottom: 0px; /* 減少下邊距從 16px 到 12px */
+        margin-top: -5px; /* 確保沒有上邊距 */
+    }
+    
+    /* 手機版按鈕調整 */
+    .overview-controls .overview-btn {
+        padding: 6px 10px;
+        font-size: 0.8em;
+        min-width: auto;
+        flex-shrink: 0;
+        order: 1; /* 第一行：按鈕們 */
+    }
+    
+    /* 搜尋框和按鈕同一行 */
+    .overview-controls .search-container {
+        order: 1; /* 第一行：和按鈕們一起 */
+        flex: 1; /* 佔用剩餘空間 */
+        min-width: 120px; /* 最小寬度保證可用性 */
+    }
+    
+    .overview-controls .search-input {
+        width: 100%;
+        font-size: 0.8em;
+    }
+    
+    /* 第二行：排序下拉選單 */
+    .overview-controls .overview-sort-dropdown {
+        order: 2;
+        flex: 1;
+        min-width: 120px;
+        font-size: 0.8em;
+        flex-basis: auto; /* 不強制換行 */
+    }
+    
+    /* 第二行：標籤篩選按鈕 */
+    .overview-controls button[onclick*="showTagSelector"] {
+        order: 2;
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 6px 10px;
+        font-size: 0.8em;
+    }
+    
+    /* 第三行：已選標籤（如果有的話） */
+    .overview-controls #selected-tags {
+        order: 3;
+        flex: none;
+        width: 100%;
+        flex-basis: 100%; /* 強制換行 */
+        margin-top: 4px;
+    }
+    
+    /* 批量操作列手機版調整 */
+    .batch-operations-bar,
+    .favorite-operations-bar {
+        padding: 0px 16px;
+        margin-bottom: 20px;
+    }
+    
+    .batch-operations-content,
+    .favorite-operations-content {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+        margin-top: -18px;
+        align-items: stretch;
+    }
+    
+    .batch-operations-left,
+    .favorite-operations-left {
+        text-align: center;
+        margin-bottom: 8px;
+    }
+    
+    .batch-operations-right,
+    .favorite-operations-right {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+    }
+    
+    /* 手機版批量操作按鈕 - 更緊密的設計 */
+    .batch-operations-right .overview-btn,
+    .batch-operations-right .overview-danger-btn,
+    .favorite-operations-right .overview-btn,
+    .favorite-operations-right .btn-primary {
+        font-size: 0.75em;
+        padding: 5px 6px;
+        flex: 1;
+        min-width: 65px;
+        max-width: 90px; 
+        line-height: 1.2; 
+        white-space: nowrap;
+        overflow: hidden; 
+        text-overflow: ellipsis;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
 /* 第4區塊：響應式匯出區域 */
 /* 響應式匯出區域 */
 @media (max-width: 1400px) {

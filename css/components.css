@@ -498,3 +498,81 @@ select.compact-input {
     cursor: pointer;
     line-height: 1.2;
 }
+
+
+/* =================================
+   總覽頁面控制列樣式
+   ================================= */
+
+/* 基礎控制列容器 */
+.overview-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 16px 32px;
+    background: transparent;
+    border-radius: 8px;
+    margin-bottom: 0px;
+    border: 0px solid var(--border-color);
+    min-height: 48px;
+    margin-top: 0px;
+}
+
+/* 已選標籤顯示區域 */
+.overview-controls #selected-tags {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+}
+
+/* 批量操作列基礎樣式 */
+.batch-operations-bar {
+    padding: 0px 32px;
+    margin-bottom: 28px;
+}
+
+.batch-operations-content {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+.batch-operations-left {
+    color: var(--text-color);
+}
+
+.batch-operations-right {
+    display: flex;
+    gap: 8px;
+}
+
+/* 最愛操作列樣式 */
+.favorite-operations-bar {
+    padding: 0px 32px;
+    margin-bottom: 28px;
+}
+
+.favorite-operations-content {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+.favorite-operations-left {
+    color: var(--text-color);
+}
+
+.favorite-operations-right {
+    display: flex;
+    gap: 8px;
+}
