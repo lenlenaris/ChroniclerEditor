@@ -162,8 +162,8 @@
     /* 批量操作列手機版調整 */
     .batch-operations-bar,
     .favorite-operations-bar {
-        padding: 0px 16px !important; /* 手機版無左右間距 */
-        margin: 0px 0px 20px 0px !important;
+        padding: 0px 16px;
+        margin-bottom: 20px;
     }
     
     .batch-operations-content,
@@ -641,8 +641,8 @@
     /* 批量操作列手機版調整 */
     .batch-operations-bar,
     .favorite-operations-bar {
-        padding: 0px 0px !important; /* 手機版無左右間距 */
-        margin: 0px 0px 20px 0px !important;
+        padding: 0px;
+        margin: 0px 0px 20px 0px;
     }
     
     .batch-operations-content,
