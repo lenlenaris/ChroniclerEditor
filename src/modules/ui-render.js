@@ -107,14 +107,45 @@ static renderLoveyDoveyCards() {
     OverviewManager.renderCards('loveydovey');
 }
         
-// 渲染項目標題欄
+
 static renderItemHeader(item) {
     const itemType = currentMode;
     const itemTypeDisplay = this.getItemTypeDisplay(itemType);
     const versionId = ItemManager.getCurrentVersionId();
 
-    // 抽離出世界書選擇器和對比開關的 HTML，方便在手機版重新佈局
-    // ✨ 修正：為 desktop 和 mobile 版本提供獨一無二的 ID
+    // 1. 將可重用的 HTML 片段抽離出來
+    const actionButtonsHTML = `
+        <button class="btn-edit-header hover-primary" 
+                onclick="VersionCRUD.add('${itemType}', '${item.id}')"
+                title="${t('addVersion')}">
+            ${IconManager.plus({width: 16, height: 16})}
+        </button>
+        <button class="btn-edit-header hover-primary" 
+                onclick="ItemCRUD.copy('${itemType}', '${item.id}')"
+                title="${this.getCopyButtonText(itemType)}">
+            ${IconManager.copy({width: 16, height: 16})}
+        </button>
+        <button class="btn-edit-header hover-primary" 
+                onclick="ExportManager.export('${itemType}', '${item.id}', 'unified')"
+                title="${this.getExportButtonText(itemType)}">
+            ${IconManager.download({width: 16, height: 16})}
+        </button>
+        <button class="btn-edit-header hover-primary" 
+                onclick="ItemCRUD.remove('${itemType}', '${item.id}')"
+                title="${this.getDeleteButtonText(itemType)}">
+            ${IconManager.delete({width: 16, height: 16})}
+        </button>
+    `;
+
+    const viewToggleSwitchHTML = `
+        <button class="view-toggle-switch ${viewMode === 'single' ? 'single-mode' : 'compare-mode'}" 
+            onclick="toggleCompareMode()">
+            <div class="toggle-background"></div>
+            <div class="toggle-text single">${t('singleView')}</div>
+            <div class="toggle-text compare">${t('compareView')}</div>
+        </button>
+    `;
+
     const worldBookSelectorDesktopHTML = itemType === 'character' ? `
         <select id="worldbook-selector-desktop-${versionId}" 
             class="select-edit-header hover-primary"
@@ -127,21 +158,19 @@ static renderItemHeader(item) {
         <select id="worldbook-selector-mobile-${versionId}" 
             class="select-edit-header hover-primary"
             onchange="updateWorldBookBinding(this.value)">
-            ${this.generateWorldBookOptions()}
+        ${this.generateWorldBookOptions()}
         </select>
-    ` : '<div></div>'; // 新增一個空的 div 作為佔位，確保 flex 佈局穩定
+    ` : '';
 
-    const viewToggleSwitchHTML = `
-        <button class="view-toggle-switch ${viewMode === 'single' ? 'single-mode' : 'compare-mode'}" 
-            onclick="toggleCompareMode()">
-            <div class="toggle-background"></div>
-            <div class="toggle-text single">${t('singleView')}</div>
-            <div class="toggle-text compare">${t('compareView')}</div>
-        </button>
-    `;
-
+    // ✨ 關鍵修正：第一行總是包含操作按鈕，同時給它一個 wrapper class 方便 CSS 定位
+    const firstRowControlsContent = `<div class="main-action-buttons">${actionButtonsHTML}</div>`;
+    
+    // ✨ 關鍵修正：第二行只在需要時才添加內容
+    const secondRowControlsContent = itemType !== 'character' ? `<div class="header-spacer"></div><div class="mobile-action-buttons">${actionButtonsHTML}</div>` : '';
+    
+    // 3. 組裝最終的 HTML
     return `
-        <div class="character-header-bar ${viewMode}-mode">
+        <div class="character-header-bar ${viewMode}-mode ${itemType === 'character' ? '' : 'no-worldbook'}">
             <!-- 第一行：角色名 + 主要操作按鈕 -->
             <div class="character-header-inner">
                 <div class="character-title-section">
@@ -150,27 +179,7 @@ static renderItemHeader(item) {
                         placeholder="${itemTypeDisplay}${t('name')}">
                 </div>
                 <div class="character-controls">
-                    <button class="btn-edit-header hover-primary" 
-                            onclick="VersionCRUD.add('${itemType}', '${item.id}')"
-                            title="${t('addVersion')}">
-                        ${IconManager.plus({width: 16, height: 16})}
-                    </button>
-                    <button class="btn-edit-header hover-primary" 
-                            onclick="ItemCRUD.copy('${itemType}', '${item.id}')"
-                            title="${this.getCopyButtonText(itemType)}">
-                        ${IconManager.copy({width: 16, height: 16})}
-                    </button>
-                    <button class="btn-edit-header hover-primary" 
-                            onclick="ExportManager.export('${itemType}', '${item.id}', 'unified')"
-                            title="${this.getExportButtonText(itemType)}">
-                        ${IconManager.download({width: 16, height: 16})}
-                    </button>
-                    <button class="btn-edit-header hover-primary" 
-                            onclick="ItemCRUD.remove('${itemType}', '${item.id}')"
-                            title="${this.getDeleteButtonText(itemType)}">
-                        ${IconManager.delete({width: 16, height: 16})}
-                    </button>
-
+                    ${firstRowControlsContent}
                     <!-- 電腦版視圖：將選擇器和開關放在這裡 -->
                     <div class="desktop-only-controls">
                         ${worldBookSelectorDesktopHTML}
@@ -182,6 +191,7 @@ static renderItemHeader(item) {
             <!-- 第二行（手機版專用）：世界書 + 對比開關 -->
             <div class="character-header-second-row mobile-only">
                 ${worldBookSelectorMobileHTML}
+                ${secondRowControlsContent}
                 ${viewToggleSwitchHTML}
             </div>
         </div>

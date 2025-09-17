@@ -499,14 +499,29 @@
         grid-template-columns: 1fr;
     }
     
-    /* 隱藏電腦版專用的控制項容器 */
     .desktop-only-controls {
         display: none !important;
     }
-
-    /* 顯示手機版專用的第二行 */
     .mobile-only {
         display: flex !important;
+    }
+
+    .header-spacer {
+        margin-right: auto; /* ✨ 魔法！這會吃掉所有左邊的可用空間，把右邊的兄弟們全部推到最右邊 */
+    }
+
+    /* 2. 保持按鈕組本身的佈局 */
+    .mobile-action-buttons {
+        display: flex;
+        gap: 4px; /* 按鈕之間的間距 */
+    }
+
+    .main-action-buttons {
+        gap: 4px; /* 確保按鈕之間有和手機版一致的間距 */
+    }
+
+    .character-header-bar.no-worldbook .main-action-buttons {
+        display: none;
     }
 
     .character-header-bar {
@@ -514,7 +529,7 @@
         gap: 8px !important;
         align-items: stretch !important;
         padding: 12px 15px !important;
-        margin-bottom: 12px !important;
+        margin-bottom: 10px !important;
     }
 
     /* 第一行：角色名 + 4個按鈕 */
@@ -558,7 +573,7 @@
     .character-header-second-row {
         justify-content: space-between !important;
         align-items: center !important;
-        gap: 8px !important;
+        gap: 4px !important;
         width: 100% !important;
     }
 

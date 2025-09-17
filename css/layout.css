@@ -12,7 +12,7 @@
 
 /* 頂部欄 */
 .top-header {
-    height: 5px;
+    height: 8px;
     background: var(--main-content-bg);
     display: flex;
     justify-content: flex-end;

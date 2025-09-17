@@ -16,11 +16,13 @@
 .character-header-bar.single-mode {
     max-width: 60%;
     margin: 0 auto var(--spacing-xl) auto;
+    margin-bottom: 12px;
 }
 
 .character-header-bar.compare-mode {
     max-width: 100%;
     margin: 0 auto var(--spacing-xl) auto;
+    margin-bottom: 12px;
 }
 
 .character-title-section {
@@ -85,7 +87,7 @@
 
 .character-controls {
     display: flex !important;
-    gap: 4px !important;
+    gap: 8px !important;
     align-items: center !important;
     flex-wrap: nowrap !important;
     flex-shrink: 0 !important;
@@ -529,6 +531,12 @@
     display: flex;
     align-items: center;
     gap: 8px; /* 根據你的設計調整 */
+}
+
+.main-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 確保按鈕之間有和手機版一致的間距 */
 }
 
 @media (max-width: 768px) {
