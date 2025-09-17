@@ -12,7 +12,7 @@ static renderVersionContent(character, version) {
                     
                    <!-- 第一大區：個人資料（可折疊） -->
 <div class="field-section collapsible-section" data-section="personal-profile" style="margin-top: -10px;">
-    <div class="section-header collapsible-header ld-section-header" onclick="LoveyDoveyRenderer.toggleSection('personal-profile', event)">
+    <div class="section-header collapsible-header ld-section-header loveydovey-info" onclick="LoveyDoveyRenderer.toggleSection('personal-profile', event)">
                             <span class="collapse-icon">
                                 <span class="arrow-icon arrow-down" style="width: 8px; height: 8px; color: var(--accent-color);"></span>
                             </span>
