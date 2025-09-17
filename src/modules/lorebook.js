@@ -391,7 +391,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
     </div>
     
     <!-- Toggle button -->
-    <button class="entry-toggle-btn wb-toggle-btn" onclick="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entry.id}')">
+    <button class="entry-toggle-btn wb-toggle-btn" onclick="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entry.id}', event)">
                     <span class="arrow-icon arrow-right"></span>
                 </button>
                 
@@ -830,28 +830,19 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
     `;
 }
 
-// 延遲載入的條目內容切換函數
 function toggleEntryContentLazy(worldBookId, versionId, entryId, event = null) {
-    let content, toggleBtn;
+    const content = document.getElementById(`entry-content-${entryId}`);
+    const toggleBtn = event ? event.target : 
+        document.querySelector(`[onclick*="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entryId}'"]`);
     
-    if (event) {
-        // 智慧查找：在點擊元素的版本容器內查找
-        const versionContainer = event.target.closest('.version-content');
-        if (versionContainer) {
-            content = versionContainer.querySelector(`#entry-content-${entryId}`);
-            toggleBtn = versionContainer.querySelector(`[onclick*="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entryId}')"]`);
-        }
-    }
-    
-    // 如果智慧查找失敗，使用原邏輯
     if (!content || !toggleBtn) {
-        content = document.getElementById(`entry-content-${entryId}`);
-        toggleBtn = document.querySelector(`[onclick*="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entryId}')"]`);
+        console.warn(`找不到元素: content=${!!content}, btn=${!!toggleBtn}`);
+        return;
     }
     
-    if (!content || !toggleBtn) return;
-    
-    const isExpanded = content.style.display !== 'none';
+    // 🔥 關鍵修復：使用 getComputedStyle 來正確判斷顯示狀態
+    const computedStyle = window.getComputedStyle(content);
+    const isExpanded = computedStyle.display !== 'none';
     
     if (isExpanded) {
         // 摺疊：隱藏內容
