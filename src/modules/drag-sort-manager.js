@@ -2,14 +2,13 @@
 class DragSortManager {
     static sortableInstances = new Map();
     
-    // 🚀 為容器啟用拖曳排序功能
     static enableDragSort(config) {
         const {
-            containerSelector,   // 容器選擇器
-            itemSelector,       // 項目選擇器
-            type,              // 類型：'character', 'worldbook', 'custom'
-            mode = 'grid',     // 模式：'grid', 'list'
-            onReorder = null   // 重新排序回調函數
+            containerSelector,
+            itemSelector,
+            type,
+            mode = 'grid',
+            onReorder = null
         } = config;
 
         const container = document.querySelector(containerSelector);
@@ -18,98 +17,74 @@ class DragSortManager {
             return;
         }
 
-        // 如果已經有 Sortable 實例，先銷毀
         const existingInstance = this.sortableInstances.get(containerSelector);
         if (existingInstance) {
             existingInstance.destroy();
         }
 
-        // 🎯 創建 SortableJS 實例
+        const commonConfig = this.getCommonSortableConfig();
+
         const sortable = new Sortable(container, {
-            // 基本配置
             group: `${type}-sort`,
-            animation: 150,           // 🔧 減少動畫時間到 150ms
-            easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",  // 🔧 更快的緩動函數
+            animation: 150,
+            easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
             
-            // 拖曳配置
-            draggable: itemSelector,  // 可拖曳的元素選擇器
-            handle: itemSelector,     // 拖曳手柄（整個項目都可拖曳）
+            draggable: itemSelector,
+            handle: itemSelector,
             
-            // 視覺效果
-            ghostClass: 'sortable-ghost',     // 佔位符樣式類
-            chosenClass: 'sortable-chosen',   // 選中時的樣式類
-            dragClass: 'sortable-drag',       // 拖曳時的樣式類
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
             
-            // 🚫 排除創建角色卡片
+            // 應用通用配置
+            forceFallback: commonConfig.forceFallback,
+            fallbackOnBody: commonConfig.fallbackOnBody,
+            
             filter: (evt, item, container) => {
                 return item.getAttribute('onclick')?.includes('addCharacterFromHome');
             },
             
-            //  防止與檔案拖曳衝突
-            preventOnFilter: false,  // 允許被過濾的元素正常處理事件
+            preventOnFilter: false,
+            dragoverBubble: true,
+            dropBubble: true,
             
-            //  重要：不要攔截外部檔案拖曳
-            dragoverBubble: true,   // 允許 dragover 事件冒泡
-            dropBubble: true,       // 允許 drop 事件冒泡
-            
-            // 🎯 拖曳開始事件
             onStart: (evt) => {
-                //  如果是批量編輯模式，禁止拖曳
                 if (batchEditMode) {
-                    
                     return false;
                 }
                 
-                
-                document.body.classList.add('dragging-active');
-                container.classList.add('drag-in-progress');
-                
-                //  標記當前是元素拖曳，不是檔案拖曳
+                commonConfig.onStartCommon(evt, container);
                 document.body.setAttribute('data-sortable-dragging', 'true');
             },
             
-            // 🎯 拖曳結束事件
             onEnd: (evt) => {
-                
-                document.body.classList.remove('dragging-active');
-                container.classList.remove('drag-in-progress');
-                
-                // 清除元素拖曳標記
+                commonConfig.onEndCommon(evt, container);
                 document.body.removeAttribute('data-sortable-dragging');
                 
-                // 如果位置有變化，處理排序
                 if (evt.oldIndex !== evt.newIndex) {
                     this.handleReorder(type, container, itemSelector, evt, onReorder);
                 }
             },
             
-            // 🎯 拖曳移動事件（可選）
             onMove: (evt) => {
-                //  如果正在進行檔案拖曳，不允許 Sortable 操作
                 if (document.body.hasAttribute('data-file-dragging')) {
                     return false;
                 }
                 
-                // 阻止拖曳到創建角色卡片上
                 if (evt.related?.getAttribute('onclick')?.includes('addCharacterFromHome')) {
                     return false;
                 }
                 return true;
             },
             
-            // 添加選擇過濾器，避免檔案拖曳時觸發
             onChoose: (evt) => {
-                // 如果正在進行檔案拖曳，取消選擇
                 if (document.body.hasAttribute('data-file-dragging')) {
                     return false;
                 }
             }
         });
 
-        // 保存實例引用
         this.sortableInstances.set(containerSelector, sortable);
-        
-        
         return sortable;
     }
 
@@ -230,22 +205,20 @@ static applyVersionOrder(type, itemId, orderedVersionIds) {
     
 }
 
-// 🎯 啟用版本拖曳排序
+
 static enableVersionDragSort(type, itemId) {
     const containerSelector = `#${type}-versions-${itemId}`;
     const container = document.querySelector(containerSelector);
     
-    if (!container) {
-        return;
-    }
+    if (!container) return;
     
-    // 銷毀現有實例
     const existingInstance = this.sortableInstances.get(containerSelector);
     if (existingInstance) {
         existingInstance.destroy();
     }
     
-    // 創建版本排序實例
+    const commonConfig = this.getCommonSortableConfig();
+    
     const sortable = new Sortable(container, {
         group: `${type}-version-sort-${itemId}`,
         animation: 150,
@@ -258,12 +231,16 @@ static enableVersionDragSort(type, itemId) {
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
         
+        // 應用通用配置
+        forceFallback: commonConfig.forceFallback,
+        fallbackOnBody: commonConfig.fallbackOnBody,
+        
         onStart: (evt) => {
-            document.body.classList.add('dragging-active');
+            commonConfig.onStartCommon(evt, container);
         },
         
         onEnd: (evt) => {
-            document.body.classList.remove('dragging-active');
+            commonConfig.onEndCommon(evt, container);
             
             if (evt.oldIndex !== evt.newIndex) {
                 this.handleVersionReorder(type, itemId, container, evt);
@@ -275,7 +252,7 @@ static enableVersionDragSort(type, itemId) {
     return sortable;
 }
 
-// 🔄 處理版本重新排序（優化版，減少閃爍）
+
 static handleVersionReorder(type, itemId, container, evt) {
     const versionItems = Array.from(container.querySelectorAll('.version-item'));
     const newVersionOrder = [];
@@ -418,70 +395,55 @@ static extractItemData(item, type) {
     return { id: null, element: item };
 }
 
-    //  啟用附加資訊拖曳排序
 static enableAdditionalInfoDragSort(characterId, versionId) {
     const containerSelector = `#additional-info-list-${versionId}`;
     const container = document.querySelector(containerSelector);
     
-    if (!container) {
-    // 靜默處理 - 某些角色沒有附加資訊是正常的
-    if (containerSelector.includes('additional-info-list')) {
-        return;
-    }
-    console.warn(`找不到容器: ${containerSelector}`);
-    return;
-}
+    if (!container) return;
     
-    // 銷毀現有實例
     const existingInstance = this.sortableInstances.get(containerSelector);
     if (existingInstance) {
         existingInstance.destroy();
     }
 
     let savedStates = {};
+    const commonConfig = this.getCommonSortableConfig();
     
-    // 創建附加資訊排序實例
     const sortable = new Sortable(container, {
         group: `additional-info-sort-${characterId}-${versionId}`,
         animation: 150,
         easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         
         draggable: '.additional-info-item',
-        handle: '.drag-handle',  // 只能通過拖曳控制柄來拖曳
+        handle: '.drag-handle',
         
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
         
+        // 應用通用配置
+        forceFallback: commonConfig.forceFallback,
+        fallbackOnBody: commonConfig.fallbackOnBody,
+        
         onStart: (evt) => {
-            
-            document.body.classList.add('dragging-active');
-            container.classList.add('drag-in-progress');
-            //  保存當前折疊狀態
+            commonConfig.onStartCommon(evt, container);
             savedStates = getCurrentAdditionalInfoCollapseStates();
-            
         },
         
         onEnd: (evt) => {
-        
-        document.body.classList.remove('dragging-active');
-        container.classList.remove('drag-in-progress');
-        
-        if (evt.oldIndex !== evt.newIndex) {
-            this.handleAdditionalInfoReorder(characterId, versionId, evt.oldIndex, evt.newIndex);
+            commonConfig.onEndCommon(evt, container);
             
-            //  恢復折疊狀態
-            setTimeout(() => {
-                restoreAdditionalInfoCollapseStates(savedStates);
+            if (evt.oldIndex !== evt.newIndex) {
+                this.handleAdditionalInfoReorder(characterId, versionId, evt.oldIndex, evt.newIndex);
                 
-            }, 10);
+                setTimeout(() => {
+                    restoreAdditionalInfoCollapseStates(savedStates);
+                }, 10);
+            }
         }
-    }
-});
+    });
     
     this.sortableInstances.set(containerSelector, sortable);
-    
-    
     return sortable;
 }
 
@@ -859,6 +821,46 @@ static cleanupDuplicateIds(container) {
     });
 }
 
+static getCommonSortableConfig() {
+    return {
+        // 關鍵修復：禁用 clone 和 fallback
+        forceFallback: false,
+        fallbackOnBody: false,
+        
+        // 通用的開始事件處理
+        onStartCommon: (evt, container) => {
+            document.body.classList.add('dragging-active');
+            container.classList.add('drag-in-progress');
+            setTimeout(() => {
+                const ghostElement = container.querySelector('.sortable-ghost');
+                if (ghostElement) {
+                    ghostElement.querySelectorAll('[id]').forEach(element => {
+                        element.removeAttribute('id');
+                    });
+                }
+                
+                const dragElement = document.querySelector('.sortable-drag');
+                if (dragElement) {
+                    dragElement.querySelectorAll('[id]').forEach(element => {
+                        element.removeAttribute('id');
+                    });
+                }
+            }, 0);
+        },
+        
+        // 通用的結束事件處理
+        onEndCommon: (evt, container) => {
+            document.body.classList.remove('dragging-active');
+            container.classList.remove('drag-in-progress');
+            
+            // 修復：清理可能殘留的重複 ID
+            setTimeout(() => {
+                this.cleanupDuplicateIds(container);
+            }, 0);
+        }
+    };
+}
+
 // 處理筆記本欄位重新排序
 static handleCustomFieldsReorder(container, sectionId, versionId, evt) {
     const section = customSections.find(s => s.id === sectionId);
@@ -1233,7 +1235,6 @@ NotificationManager.success(`成功匯入 ${successCount} 個${itemType}！${err
         });
     }
 
-    // 新增到 DragSortManager 類中
 static enableAlternateGreetingsDragSort(characterId, versionId) {
     const containerSelector = `#alternate-greetings-list-${versionId}`;
     const container = document.querySelector(containerSelector);
@@ -1243,35 +1244,35 @@ static enableAlternateGreetingsDragSort(characterId, versionId) {
         return;
     }
     
-    // 銷毀現有實例
     const existingInstance = this.sortableInstances.get(containerSelector);
     if (existingInstance) {
         existingInstance.destroy();
     }
 
-    // 創建額外問候語排序實例
+    const commonConfig = this.getCommonSortableConfig();
+
     const sortable = new Sortable(container, {
         group: `alternate-greetings-sort-${characterId}-${versionId}`,
         animation: 150,
         easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         
         draggable: '.alternate-greeting-item',
-        handle: '.drag-handle',  // 只能通過拖曳控制柄來拖曳
+        handle: '.drag-handle',
         
         ghostClass: 'sortable-ghost',
         chosenClass: 'sortable-chosen',
         dragClass: 'sortable-drag',
         
+        // 應用通用配置
+        forceFallback: commonConfig.forceFallback,
+        fallbackOnBody: commonConfig.fallbackOnBody,
+        
         onStart: (evt) => {
-            
-            document.body.classList.add('dragging-active');
-            container.classList.add('drag-in-progress');
+            commonConfig.onStartCommon(evt, container);
         },
         
         onEnd: (evt) => {
-            
-            document.body.classList.remove('dragging-active');
-            container.classList.remove('drag-in-progress');
+            commonConfig.onEndCommon(evt, container);
             
             if (evt.oldIndex !== evt.newIndex) {
                 this.handleAlternateGreetingsReorder(characterId, versionId, evt.oldIndex, evt.newIndex);
@@ -1280,8 +1281,6 @@ static enableAlternateGreetingsDragSort(characterId, versionId) {
     });
     
     this.sortableInstances.set(containerSelector, sortable);
-    
-    
     return sortable;
 }
 
