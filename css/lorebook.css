@@ -1,0 +1,134 @@
+/* ===== 世界書條目樣式系統 ===== */
+:root {
+    /* 網格系統變數 - 方便調整對齊 */
+    --wb-entry-columns: 24px 24px 36px 1fr 52px 150px 60px 60px 60px 40px 40px;
+    --wb-entry-gap: 8px;
+}
+
+/* 1. 容器層級 */
+.wb-entry-panel {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    background: var(--header-bg);
+}
+
+.wb-entry-header-grid {
+    display: grid;
+    grid-template-columns: var(--wb-entry-columns);
+    gap: var(--wb-entry-gap);
+    margin: 10px;
+    align-items: center;
+}
+
+.wb-entry-content {
+    padding: 0 10px;
+    display: none;
+}
+
+/* 2. 拖拽控制 */
+.wb-drag-handle-block {
+    display: block;
+}
+
+/* 3. 切換按鈕 */
+.wb-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-muted);
+    padding: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 4. 自定義開關系統 */
+.wb-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.wb-toggle-hidden-input {
+    width: 0;
+    height: 0;
+    opacity: 0;
+    margin: 0;
+}
+
+.wb-toggle-switch {
+    width: 36px;
+    height: 16px;
+    border-radius: 10px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.wb-toggle-switch-enabled {
+    background: var(--primary-color);
+}
+
+.wb-toggle-switch-disabled {
+    background: var(--border-color);
+}
+
+.wb-toggle-circle {
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.wb-toggle-circle-enabled {
+    left: 14px;
+}
+
+.wb-toggle-circle-disabled {
+    left: 4px;
+}
+
+/* 5. 欄位組覆蓋 - 解決spacing衝突 */
+.wb-field-no-margin {
+    margin-bottom: 0 !important;
+}
+
+.wb-field-flex {
+    flex: 1;
+    margin-right: 8px !important;
+}
+
+.wb-field-margin-right {
+    margin-right: 8px !important;
+}
+
+/* 6. 輸入框寬度系統 */
+.wb-input-bold {
+    font-weight: 500;
+}
+
+.wb-input-width-55 {
+    width: 55px !important;
+}
+
+.wb-input-width-60 {
+    width: 60px !important;
+}
+
+.wb-input-width-150 {
+    width: 150px !important;
+}
+
+/* 7. 按鈕間距 */
+.wb-add-btn-spacing {
+    margin-top: 16px !important;
+}

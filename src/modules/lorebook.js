@@ -360,7 +360,7 @@ class WorldBookRenderer {
                 ${version.entries.map(entry => this.renderWorldBookEntry(worldBook.id, version.id, entry)).join('')}
                 
                <!-- 新增條目按鈕 -->
-            <button class="loveydovey-add-btn" onclick="addWorldBookEntry('${worldBook.id}', '${version.id}')" style="margin-top: 16px;">
+            <button class="loveydovey-add-btn wb-add-btn-spacing" onclick="addWorldBookEntry('${worldBook.id}', '${version.id}')">
                 ${IconManager.plus({width: 16, height: 16})}
                 ${t('addEntry')}
             </button>
@@ -382,42 +382,40 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
     }
 
     return `
-        <div class="entry-panel sortable-item" data-entry-id="${entry.id}" data-display-index="${entry.displayIndex || 0}" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 16px; background: var(--header-bg);">
+        <div class="entry-panel sortable-item wb-entry-panel" data-entry-id="${entry.id}" data-display-index="${entry.displayIndex || 0}">
           <!-- Entry header -->
-<div class="entry-header" style="display: grid; grid-template-columns: 24px 24px 36px 1fr 52px 150px 60px 60px 60px 40px 40px; gap: 8px; margin: 10px; align-items: center;">
+<div class="entry-header wb-entry-header-grid">
     <!-- Drag handle -->
     <div class="drag-handle custom-field-drag-handle">
         ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
     </div>
     
     <!-- Toggle button -->
-    <button class="entry-toggle-btn" onclick="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entry.id}')"
-                        style="background: none; border: none; cursor: pointer; font-size: 14px; color: var(--text-muted); padding: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+    <button class="entry-toggle-btn wb-toggle-btn" onclick="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entry.id}')">
                     <span class="arrow-icon arrow-right"></span>
                 </button>
                 
                 <!-- Enable entry toggle -->
-                <label style="display: flex; align-items: center; cursor: pointer; margin-right: 8px;">
-                    <input type="checkbox" ${!entry.disable ? 'checked' : ''} 
-                        onchange="toggleEntryEnabled('${worldBookId}', '${versionId}', '${entry.id}')"
-                        style="width: 0; height: 0; opacity: 0; margin: 0;">
-                    <div class="toggle-switch" style="width: 36px; height: 16px; background: ${!entry.disable ? 'var(--primary-color)' : 'var(--border-color)'}; border-radius: 10px; position: relative; transition: all 0.2s ease;">
-                        <div style="width: 10px; height: 10px; background: white; border-radius: 50%; position: absolute; top: 3px; left: ${!entry.disable ? '14px' : '4px'}; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>
-                    </div>
-                </label>
+                <label class="wb-toggle-wrapper">
+    <input type="checkbox" ${!entry.disable ? 'checked' : ''} 
+        onchange="toggleEntryEnabled('${worldBookId}', '${versionId}', '${entry.id}')"
+        class="wb-toggle-hidden-input">
+    <div class="toggle-switch wb-toggle-switch ${!entry.disable ? 'wb-toggle-switch-enabled' : 'wb-toggle-switch-disabled'}">
+        <div class="wb-toggle-circle ${!entry.disable ? 'wb-toggle-circle-enabled' : 'wb-toggle-circle-disabled'}"></div>
+    </div>
+</label>
                 
                 <!-- Comment -->
-                <div class="field-group" style="margin-bottom: 0; flex: 1; margin-right: 8px;">
-                    <input type="text" class="field-input compact-input" 
-                        placeholder="${t('entryTitle')}"
-                        value="${entry.comment || ''}"
-                        style="font-weight: 500;"
-                        oninput="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'comment', this.value)">
-                </div>
+                <div class="field-group wb-field-no-margin wb-field-flex">
+    <input type="text" class="field-input compact-input wb-input-bold" 
+        placeholder="${t('entryTitle')}"
+        value="${entry.comment || ''}"
+        oninput="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'comment', this.value)">
+</div>
                 
                 <!-- Trigger mode -->
-                <div class="field-group" style="margin-bottom: 0; margin-right: 8px;">
-                    <select class="field-input compact-input" style="width: 55px;" onchange="updateEntryModeFromSelect('${worldBookId}', '${versionId}', '${entry.id}', this.value)">
+                <div class="field-group wb-field-no-margin wb-field-margin-right">
+                    <select class="field-input compact-input wb-input-width-55" onchange="updateEntryModeFromSelect('${worldBookId}', '${versionId}', '${entry.id}', this.value)">
                         <option value="selective" ${entry.selective && !entry.constant && !entry.vectorized ? 'selected' : ''}>🟢</option>
                         <option value="constant" ${entry.constant ? 'selected' : ''}>🔵</option>
                         <option value="vectorized" ${entry.vectorized ? 'selected' : ''}>🔗</option>
@@ -425,8 +423,8 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                 </div>
                 
               <!-- Insertion position -->
-                <div class="field-group" style="margin-bottom: 0; margin-right: 8px;">
-                    <select class="field-input compact-input" style="width: 150px;" onchange="updateWorldBookEntryPosition('${worldBookId}', '${versionId}', '${entry.id}', parseInt(this.value))">
+                <div class="field-group wb-field-no-margin wb-field-margin-right">
+                    <select class="field-input compact-input wb-input-width-150" onchange="updateWorldBookEntryPosition('${worldBookId}', '${versionId}', '${entry.id}', parseInt(this.value))">
                         <option value="0" ${entry.position === 0 ? 'selected' : ''}>${t('beforeCharDefs')}</option>
                         <option value="1" ${entry.position === 1 ? 'selected' : ''}>${t('afterCharDefs')}</option>
                         <option value="5" ${entry.position === 5 ? 'selected' : ''}>${t('beforeExampleMsg')}</option>
@@ -440,22 +438,22 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                 </div>
 
                <!-- Depth -->
-<div class="field-group" style="margin-bottom: 0; margin-right: 8px;">
-    <input type="number" class="field-input compact-input" value="${entry.depth || 4}" min="0" max="999" style="width: 60px; ${entry.position !== 4 ? 'opacity: 0;' : ''}" 
+<div class="field-group wb-field-no-margin wb-field-margin-right">
+    <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.depth || 4}" min="0" max="999" style="${entry.position !== 4 ? 'opacity: 0;' : ''}"
         id="depth-${entry.id}"
         ${entry.position !== 4 ? 'disabled' : ''}
         onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'depth', parseInt(this.value))">
 </div>
 
                 <!-- Order -->
-                <div class="field-group" style="margin-bottom: 0; margin-right: 8px;">
-                    <input type="number" class="field-input compact-input" value="${entry.order || 100}" min="0" max="999" style="width: 60px;"
+                <div class="field-group wb-field-no-margin wb-field-margin-right">
+    <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.order || 100}" min="0" max="999"
                         onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'order', parseInt(this.value))">
                 </div>
 
                 <!-- Probability -->
-                <div class="field-group" style="margin-bottom: 0; margin-right: 8px;">
-                    <input type="number" class="field-input compact-input" value="${entry.probability !== undefined ? entry.probability : 100}" min="0" max="100" style="width: 60px;"
+                <div class="field-group wb-field-no-margin wb-field-margin-right">
+                    <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.probability !== undefined ? entry.probability : 100}" min="0" max="100"
                         onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'probability', this.value === '' ? 0 : parseInt(this.value))">
                 </div>
                 
@@ -473,7 +471,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
             </div>
 
             <!-- Entry content area (initially empty) -->
-            <div class="entry-content" id="entry-content-${entry.id}" style="padding: 0 10px; display: none;">
+            <div class="entry-content wb-entry-content" id="entry-content-${entry.id}">
                 <!-- Content will be loaded lazily when expanded -->
             </div>
         </div>
@@ -503,7 +501,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                 ${version.entries.map(entry => this.renderWorldBookEntry(worldBook.id, version.id, entry)).join('')}
                 
                 <!-- 新增條目按鈕 -->
-                <button class="loveydovey-add-btn" onclick="addWorldBookEntry('${worldBook.id}', '${version.id}')" style="margin-top: 16px;">
+                <button class="loveydovey-add-btn wb-add-btn-spacing" onclick="addWorldBookEntry('${worldBook.id}', '${version.id}')">
                     ${IconManager.plus({width: 16, height: 16})}
                     ${t('addEntry')}
                 </button>
