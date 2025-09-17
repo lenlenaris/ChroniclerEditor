@@ -546,16 +546,16 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
         <!-- Basic settings -->
         <div class="entry-section">
             <!-- Keywords with logic -->
-<div style="display: grid; grid-template-columns: 1fr 120px; gap: 8px; margin-bottom: 8px;">
+<div class="wb-detail-grid-2col">
     <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('primaryKeywords')}</label>
+        <label class="field-label wb-detail-label">${t('primaryKeywords')}</label>
         <input type="text" class="field-input compact-input" 
             placeholder="${t('keywordsPlaceholder')}"
             value="${entry.key.join(', ')}"
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'key', this.value)">
     </div>
     <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('keywordLogic')}</label>
+        <label class="field-label wb-detail-label">${t('keywordLogic')}</label>
         <select class="field-input compact-input" 
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'selectiveLogic', parseInt(this.value))">
             <option value="0" ${entry.selectiveLogic === 0 ? 'selected' : ''}>${t('logicContainsAny')}</option>
@@ -568,7 +568,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
 
             <!-- Secondary filters -->
             <div class="field-group creator-notes-group">
-                <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('secondaryFilters')}</label>
+                <label class="field-label wb-detail-label">${t('secondaryFilters')}</label>
                 <input type="text" class="field-input compact-input" 
                     placeholder="${t('secondaryKeysPlaceholder')}"
                     value="${entry.keysecondary.join(', ')}"
@@ -577,41 +577,40 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
             
             <!-- Content -->
             <div class="field-group creator-notes-group">
-                <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em; display: flex; justify-content: space-between; align-items: center;">
+                <label class="field-label wb-detail-label-flex">
                     <span>
                         ${t('entryContentLabel')}
-                        <span class="field-stats" data-target="worldbook-${worldBookId}-${versionId}-${entry.id}" style="margin-left: 8px; font-size: 0.8em; color: var(--text-muted);">${entry.content ? entry.content.length : 0} ${t('chars')} / ${entry.content ? countTokens(entry.content) : 0} ${t('tokens')}</span>
+                        <span class="field-stats wb-detail-stats" data-target="worldbook-${worldBookId}-${versionId}-${entry.id}">${entry.content ? entry.content.length : 0} ${t('chars')} / ${entry.content ? countTokens(entry.content) : 0} ${t('tokens')}</span>
 
-                        <button class="fullscreen-btn" onclick="openFullscreenEditor('worldbook-${worldBookId}-${versionId}-${entry.id}', '${t('entryContent')}')" 
-                                title="${t('fullscreenEditor')}" style="margin-left: 6px;">⛶</button>
+                        <button class="fullscreen-btn wb-detail-fullscreen-btn" onclick="openFullscreenEditor('worldbook-${worldBookId}-${versionId}-${entry.id}', '${t('entryContent')}')" 
+                                title="${t('fullscreenEditor')}">⛶</button>
                     </span>
-                    <span style="font-size: 0.8em; color: var(--text-muted);">(UID: ${entry.uid || 0})</span>
+                    <span class="wb-detail-uid">(UID: ${entry.uid || 0})</span>
                 </label>
-               <textarea class="field-input scrollable" id="worldbook-${worldBookId}-${versionId}-${entry.id}" 
+               <textarea class="field-input scrollable wb-detail-textarea" id="worldbook-${worldBookId}-${versionId}-${entry.id}" 
     placeholder="${t('entryContentPlaceholder')}"
-    style="min-height: 200px; resize: vertical;"
     oninput="updateFieldStats('worldbook-${worldBookId}-${versionId}-${entry.id}'); updateWorldBookEntryValue('${worldBookId}', '${versionId}', '${entry.id}', 'content', this.value);">${entry.content}</textarea>
             </div>
         </div>
         
 <!-- Advanced settings -->
-<details style="margin-bottom: 0;">
-    <summary style="cursor: pointer; color: var(--text-color); font-weight: 500; margin-bottom: 8px; font-size: 0.9em; display: flex; align-items: center; gap: 6px; list-style: none;">
-        ${IconManager.chevronRight({width: 12, height: 12, style: 'transition: transform 0.2s ease;'})}
+<details class="wb-details-no-margin">
+    <summary class="wb-summary-advanced">
+        <span class="wb-chevron-transition">${IconManager.chevronRight({width: 12, height: 12})}</span>
         ${t('advancedSettings')}
     </summary>
-            <div style="padding: 8px 0; border-top: 1px solid var(--border-color);">
-                
+    <div class="wb-advanced-content">
+        
 <!-- Group and automation settings -->
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; align-items: end;">
+<div class="wb-grid-2fr-1fr">
     <div class="field-group no-bottom-margin">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label class="field-label" style="margin-bottom: 0; font-size: 0.85em;">${t('includeGroups')}</label>
-            <div style="display: flex; align-items: center; gap: 6px; background: var(--header-bg); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border-color);">
-                <span style="font-size: 0.75em; color: var(--text-muted); white-space: nowrap;">${t('groupPriority')}</span>
+        <div class="wb-label-row-flex">
+            <label class="field-label wb-label-small">${t('includeGroups')}</label>
+            <div class="wb-group-priority-container">
+                <span class="wb-priority-text">${t('groupPriority')}</span>
                 <input type="checkbox" ${entry.groupOverride ? 'checked' : ''} 
                     id="group-override-${entry.id}"
-                    style="margin: 0;"
+                    class="wb-checkbox-no-margin"
                     onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'groupOverride', this.checked)">
             </div>
         </div>
@@ -620,8 +619,8 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'group', this.value)">
     </div>
     <div class="field-group no-bottom-margin">
-        <div style="height: 24px; display: flex; align-items: center; margin-bottom: 4px;">
-            <label class="field-label" style="margin-bottom: 0; font-size: 0.8em;">${t('automationId')}</label>
+        <div class="wb-height-24-flex">
+            <label class="field-label wb-label-tiny">${t('automationId')}</label>
         </div>
         <input type="text" class="field-input compact-input" value="${entry.automationId || ''}" 
             placeholder="${t('automationIdPlaceholder')}"
@@ -629,64 +628,62 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
     </div>
 </div>
 
-                <!-- Triggers 觸發時機設定 -->
-                <div style="margin-bottom: 12px;">
-                    <div class="field-group no-bottom-margin">
-                        <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('filterToGenerationTriggers')}</label>
-                        <div class="triggers-input-container" style="position: relative;">
-                            <div class="field-input compact-input triggers-display" 
-                                 style="min-height: 32px; cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 4px 8px;"
-                                 onclick="toggleTriggersDropdown('${worldBookId}', '${versionId}', '${entry.id}')"
-                                 id="triggers-display-${entry.id}">
-                                ${(entry.triggers || []).map(trigger => `
-                                    <span class="tag-base tag-sm">
-                                        ${t('trigger_' + trigger)}
-                                        <button onclick="event.stopPropagation(); removeWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', '${trigger}')" class="tag-remove-btn">×</button>
-                                    </span>
-                                `).join('')}
-                                ${(!entry.triggers || entry.triggers.length === 0) ? `<span style="color: var(--text-muted); font-size: 0.9em;">${t('clickToSelectTriggers')}</span>` : ''}
-                            </div>
-                            <div class="triggers-dropdown" id="triggers-dropdown-${entry.id}" 
-                                 style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; padding: 8px;">
-                                <label style="display: flex; align-items: center; cursor: pointer; padding: 4px; font-size: 0.85em;">
-                                    <input type="checkbox" ${(entry.triggers || []).includes('normal') ? 'checked' : ''} 
-                                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'normal', this.checked)">
-                                    <span style="margin-left: 6px;">${t('trigger_normal')}</span>
-                                </label>
-                                <label style="display: flex; align-items: center; cursor: pointer; padding: 4px; font-size: 0.85em;">
-                                    <input type="checkbox" ${(entry.triggers || []).includes('continue') ? 'checked' : ''} 
-                                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'continue', this.checked)">
-                                    <span style="margin-left: 6px;">${t('trigger_continue')}</span>
-                                </label>
-                                <label style="display: flex; align-items: center; cursor: pointer; padding: 4px; font-size: 0.85em;">
-                                    <input type="checkbox" ${(entry.triggers || []).includes('impersonate') ? 'checked' : ''} 
-                                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'impersonate', this.checked)">
-                                    <span style="margin-left: 6px;">${t('trigger_impersonate')}</span>
-                                </label>
-                                <label style="display: flex; align-items: center; cursor: pointer; padding: 4px; font-size: 0.85em;">
-                                    <input type="checkbox" ${(entry.triggers || []).includes('swipe') ? 'checked' : ''} 
-                                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'swipe', this.checked)">
-                                    <span style="margin-left: 6px;">${t('trigger_swipe')}</span>
-                                </label>
-                                <label style="display: flex; align-items: center; cursor: pointer; padding: 4px; font-size: 0.85em;">
-                                    <input type="checkbox" ${(entry.triggers || []).includes('regenerate') ? 'checked' : ''} 
-                                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'regenerate', this.checked)">
-                                    <span style="margin-left: 6px;">${t('trigger_regenerate')}</span>
-                                </label>
-                                <label style="display: flex; align-items: center; cursor: pointer; padding: 4px; font-size: 0.85em;">
-                                    <input type="checkbox" ${(entry.triggers || []).includes('quiet') ? 'checked' : ''} 
-                                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'quiet', this.checked)">
-                                    <span style="margin-left: 6px;">${t('trigger_quiet')}</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-               <!-- Three-value dropdown settings -->
-<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+ <!-- Triggers 觸發時機設定 -->
+<div class="wb-triggers-container">
     <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('caseSensitive')}</label>
+        <label class="field-label wb-label-small">${t('filterToGenerationTriggers')}</label>
+        <div class="triggers-input-container" style="position: relative;">
+            <div class="field-input compact-input triggers-display wb-triggers-display" 
+                 onclick="toggleTriggersDropdown('${worldBookId}', '${versionId}', '${entry.id}')"
+                 id="triggers-display-${entry.id}">
+                ${(entry.triggers || []).map(trigger => `
+                    <span class="tag-base tag-sm">
+                        ${t('trigger_' + trigger)}
+                        <button onclick="event.stopPropagation(); removeWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', '${trigger}')" class="tag-remove-btn">×</button>
+                    </span>
+                `).join('')}
+                ${(!entry.triggers || entry.triggers.length === 0) ? `<span class="wb-triggers-empty">${t('clickToSelectTriggers')}</span>` : ''}
+            </div>
+            <div class="triggers-dropdown wb-triggers-dropdown" id="triggers-dropdown-${entry.id}">
+                <label class="wb-trigger-option">
+                    <input type="checkbox" ${(entry.triggers || []).includes('normal') ? 'checked' : ''} 
+                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'normal', this.checked)">
+                    <span class="wb-trigger-text">${t('trigger_normal')}</span>
+                </label>
+                <label class="wb-trigger-option">
+                    <input type="checkbox" ${(entry.triggers || []).includes('continue') ? 'checked' : ''} 
+                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'continue', this.checked)">
+                    <span class="wb-trigger-text">${t('trigger_continue')}</span>
+                </label>
+                <label class="wb-trigger-option">
+                    <input type="checkbox" ${(entry.triggers || []).includes('impersonate') ? 'checked' : ''} 
+                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'impersonate', this.checked)">
+                    <span class="wb-trigger-text">${t('trigger_impersonate')}</span>
+                </label>
+                <label class="wb-trigger-option">
+                    <input type="checkbox" ${(entry.triggers || []).includes('swipe') ? 'checked' : ''} 
+                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'swipe', this.checked)">
+                    <span class="wb-trigger-text">${t('trigger_swipe')}</span>
+                </label>
+                <label class="wb-trigger-option">
+                    <input type="checkbox" ${(entry.triggers || []).includes('regenerate') ? 'checked' : ''} 
+                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'regenerate', this.checked)">
+                    <span class="wb-trigger-text">${t('trigger_regenerate')}</span>
+                </label>
+                <label class="wb-trigger-option">
+                    <input type="checkbox" ${(entry.triggers || []).includes('quiet') ? 'checked' : ''} 
+                           onchange="toggleWorldBookTrigger('${worldBookId}', '${versionId}', '${entry.id}', 'quiet', this.checked)">
+                    <span class="wb-trigger-text">${t('trigger_quiet')}</span>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+ <!-- Three-value dropdown settings -->
+<div class="wb-grid-3-equal">
+    <div class="field-group no-bottom-margin">
+        <label class="field-label wb-label-small">${t('caseSensitive')}</label>
         <select class="field-input compact-input" 
             onchange="updateWorldBookEntryAdvanced('${worldBookId}', '${versionId}', '${entry.id}', 'caseSensitive', this.value)">
             <option value="null" ${entry.caseSensitive === null ? 'selected' : ''}>${t('useGlobalSetting')}</option>
@@ -695,7 +692,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
         </select>
     </div>
     <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('matchWholeWords')}</label>
+        <label class="field-label wb-label-small">${t('matchWholeWords')}</label>
         <select class="field-input compact-input" 
             onchange="updateWorldBookEntryAdvanced('${worldBookId}', '${versionId}', '${entry.id}', 'matchWholeWords', this.value)">
             <option value="null" ${entry.matchWholeWords === null ? 'selected' : ''}>${t('useGlobalSetting')}</option>
@@ -704,7 +701,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
         </select>
     </div>
     <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.85em;">${t('useGroupScoring')}</label>
+        <label class="field-label wb-label-small">${t('useGroupScoring')}</label>
         <select class="field-input compact-input" 
             onchange="updateWorldBookEntryAdvanced('${worldBookId}', '${versionId}', '${entry.id}', 'useGroupScoring', this.value)">
             <option value="null" ${entry.useGroupScoring === null ? 'selected' : ''}>${t('useGlobalSetting')}</option>
@@ -714,127 +711,122 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
     </div>
 </div>
 
-                <!-- Recursion control area -->
-<div style="display: grid; grid-template-columns: 1fr 300px; gap: 12px; margin-bottom: 12px; align-items: start;">
+<!-- Recursion control area -->
+<div class="wb-grid-recursion">
     <!-- Left: Recursion control options -->
     <div>
-        <div style="font-size: 0.85em; font-weight: 500; color: var(--text-color); margin-bottom: 8px;">${t('recursionControl')}</div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.85em;">
+        <div class="wb-recursion-title">${t('recursionControl')}</div>
+        <div class="wb-recursion-options">
+            <label class="wb-recursion-option">
                 <input type="checkbox" ${entry.excludeRecursion ? 'checked' : ''} 
                     onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'excludeRecursion', this.checked)">
-                <span style="margin-left: 6px;">${t('noRecursion')}</span>
+                <span class="wb-trigger-text">${t('noRecursion')}</span>
             </label>
-            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.85em;">
+            <label class="wb-recursion-option">
                 <input type="checkbox" ${entry.preventRecursion ? 'checked' : ''} 
                     onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'preventRecursion', this.checked)">
-                <span style="margin-left: 6px;">${t('preventRecursion')}</span>
+                <span class="wb-trigger-text">${t('preventRecursion')}</span>
             </label>
-            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.85em;">
+            <label class="wb-recursion-option">
                 <input type="checkbox" ${entry.delayUntilRecursion && entry.delayUntilRecursion > 0 ? 'checked' : ''} 
                     id="delay-checkbox-${entry.id}"
                     onchange="toggleDelayUntilRecursion('${worldBookId}', '${versionId}', '${entry.id}', this.checked)">
-                <span style="margin-left: 6px;">${t('delayRecursion')}</span>
+                <span class="wb-trigger-text">${t('delayRecursion')}</span>
             </label>
         </div>
     </div>
     
-    <!-- Right: Value settings -->
-    <div style="justify-self: end;">
-<div style="display: grid; grid-template-columns: 150px 150px 150px; gap: 8px; margin-bottom: 8px;">
-    <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('stickyValue')}</label>
-        <input type="number" class="field-input compact-input" value="${entry.sticky || 0}" 
-            style="width: 150px;"
-            onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'sticky', parseInt(this.value))">
+ <!-- Right: Value settings -->
+<div class="wb-values-right">
+    <div class="wb-grid-3x150-mb">
+        <div class="field-group no-bottom-margin">
+            <label class="field-label wb-label-tiny">${t('stickyValue')}</label>
+            <input type="number" class="field-input compact-input wb-input-width-150" value="${entry.sticky || 0}" 
+                onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'sticky', parseInt(this.value))">
+        </div>
+        <div class="field-group no-bottom-margin">
+            <label class="field-label wb-label-tiny">${t('cooldownValue')}</label>
+            <input type="number" class="field-input compact-input wb-input-width-150" value="${entry.cooldown || 0}" 
+                onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'cooldown', parseInt(this.value))">
+        </div>
+        <div class="field-group no-bottom-margin">
+            <label class="field-label wb-label-tiny">${t('groupWeight')}</label>
+            <input type="number" class="field-input compact-input wb-input-width-150" value="${entry.groupWeight || 100}" min="1" max="100"
+                onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'groupWeight', parseInt(this.value))">
+        </div>
     </div>
-    <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('cooldownValue')}</label>
-        <input type="number" class="field-input compact-input" value="${entry.cooldown || 0}" 
-            style="width: 150px;"
-            onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'cooldown', parseInt(this.value))">
-    </div>
-    <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('groupWeight')}</label>
-        <input type="number" class="field-input compact-input" value="${entry.groupWeight || 100}" min="1" max="100"
-            style="width: 150px;"
-            onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'groupWeight', parseInt(this.value))">
-    </div>
-</div>
-<div style="display: grid; grid-template-columns: 150px 150px 150px; gap: 8px;">
-    <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('recursionLevel')}</label>
-        <input type="number" class="field-input compact-input" 
-            id="delay-value-${entry.id}"
-            value="${entry.delayUntilRecursion || 1}" 
-            min="1" max="999" 
-            style="width: 150px; ${entry.delayUntilRecursion && entry.delayUntilRecursion > 0 ? '' : 'opacity: 0.5;'}"
-            ${entry.delayUntilRecursion && entry.delayUntilRecursion > 0 ? '' : 'disabled'}
-            onchange="updateDelayUntilRecursionValue('${worldBookId}', '${versionId}', '${entry.id}', parseInt(this.value))">
-    </div>
-    <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('delayValue')}</label>
-        <input type="number" class="field-input compact-input" value="${entry.delay || 0}" 
-            style="width: 150px;"
-            onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'delay', parseInt(this.value))">
-    </div>
-    <div class="field-group no-bottom-margin">
-        <label class="field-label" style="margin-bottom: 4px; font-size: 0.8em;">${t('scanDepth')}</label>
-        <input type="number" class="field-input compact-input" value="${entry.scanDepth || ''}" 
-            placeholder="${t('scanDepthplaceholder')}"
-            style="width: 150px;"
-            onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'scanDepth', this.value ? parseInt(this.value) : null)">
+    <div class="wb-grid-3x150">
+        <div class="field-group no-bottom-margin">
+            <label class="field-label wb-label-tiny">${t('recursionLevel')}</label>
+            <input type="number" class="field-input compact-input wb-input-width-150" 
+                id="delay-value-${entry.id}"
+                value="${entry.delayUntilRecursion || 1}" 
+                min="1" max="999" 
+                style="${entry.delayUntilRecursion && entry.delayUntilRecursion > 0 ? '' : 'opacity: 0.5;'}"
+                ${entry.delayUntilRecursion && entry.delayUntilRecursion > 0 ? '' : 'disabled'}
+                onchange="updateDelayUntilRecursionValue('${worldBookId}', '${versionId}', '${entry.id}', parseInt(this.value))">
+        </div>
+        <div class="field-group no-bottom-margin">
+            <label class="field-label wb-label-tiny">${t('delayValue')}</label>
+            <input type="number" class="field-input compact-input wb-input-width-150" value="${entry.delay || 0}" 
+                onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'delay', parseInt(this.value))">
+        </div>
+        <div class="field-group no-bottom-margin">
+            <label class="field-label wb-label-tiny">${t('scanDepth')}</label>
+            <input type="number" class="field-input compact-input wb-input-width-150" value="${entry.scanDepth || ''}" 
+                placeholder="${t('scanDepthplaceholder')}"
+                onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'scanDepth', this.value ? parseInt(this.value) : null)">
+        </div>
     </div>
 </div>
-    </div>
 </div>
 
-                <!-- 額外匹配來源區域 -->
-                <details style="margin-top: 12px;">
-                    <summary style="cursor: pointer; color: var(--text-color); font-weight: 500; margin-bottom: 8px; font-size: 0.9em; display: flex; align-items: center; gap: 6px; list-style: none;">
-                        ${IconManager.chevronRight({width: 12, height: 12, style: 'transition: transform 0.2s ease;'})}
-                        ${t('additionalMatchSources')}
-                    </summary>
-                    <div style="padding: 8px 0; border-top: 1px solid var(--border-color);">
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-                            <!-- 左邊3項 -->
-                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.85em;">
-                                <input type="checkbox" ${entry.matchCharacterDescription ? 'checked' : ''} 
-                                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchCharacterDescription', this.checked)">
-                                <span style="margin-left: 6px;">${t('matchCharacterDescription')}</span>
-                            </label>
-                            <!-- 右邊3項 -->
-                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.85em;">
-                                <input type="checkbox" ${entry.matchPersonaDescription ? 'checked' : ''} 
-                                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchPersonaDescription', this.checked)">
-                                <span style="margin-left: 6px;">${t('matchPersonaDescription')}</span>
-                            </label>
-                            
-                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.85em;">
-                                <input type="checkbox" ${entry.matchCharacterPersonality ? 'checked' : ''} 
-                                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchCharacterPersonality', this.checked)">
-                                <span style="margin-left: 6px;">${t('matchCharacterPersonality')}</span>
-                            </label>
-                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.85em;">
-                                <input type="checkbox" ${entry.matchCharacterDepthPrompt ? 'checked' : ''} 
-                                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchCharacterDepthPrompt', this.checked)">
-                                <span style="margin-left: 6px;">${t('matchCharacterDepthPrompt')}</span>
-                            </label>
-                            
-                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.85em;">
-                                <input type="checkbox" ${entry.matchScenario ? 'checked' : ''} 
-                                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchScenario', this.checked)">
-                                <span style="margin-left: 6px;">${t('matchScenario')}</span>
-                            </label>
-                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.85em;">
-                                <input type="checkbox" ${entry.matchCreatorNotes ? 'checked' : ''} 
-                                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchCreatorNotes', this.checked)">
-                                <span style="margin-left: 6px;">${t('matchCreatorNotes')}</span>
-                            </label>
-                        </div>
-                    </div>
-                </details>
-        </details>
+ <!-- 額外匹配來源區域 -->
+<details class="wb-details-margin-top">
+    <summary class="wb-summary-advanced">
+        <span class="wb-chevron-transition">${IconManager.chevronRight({width: 12, height: 12})}</span>
+        ${t('additionalMatchSources')}
+    </summary>
+    <div class="wb-advanced-content">
+        <div class="wb-grid-2-equal">
+            <!-- 左邊3項 -->
+            <label class="wb-recursion-option">
+                <input type="checkbox" ${entry.matchCharacterDescription ? 'checked' : ''} 
+                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchCharacterDescription', this.checked)">
+                <span class="wb-trigger-text">${t('matchCharacterDescription')}</span>
+            </label>
+            <!-- 右邊3項 -->
+            <label class="wb-recursion-option">
+                <input type="checkbox" ${entry.matchPersonaDescription ? 'checked' : ''} 
+                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchPersonaDescription', this.checked)">
+                <span class="wb-trigger-text">${t('matchPersonaDescription')}</span>
+            </label>
+            
+            <label class="wb-recursion-option">
+                <input type="checkbox" ${entry.matchCharacterPersonality ? 'checked' : ''} 
+                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchCharacterPersonality', this.checked)">
+                <span class="wb-trigger-text">${t('matchCharacterPersonality')}</span>
+            </label>
+            <label class="wb-recursion-option">
+                <input type="checkbox" ${entry.matchCharacterDepthPrompt ? 'checked' : ''} 
+                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchCharacterDepthPrompt', this.checked)">
+                <span class="wb-trigger-text">${t('matchCharacterDepthPrompt')}</span>
+            </label>
+            
+            <label class="wb-recursion-option">
+                <input type="checkbox" ${entry.matchScenario ? 'checked' : ''} 
+                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchScenario', this.checked)">
+                <span class="wb-trigger-text">${t('matchScenario')}</span>
+            </label>
+            <label class="wb-recursion-option">
+                <input type="checkbox" ${entry.matchCreatorNotes ? 'checked' : ''} 
+                    onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'matchCreatorNotes', this.checked)">
+                <span class="wb-trigger-text">${t('matchCreatorNotes')}</span>
+            </label>
+        </div>
+    </div>
+</details>
+</details>
     `;
 }
 
@@ -1116,7 +1108,7 @@ function updateTriggersDisplay(entryId, triggers) {
     const displayElement = document.getElementById(`triggers-display-${entryId}`);
     if (displayElement) {
         if (!triggers || triggers.length === 0) {
-            displayElement.innerHTML = `<span style="color: var(--text-muted); font-size: 0.9em;">${t('clickToSelectTriggers')}</span>`;
+            displayElement.innerHTML = `<span class="wb-triggers-empty">${t('clickToSelectTriggers')}</span>`;
         } else {
             displayElement.innerHTML = triggers.map(trigger => `
                 <span class="tag-base tag-sm">

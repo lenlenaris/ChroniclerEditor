@@ -132,3 +132,242 @@
 .wb-add-btn-spacing {
     margin-top: 16px !important;
 }
+
+/* ===== 世界書條目詳細內容樣式 ===== */
+
+/* 網格布局 */
+.wb-detail-grid-2col {
+    display: grid !important;
+    grid-template-columns: 1fr 120px !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+}
+
+/* 標籤樣式 */
+.wb-detail-label {
+    margin-bottom: 4px !important;
+    font-size: 0.85em !important;
+}
+
+.wb-detail-label-flex {
+    margin-bottom: 4px !important;
+    font-size: 0.85em !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+/* 統計文字 */
+.wb-detail-stats {
+    margin-left: 8px !important;
+    font-size: 0.8em !important;
+    color: var(--text-muted) !important;
+}
+
+/* 全屏按鈕 */
+.wb-detail-fullscreen-btn {
+    margin-left: 6px !important;
+}
+
+/* UID文字 */
+.wb-detail-uid {
+    font-size: 0.8em !important;
+    color: var(--text-muted) !important;
+}
+
+/* 文本框 */
+.wb-detail-textarea {
+    min-height: 200px !important;
+    resize: vertical !important;
+}
+
+/* ===== Advanced Settings 樣式 ===== */
+
+.wb-details-no-margin {
+    margin-bottom: 0 !important;
+}
+
+.wb-summary-advanced {
+    cursor: pointer !important;
+    color: var(--text-color) !important;
+    font-weight: 500 !important;
+    margin-bottom: 8px !important;
+    font-size: 0.9em !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    list-style: none !important;
+}
+
+.wb-chevron-transition {
+    transition: transform 0.2s ease !important;
+}
+
+.wb-advanced-content {
+    padding: 8px 0 !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+.wb-grid-2fr-1fr {
+    display: grid !important;
+    grid-template-columns: 2fr 1fr !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+    align-items: end !important;
+}
+
+.wb-label-row-flex {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 4px !important;
+}
+
+.wb-label-small {
+    margin-bottom: 0 !important;
+    font-size: 0.85em !important;
+}
+
+.wb-group-priority-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: var(--header-bg) !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.wb-priority-text {
+    font-size: 0.75em !important;
+    color: var(--text-muted) !important;
+    white-space: nowrap !important;
+}
+
+.wb-checkbox-no-margin {
+    margin: 0 !important;
+}
+
+.wb-height-24-flex {
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 4px !important;
+}
+
+.wb-label-tiny {
+    margin-bottom: 0 !important;
+    font-size: 0.8em !important;
+}
+
+/* ===== Triggers 觸發設定樣式 ===== */
+
+.wb-triggers-container {
+    margin-bottom: 12px !important;
+}
+
+.wb-triggers-display {
+    min-height: 32px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    align-items: center !important;
+    padding: 4px 8px !important;
+}
+
+.wb-triggers-empty {
+    color: var(--text-muted) !important;
+    font-size: 0.9em !important;
+}
+
+.wb-triggers-dropdown {
+    display: none;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: var(--bg-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    z-index: 1000 !important;
+    padding: 8px !important;
+}
+
+.wb-trigger-option {
+    display: flex !important;
+    align-items: center !important;
+    cursor: pointer !important;
+    padding: 4px !important;
+    font-size: 0.85em !important;
+}
+
+.wb-trigger-text {
+    margin-left: 6px !important;
+}
+
+.wb-grid-3-equal {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+}
+
+/* ===== 遞歸控制區域樣式 ===== */
+.wb-grid-recursion {
+    display: grid !important;
+    grid-template-columns: 1fr 300px !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+    align-items: start !important;
+}
+
+.wb-recursion-title {
+    font-size: 0.85em !important;
+    font-weight: 500 !important;
+    color: var(--text-color) !important;
+    margin-bottom: 8px !important;
+}
+
+.wb-recursion-options {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+}
+
+.wb-recursion-option {
+    display: flex !important;
+    align-items: center !important;
+    cursor: pointer !important;
+    font-size: 0.85em !important;
+}
+
+/* ===== 右側數值設定區域樣式 ===== */
+.wb-values-right {
+    justify-self: end !important;
+}
+
+.wb-grid-3x150-mb {
+    display: grid !important;
+    grid-template-columns: 150px 150px 150px !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+}
+
+.wb-grid-3x150 {
+    display: grid !important;
+    grid-template-columns: 150px 150px 150px !important;
+    gap: 8px !important;
+}
+
+/* ===== 額外匹配來源區域樣式 ===== */
+.wb-details-margin-top {
+    margin-top: 12px !important;
+}
+
+.wb-grid-2-equal {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+}
