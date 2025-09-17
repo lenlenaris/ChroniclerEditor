@@ -107,75 +107,85 @@ static renderLoveyDoveyCards() {
     OverviewManager.renderCards('loveydovey');
 }
         
-    // 渲染項目標題欄
+// 渲染項目標題欄
 static renderItemHeader(item) {
     const itemType = currentMode;
     const itemTypeDisplay = this.getItemTypeDisplay(itemType);
-    
+    const versionId = ItemManager.getCurrentVersionId();
+
+    // 抽離出世界書選擇器和對比開關的 HTML，方便在手機版重新佈局
+    // ✨ 修正：為 desktop 和 mobile 版本提供獨一無二的 ID
+    const worldBookSelectorDesktopHTML = itemType === 'character' ? `
+        <select id="worldbook-selector-desktop-${versionId}" 
+            class="select-edit-header hover-primary"
+            onchange="updateWorldBookBinding(this.value)">
+            ${this.generateWorldBookOptions()}
+        </select>
+    ` : '';
+
+    const worldBookSelectorMobileHTML = itemType === 'character' ? `
+        <select id="worldbook-selector-mobile-${versionId}" 
+            class="select-edit-header hover-primary"
+            onchange="updateWorldBookBinding(this.value)">
+            ${this.generateWorldBookOptions()}
+        </select>
+    ` : '<div></div>'; // 新增一個空的 div 作為佔位，確保 flex 佈局穩定
+
+    const viewToggleSwitchHTML = `
+        <button class="view-toggle-switch ${viewMode === 'single' ? 'single-mode' : 'compare-mode'}" 
+            onclick="toggleCompareMode()">
+            <div class="toggle-background"></div>
+            <div class="toggle-text single">${t('singleView')}</div>
+            <div class="toggle-text compare">${t('compareView')}</div>
+        </button>
+    `;
+
     return `
-            <div class="character-header-bar ${viewMode}-mode">
+        <div class="character-header-bar ${viewMode}-mode">
+            <!-- 第一行：角色名 + 主要操作按鈕 -->
             <div class="character-header-inner">
-            <div class="character-title-section">
-            <input type="text" class="character-main-title-fixed title-font" value="${item.name}" 
-    onchange="updateItemName('${itemType}', '${item.id}', this.value)" 
-    placeholder="${itemTypeDisplay}${t('name')}">
+                <div class="character-title-section">
+                    <input type="text" class="character-main-title-fixed title-font" value="${item.name}" 
+                        onchange="updateItemName('${itemType}', '${item.id}', this.value)" 
+                        placeholder="${itemTypeDisplay}${t('name')}">
+                </div>
+                <div class="character-controls">
+                    <button class="btn-edit-header hover-primary" 
+                            onclick="VersionCRUD.add('${itemType}', '${item.id}')"
+                            title="${t('addVersion')}">
+                        ${IconManager.plus({width: 16, height: 16})}
+                    </button>
+                    <button class="btn-edit-header hover-primary" 
+                            onclick="ItemCRUD.copy('${itemType}', '${item.id}')"
+                            title="${this.getCopyButtonText(itemType)}">
+                        ${IconManager.copy({width: 16, height: 16})}
+                    </button>
+                    <button class="btn-edit-header hover-primary" 
+                            onclick="ExportManager.export('${itemType}', '${item.id}', 'unified')"
+                            title="${this.getExportButtonText(itemType)}">
+                        ${IconManager.download({width: 16, height: 16})}
+                    </button>
+                    <button class="btn-edit-header hover-primary" 
+                            onclick="ItemCRUD.remove('${itemType}', '${item.id}')"
+                            title="${this.getDeleteButtonText(itemType)}">
+                        ${IconManager.delete({width: 16, height: 16})}
+                    </button>
+
+                    <!-- 電腦版視圖：將選擇器和開關放在這裡 -->
+                    <div class="desktop-only-controls">
+                        ${worldBookSelectorDesktopHTML}
+                        ${viewToggleSwitchHTML}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第二行（手機版專用）：世界書 + 對比開關 -->
+            <div class="character-header-second-row mobile-only">
+                ${worldBookSelectorMobileHTML}
+                ${viewToggleSwitchHTML}
+            </div>
         </div>
-    <div class="character-controls">
-    <button class="btn-edit-header hover-primary" 
-        onclick="VersionCRUD.add('${itemType}', '${item.id}')"
-        title="${t('addVersion')}">
-    ${IconManager.plus({width: 16, height: 16})}
-    </button>
-
-    <button class="btn-edit-header hover-primary" 
-            onclick="ItemCRUD.copy('${itemType}', '${item.id}')"
-            title="${this.getCopyButtonText(itemType)}">
-        ${IconManager.copy({width: 16, height: 16})}
-    </button>
-
-    <button class="btn-edit-header hover-primary" 
-        onclick="ExportManager.export('${itemType}', '${item.id}', 'unified')"
-        title="${this.getExportButtonText(itemType)}">
-    ${IconManager.download({width: 16, height: 16})}
-</button>
-
-    <button class="btn-edit-header hover-primary" 
-            onclick="ItemCRUD.remove('${itemType}', '${item.id}')"
-            title="${this.getDeleteButtonText(itemType)}">
-        ${IconManager.delete({width: 16, height: 16})}
-    </button>
-        
-        <!--  世界書綁定選擇器（只在角色模式顯示） -->
-        ${itemType === 'character' ? `
-            <select id="worldbook-selector-${ItemManager.getCurrentVersionId()}" 
-        class="select-edit-header hover-primary"
-        onchange="updateWorldBookBinding(this.value)">
-    ${this.generateWorldBookOptions()}
-</select>
-        ` : ''}
-        
-        <!-- 🔄 方形開關 -->
-<button class="view-toggle-switch ${viewMode === 'single' ? 'single-mode' : 'compare-mode'}" 
-    onclick="toggleCompareMode()">
-    
-    <!-- 滑動的背景 -->
-    <div class="toggle-background"></div>
-    
-    <!-- 左側文字容器 (單一檢視) -->
-    <div class="toggle-text single">
-        ${t('singleView')}
-    </div>
-    
-    <!-- 右側文字容器 (對比檢視) -->
-    <div class="toggle-text compare">
-        ${t('compareView')}
-    </div>
-</button>
-    
-    </div>
-    </div>
-     </div>
-        `;
+    `;
 }
 
 static getExportButtonText(itemType) {
@@ -1729,11 +1739,23 @@ function restoreAllCollapseStates() {
 //  添加世界書選擇器更新函數
 function updateWorldBookSelector() {
     const currentVersionId = ItemManager.getCurrentVersionId();
-    const selector = document.getElementById(`worldbook-selector-${currentVersionId}`);
+    if (!currentVersionId) return;
+
+    // ✨ 修正：同時尋找 desktop 和 mobile 版本的選擇器
+    const selectorDesktop = document.getElementById(`worldbook-selector-desktop-${currentVersionId}`);
+    const selectorMobile = document.getElementById(`worldbook-selector-mobile-${currentVersionId}`);
     
-    if (selector) {
-        // 重新生成選項
-        selector.innerHTML = ContentRenderer.generateWorldBookOptions();
+    // 產生一次選項內容
+    const optionsHTML = ContentRenderer.generateWorldBookOptions();
+
+    // 如果電腦版選擇器存在，就更新它
+    if (selectorDesktop) {
+        selectorDesktop.innerHTML = optionsHTML;
+    }
+
+    // 如果手機版選擇器存在，也更新它
+    if (selectorMobile) {
+        selectorMobile.innerHTML = optionsHTML;
     }
 }
 

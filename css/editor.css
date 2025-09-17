@@ -521,6 +521,16 @@
     opacity: 0.7;
 }
 
+.mobile-only {
+    display: none; /* 手機版專用區塊預設隱藏 */
+}
+
+.character-controls .desktop-only-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 根據你的設計調整 */
+}
+
 @media (max-width: 768px) {
 
     /* 手機版角色編輯頁面優化 */
@@ -639,9 +649,6 @@
         padding: 0px !important; /* 給整體一點邊距 */
         box-sizing: border-box !important;
     }
-
-
-
 
 }
 

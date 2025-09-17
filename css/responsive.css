@@ -431,26 +431,26 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
-        background: var(--main-content-bg); /* 保持原背景色 */
+        background: var(--main-content-bg);
         margin-left: 0;
-        margin-top: 0 !important; /* 🆕 移除上邊距 */
-        
-        /* 🆕 全屏覆蓋設定 */
+        margin-top: 0 !important;
         position: fixed !important;
         top: 40px !important; /* 導航條下方開始 */
         left: 0 !important;
         right: 0 !important;
         bottom: 0 !important;
         width: 100vw !important;
-        height: calc(100vh - 40px) !important; /* 扣掉導航條高度 */
+        height: calc(100vh - 40px) !important;
+        overflow-y: auto !important;
     }
     
-    /* 🆕 確保內容區域也配合 */
     .content-area {
-        background: var(--main-content-bg) !important; /* 保持一致 */
+        background: var(--main-content-bg) !important;
         margin-top: 0 !important;
-        padding: 12px 15px 12px 15px!important; /* 給一點上內距 */
+        padding: 12px 15px 12px 15px!important;
+        flex: 1;
+        overflow-y: auto !important;
+        min-height: 0;
     }
     
     
@@ -504,7 +504,16 @@
         grid-template-columns: 1fr;
     }
     
-    
+    /* 隱藏電腦版專用的控制項容器 */
+    .desktop-only-controls {
+        display: none !important;
+    }
+
+    /* 顯示手機版專用的第二行 */
+    .mobile-only {
+        display: flex !important;
+    }
+
     .character-header-bar {
         flex-direction: column !important;
         gap: 8px !important;
@@ -513,13 +522,7 @@
         margin-bottom: 12px !important;
     }
 
-    .character-header-bar > div {
-        flex-direction: column !important;
-        gap: 12px !important;
-        align-items: stretch !important;
-    }
-
-    /* 🔧 第一行：角色名 + 操作按鈕 */
+    /* 第一行：角色名 + 4個按鈕 */
     .character-header-inner {
         width: 100% !important;
         margin: 0 !important;
@@ -527,17 +530,14 @@
         justify-content: space-between !important;
         align-items: center !important;
         gap: 8px !important;
-        order: 1 !important;
     }
         
     .character-title-section {
         flex: 1 1 auto !important;
         min-width: 0 !important; /* 允許收縮 */
-        margin-right: 0 !important;
         text-align: left !important;
     }
 
-    /* 🔧 角色名稱輸入框更緊湊 */
     .character-main-title-fixed {
         font-size: 1.2em !important;
         font-weight: 600 !important;
@@ -546,36 +546,28 @@
         min-width: 100px !important;
     }
     
-    .character-controls > .btn-edit-header {
-        order: 1 !important;
-        width: 28px !important;
-        height: 28px !important;
-        padding: 4px !important;
-        font-size: 0.8em !important;
-        min-width: 28px !important;
+    .character-controls {
+        display: flex;
+        gap: 4px !important; /* 讓按鈕之間有點間距 */
     }
 
-        /* 🔧 操作按鈕縮小 */
     .btn-edit-header {
-        width: 28px !important;
-        height: 28px !important;
+        width: 32px !important;
+        height: 32px !important;
         padding: 4px !important;
         font-size: 0.8em !important;
         min-width: 28px !important;
     }
 
-    /* 🔧 第二行：世界書選擇器 + 對比開關 */
+    /* 第二行：世界書選擇器 + 對比開關 */
     .character-header-second-row {
-        display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
         gap: 8px !important;
         width: 100% !important;
     }
 
-    /* 🔧 世界書選擇器調整 */
     .select-edit-header {
-        order: 2 !important;
         flex: 1 1 auto !important;
         height: 32px !important;
         font-size: 0.8em !important;
@@ -584,16 +576,14 @@
         max-width: none !important;
     }
 
-        .select-edit-header option {
+    .select-edit-header option {
         max-width: 120px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    /* 🔧 對比開關調整 */
     .view-toggle-switch {
-        order: 3 !important;
         height: 32px !important;
         min-width: 80px !important;
         flex-shrink: 0 !important;
@@ -603,7 +593,6 @@
         padding: 0 6px !important;
         font-size: 0.75em !important;
     }
-
     .versions-container.single-view,
     .versions-container.compare-view,
     .character-header-bar.single-mode,
