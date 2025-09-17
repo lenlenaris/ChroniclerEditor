@@ -802,7 +802,6 @@
         padding: 0px 8px;
     }
 
-    /* 手機版卡片圓角調整 */
     .overview-create-card-body,
     .overview-card-body,
     .overview-folder-card-body,
@@ -810,6 +809,83 @@
         border-radius: 2px !important;
     }
 
+    .user-persona-content .avatar-preview {
+        width: auto !important;
+        height: 220px !important;
+        aspect-ratio: 2/3 !important;
+        max-width: 147px !important;
+    }
+
+    .persona-description-section {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .user-persona-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 8px !important;
+    }
+
+    /* 🎯 筆記本欄位手機版頂部控制列緊密佈局 */
+    .custom-field-header {
+        gap: 4px !important; /* 縮小左右區塊間距 */
+        margin-bottom: 8px !important; /* 縮小與下方內容的間距 */
+        align-items: center !important; /* 確保垂直對齊 */
+    }
+
+    /* 🎯 左側控制組緊密佈局 */
+    .custom-field-left-controls {
+        gap: 4px !important; /* 縮小拖曳柄與標題間距 */
+        flex: 1 1 auto !important; /* 讓標題欄位佔用更多空間 */
+        min-width: 0 !important; /* 允許收縮 */
+    }
+
+    /* 🎯 右側控制組緊密佈局 */
+    .custom-field-right-controls {
+        gap: 8px !important; /* 縮小按鈕間距 */
+        flex-shrink: 0 !important; /* 防止被壓縮 */
+        align-items: center !important;
+    }
+
+    /* 🎯 標題輸入框手機版優化 */
+    .custom-field-name-input {
+        min-width: 100px !important; /* 縮小最小寬度 */
+        max-width: none !important; /* 移除最大寬度限制 */
+        font-size: 0.9em !important; /* 稍微縮小字體 */
+        padding: 4px 6px !important; /* 縮小內邊距 */
+        height: 28px !important; /* 統一高度 */
+    }
+
+    /* 🎯 統計文字手機版優化 */
+    .custom-field-stats {
+        font-size: 0.75em !important; /* 縮小統計文字 */
+        white-space: nowrap !important; /* 防止換行 */
+        opacity: 0.8 !important; /* 降低透明度讓視覺更輕量 */
+    }
+
+    /* 🎯 全螢幕按鈕手機版優化 */
+    .custom-field-header .fullscreen-btn {
+        width: 28px !important;
+        height: 28px !important;
+        padding: 4px !important;
+        font-size: 0.8em !important;
+    }
+
+    /* 🎯 刪除按鈕手機版優化 */
+    .custom-field-header .delete-btn {
+        width: 28px !important;
+        height: 28px !important;
+        padding: 4px !important;
+    }
+
+    /* 🎯 拖曳控制柄手機版優化 */
+    .custom-field-drag-handle {
+        width: 16px !important;
+        height: 16px !important;
+        padding: 2px !important;
+    }
 
 }
 
