@@ -789,6 +789,10 @@ static enableCustomFieldsDragSort(sectionId, versionId) {
             chosenClass: 'sortable-chosen',
             dragClass: 'sortable-drag',
             
+            // 🎯 關鍵修復：禁用 clone 和 fallback
+            forceFallback: false,
+            fallbackOnBody: false,
+            
             // 排除按鈕
             filter: (evt, item, container) => {
                 return item.classList.contains('loveydovey-add-btn-transparent') || 
@@ -798,11 +802,35 @@ static enableCustomFieldsDragSort(sectionId, versionId) {
             onStart: (evt) => {
                 document.body.classList.add('dragging-active');
                 container.classList.add('drag-in-progress');
+                
+                // 🎯 修復：移除 ghost 元素的 ID 屬性，避免重複
+                setTimeout(() => {
+                    const ghostElement = container.querySelector('.sortable-ghost');
+                    if (ghostElement) {
+                        // 移除 ghost 元素內所有有 ID 的子元素的 ID
+                        ghostElement.querySelectorAll('[id]').forEach(element => {
+                            element.removeAttribute('id');
+                        });
+                    }
+                    
+                    // 同樣處理 drag 元素
+                    const dragElement = document.querySelector('.sortable-drag');
+                    if (dragElement) {
+                        dragElement.querySelectorAll('[id]').forEach(element => {
+                            element.removeAttribute('id');
+                        });
+                    }
+                }, 0);
             },
             
             onEnd: (evt) => {
                 document.body.classList.remove('dragging-active');
                 container.classList.remove('drag-in-progress');
+                
+                // 🎯 修復：清理可能殘留的重複 ID
+                setTimeout(() => {
+                    this.cleanupDuplicateIds(container);
+                }, 0);
                 
                 if (evt.oldIndex !== evt.newIndex) {
                     this.handleCustomFieldsReorder(container, containerSectionId, containerVersionId, evt);
@@ -814,6 +842,21 @@ static enableCustomFieldsDragSort(sectionId, versionId) {
     });
     
     return containers.length;
+}
+
+// 清理重複 ID 的輔助函數
+static cleanupDuplicateIds(container) {
+    const seenIds = new Set();
+    const elementsWithIds = container.querySelectorAll('[id]');
+    
+    elementsWithIds.forEach(element => {
+        if (seenIds.has(element.id)) {
+            console.warn(`清理重複 ID: ${element.id}`);
+            element.removeAttribute('id');
+        } else {
+            seenIds.add(element.id);
+        }
+    });
 }
 
 // 處理筆記本欄位重新排序

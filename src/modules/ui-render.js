@@ -914,13 +914,13 @@ static renderCustomFieldsList(sectionId, versionId) {
     parentContainer.appendChild(tempDiv.firstElementChild);
     parentContainer.appendChild(tempDiv.lastElementChild);
     
-// 重新初始化功能
-setTimeout(() => {
-    updateAllPageStats();
-    initAutoResize();
-    // 啟用筆記本欄位拖曳排序
-    DragSortManager.enableCustomFieldsDragSort(sectionId, versionId);
-}, 50);
+    // 重新初始化功能
+    setTimeout(() => {
+        updateAllPageStats();
+        initAutoResize();
+        // 啟用筆記本欄位拖曳排序
+        DragSortManager.enableCustomFieldsDragSort(sectionId, versionId);
+    }, 50);
 }
         
         // 工具函數
@@ -1992,6 +1992,9 @@ function reorderCustomFieldsFromContainer(container, sectionId, versionId) {
     
     // 更新陣列順序
     version.fields = newFieldsOrder;
+    
+    // 🎯 修復：重新渲染整個欄位容器以確保 id 正確
+    ContentRenderer.renderCustomFieldsList(sectionId, versionId);
     
     TimestampManager.updateVersionTimestamp('custom', sectionId, versionId);
     markAsChanged();
