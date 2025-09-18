@@ -409,6 +409,43 @@
     display: contents; /* 在桌面版上忽略這些包裝，讓子元素直接成為grid item */
 }
 
+/* ===== 平板與中等視窗響應式樣式 (992px以下) ===== */
+@media (max-width: 992px) {
+    /* 隱藏桌面版的標題列 */
+    .entry-header-labels {
+        display: none !important;
+    }
+
+    /* 提前將 header 從 grid 切換為 flex，賦予彈性 */
+    .wb-entry-header-grid {
+        display: flex;
+        gap: 6px;
+        margin: 6px 0;
+    }
+
+    /* 提前讓這三個包裝容器生效，從 display: contents 變為 flex */
+    .wb-entry-col-left,
+    .wb-entry-col-main,
+    .wb-entry-col-right {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* 讓中間區塊可以自動延展並允許內部項目換行 */
+    .wb-entry-col-main {
+        flex-wrap: wrap;
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    /* 確保中間區塊的標題輸入框能正常填滿 */
+    .wb-entry-col-main .wb-field-flex {
+        width: 100%;
+        min-width: 150px;
+    }
+}
+
 /* ===== 手機版響應式樣式 (768px以下) ===== */
 @media (max-width: 768px) {
 
