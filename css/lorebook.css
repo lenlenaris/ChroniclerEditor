@@ -371,3 +371,221 @@
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 8px !important;
 }
+
+
+
+/* ===== 手機版響應式樣式 (768px以下) ===== */
+@media (max-width: 768px) {
+    
+    /* 世界書條目面板調整 */
+    .wb-entry-panel {
+        width: 100%;
+        padding: 8px 8px; /* 左右padding設為0 */
+        margin-bottom: 12px;
+    }
+    
+.wb-entry-header-grid {
+    display: flex;
+    flex-wrap: wrap; /* 允許換行 */
+    gap: 4px;
+    margin: 6px 0; /* 左右margin設為0 */
+    align-items: center;
+    justify-content: space-between; /* 均勻分佈元素 */
+}
+
+    .entry-header-labels {
+        display: none !important;
+    } 
+
+    
+    /* === 第一行元素排序和樣式 === */
+    
+    /* 拖拽手柄 */
+    .wb-entry-header-grid > .drag-handle {
+        order: 1;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+    }
+    
+    .wb-entry-header-grid > .drag-handle svg {
+        width: 10px;
+        height: 10px;
+    }
+    
+    /* 展開按鈕 */
+    .wb-entry-header-grid > .entry-toggle-btn {
+        order: 2;
+        width: 20px;
+        height: 20px;
+        padding: 2px;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+    
+    /* 啟用開關 */
+    .wb-entry-header-grid > .wb-toggle-wrapper {
+        order: 3;
+        margin-right: 6px;
+        flex-shrink: 0;
+        width: 28px;
+    }
+    
+/* 標題輸入框容器 - 占滿剩餘空間 */
+.wb-entry-header-grid > .wb-field-flex {
+    order: 4;
+    flex: 1;
+    margin-right: 0 !important;
+    width: calc(100% - 20px); /* 確保換行 */
+    min-width: 180px; /* 設定最小寬度確保文字可讀 */
+}
+
+/* 標題輸入框內的輸入框也要設定最小寬度 */
+.wb-entry-header-grid > .wb-field-flex .field-input {
+    min-width: 120px;
+    width: 100%;
+}
+
+
+    
+    /* 強制換行 */
+    .wb-entry-header-grid > .wb-field-flex::after {
+        content: "";
+        flex-basis: 100%;
+        height: 0;
+        order: 5;
+    }
+    
+    /* === 第二行元素排序和樣式 === */
+    
+    /* 觸發模式 - 第一個wb-field-margin-right */
+    .wb-entry-header-grid > .wb-field-margin-right:nth-child(5) {
+        order: 10;
+        flex-shrink: 0;
+    }
+    
+    /* 插入位置 - 第二個wb-field-margin-right */
+    .wb-entry-header-grid > .wb-field-margin-right:nth-child(6) {
+        order: 11;
+        flex-shrink: 0;
+    }
+    
+    /* 深度 - 第三個wb-field-margin-right */
+    .wb-entry-header-grid > .wb-field-margin-right:nth-child(7) {
+        order: 12;
+        flex-shrink: 0;
+    }
+    
+    /* 順序 - 第四個wb-field-margin-right */
+    .wb-entry-header-grid > .wb-field-margin-right:nth-child(8) {
+        order: 13;
+        flex-shrink: 0;
+    }
+    
+    /* 機率 - 第五個wb-field-margin-right */
+    .wb-entry-header-grid > .wb-field-margin-right:nth-child(9) {
+        order: 14;
+        flex-shrink: 0;
+    }
+    
+    /* 複製按鈕 */
+    .wb-entry-header-grid > .copy-btn {
+        order: 15;
+        flex-shrink: 0;
+    }
+    
+    /* 刪除按鈕 */
+    .wb-entry-header-grid > .delete-btn {
+        order: 16;
+        flex-shrink: 0;
+    }
+    
+    /* === 組件尺寸調整 === */
+    
+    /* 所有輸入框基礎樣式調整 */
+    .wb-entry-header-grid .field-input.compact-input {
+        padding: 3px 5px;
+        font-size: 11px;
+        height: 26px;
+        border-radius: 4px;
+    }
+    
+    /* 觸發模式選擇框 */
+    .wb-entry-header-grid .wb-input-width-55 {
+        width: 52px !important;
+        min-width: 52px !important; /* 確保最小寬度 */
+        font-size: 10px;
+        text-align: center;
+        flex-shrink: 0; /* 防止被擠壓 */
+    }
+
+    /* 插入位置選擇框 */
+    .wb-entry-header-grid .wb-input-width-150 {
+        width: 120px !important;
+        min-width: 120px !important; /* 確保最小寬度 */
+        font-size: 10px;
+        flex-shrink: 0; /* 防止被擠壓 */
+    }
+    
+    /* 數值輸入框（深度、順序、機率） */
+    .wb-entry-header-grid .wb-input-width-60 {
+        width: 45px !important;
+        font-size: 10px;
+        text-align: center;
+    }
+    
+    /* 複製和刪除按鈕 */
+    .wb-entry-header-grid .copy-btn,
+    .wb-entry-header-grid .delete-btn {
+        width: 32px;
+        height: 32px; 
+        padding: 5px;
+        border-radius: 6px;
+        flex-shrink: 0;
+    }
+
+    .wb-entry-header-grid .copy-btn svg,
+    .wb-entry-header-grid .delete-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    /* 啟用開關調整 */
+    .wb-toggle-switch {
+        width: 30px !important;
+        height: 14px !important;
+        border-radius: 8px;
+    }
+    
+    .wb-toggle-circle {
+        width: 8px !important;
+        height: 8px !important;
+        top: 3px !important;
+    }
+    
+    .wb-toggle-circle-enabled {
+        left: 16px !important;
+    }
+    
+    .wb-toggle-circle-disabled {
+        left: 3px !important;
+    }
+    
+    /* 標題輸入框特殊樣式 */
+    .wb-entry-header-grid .wb-input-bold {
+        font-weight: 500;
+        font-size: 12px;
+    }
+
+    /* 手機版間距統一優化 */
+    .wb-entry-header-grid .wb-field-margin-right {
+        margin-right: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* 只保留元素之間的gap間距（已在.wb-entry-header-grid設定為4px） */
+    .wb-entry-header-grid .wb-field-no-margin {
+        margin-bottom: 0 !important;
+    }
+    
+}
