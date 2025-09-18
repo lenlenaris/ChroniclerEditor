@@ -1,7 +1,5 @@
 /* ===== 世界書條目樣式系統 ===== */
 :root {
-    /* 網格系統變數 - 方便調整對齊 */
-    --wb-entry-columns: 24px 24px 36px 1fr 52px 150px 60px 60px 60px 40px 40px;
     --wb-entry-gap: 8px;
 }
 
@@ -15,11 +13,21 @@
 }
 
 .wb-entry-header-grid {
-    display: grid;
-    grid-template-columns: var(--wb-entry-columns);
+    display: flex;
+    flex-wrap: wrap; /* 允許換行，這是響應式的關鍵 */
     gap: var(--wb-entry-gap);
     margin: 10px;
     align-items: center;
+}
+
+/* ✨ 新增：為標題列微調樣式 ✨ */
+.entry-header-labels {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.8em;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
 .wb-entry-content {
@@ -406,7 +414,30 @@
 .wb-entry-col-left,
 .wb-entry-col-main,
 .wb-entry-col-right {
-    display: contents; /* 在桌面版上忽略這些包裝，讓子元素直接成為grid item */
+    display: flex;
+    align-items: center;
+    gap: 4px; /* 統一內部間距 */
+}
+
+/* 這一段是新增的，確保中間區塊能正確伸展和換行 */
+.wb-entry-col-main {
+    flex-wrap: wrap;
+    flex-grow: 1; /* 佔據所有剩餘空間 */
+    min-width: 0;
+    gap: var(--wb-entry-gap); /* 讓內部元素之間也有間距 */
+}
+
+/* 確保主內容區域的標題輸入框能正常填滿 */
+.wb-entry-col-main .wb-field-flex {
+    flex-grow: 1;
+    min-width: 150px;
+}
+
+/* ✨ 新增：讓標題列內的元素也能正確顯示 ✨ */
+.header-label-item {
+    display: flex;
+    align-items: center;
+    padding: 0 4px; /* 增加一點內邊距，讓文字更好看 */
 }
 
 /* ===== 平板與中等視窗響應式樣式 (992px以下) ===== */
