@@ -1088,8 +1088,74 @@ details summary::marker {
     margin-top: 30px;
 }
 
+/* 🎯 標籤統計容器 - 手機版佈局 */
+.tag-stats-container {
+    font-size: 0.78em;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap; /* 允許換行 */
+}
 
+/* 🎯 標籤統計項目 - 基礎樣式 */
+.tag-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    white-space: nowrap;
+}
 
+.tag-stat-number {
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+/* 🎯 主要容器 - 基礎佈局 */
+.theme-controls-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start; /* 改為頂部對齊，避免垂直重疊 */
+    gap: 12px;
+    padding: 0;
+    flex-wrap: wrap;
+}
+
+.theme-selector-row {
+    display: flex;
+    max-width: 200px;
+    flex-shrink: 0;
+    min-height: 32px; /* 給定最小高度 */
+    align-items: center; /* 內部垂直居中 */
+}
+
+.theme-selector {
+    flex: 1;
+    min-width: 200px;
+}
+
+.theme-buttons-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    min-width: 200px;
+    min-height: 32px; /* 與選擇器保持一致的高度 */
+}
+
+/* 🎯 按鈕基礎樣式 */
+.theme-buttons-row .overview-btn {
+    flex-shrink: 0; /* 防止按鈕被壓縮 */
+    white-space: nowrap; /* 防止按鈕內文字換行 */
+}
+
+.theme-color {
+    text-align: left;
+    padding: 0px;
+    margin-top:30px;
+}
 
 
 

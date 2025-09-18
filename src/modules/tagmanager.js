@@ -677,28 +677,33 @@ static renderTagItem(tagName, stats) {
                 </div>
             </div>
             
-            <div style="font-size: 0.78em; color: var(--text-muted); display: flex; align-items: center; gap: 10px;">
-                <span style="display: flex; align-items: center; gap: 3px;">
+             <div class="tag-stats-container">
+                <span class="tag-stat-item">
                    ${IconManager.user({width: 11, height: 11})}
-                    ${stats.characters} ${t('itemCharacterCards')}
+                    <span class="tag-stat-number">${stats.characters}</span>
+                    <span class="tag-stat-text">${t('itemCharacterCards')}</span>
                 </span>
                 ${showLoveyDovey ? `
-                <span style="display: flex; align-items: center; gap: 3px;">
+                <span class="tag-stat-item">
                     ${IconManager.heart({width: 11, height: 11})}
-                    ${stats.loveydoveys || 0} ${t('itemLoveyDoveyCharacters')}
+                    <span class="tag-stat-number">${stats.loveydoveys || 0}</span>
+                    <span class="tag-stat-text">${t('itemLoveyDoveyCharacters')}</span>
                 </span>
                 ` : ''}
-                <span style="display: flex; align-items: center; gap: 3px;">
-                ${IconManager.smile({width: 11, height: 11})}
-                ${stats.personas} ${t('itemUserPersonas')}
-            </span>
-                <span style="display: flex; align-items: center; gap: 3px;">
-                   ${IconManager.book({width: 11, height: 11})}
-                    ${stats.worldbooks} ${t('itemWorldBooks')}
+                <span class="tag-stat-item">
+                    ${IconManager.smile({width: 11, height: 11})}
+                    <span class="tag-stat-number">${stats.personas}</span>
+                    <span class="tag-stat-text">${t('itemUserPersonas')}</span>
                 </span>
-                <span style="display: flex; align-items: center; gap: 3px;">
+                <span class="tag-stat-item">
+                   ${IconManager.book({width: 11, height: 11})}
+                    <span class="tag-stat-number">${stats.worldbooks}</span>
+                    <span class="tag-stat-text">${t('itemWorldBooks')}</span>
+                </span>
+                <span class="tag-stat-item">
                     ${IconManager.file({width: 11, height: 11})}
-                    ${stats.customs} ${t('itemNotebooks')}
+                    <span class="tag-stat-number">${stats.customs}</span>
+                    <span class="tag-stat-text">${t('itemNotebooks')}</span>
                 </span>
             </div>
         </div>

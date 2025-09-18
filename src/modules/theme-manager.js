@@ -808,32 +808,34 @@ class ColorManager {
             </div>
             
             <!-- 主題控制區 -->
-            <div class="compact-section" style="text-align: left; margin-top:25px; padding: 0px;">
+            <div class="compact-section theme-color">
                 <div class="compact-section-title" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                     ${IconManager.folder({width: 14, height: 14})}
                     ${t('themeSelectionAndOperations')}
                 </div>
                 
-                <div style="display: flex; align-items: center; gap: 8px; padding: 0px;">
-                    <select id="theme-selector" 
-                            class="overview-sort-dropdown hover-primary"
-                            onchange="ThemeManager.switchTheme(this.value)" 
-                            style="flex: 1;">
-                        <!-- 選項由 ThemeManager 動態生成 -->
-                    </select>
+                <div class="theme-controls-container">
+                    <div class="theme-selector-row">
+                        <select id="theme-selector" 
+                                class="overview-sort-dropdown hover-primary theme-selector"
+                                onchange="ThemeManager.switchTheme(this.value)">
+                            <!-- 選項由 ThemeManager 動態生成 -->
+                        </select>
+                    </div>
                     
-                    <!-- 控制按鈕組 -->
-                    ${this.createCompactControlButton('save', t('saveTheme'), 'ThemeManager.saveCurrentTheme()')}
-                    ${this.createCompactControlButton('save-as', t('saveAsNewTheme'), 'ThemeManager.saveAsNewTheme()')}
-                    ${this.createCompactControlButton('rename', t('renameTheme'), 'ThemeManager.renameTheme()', 'theme-rename-btn')}
-                    ${this.createCompactControlButton('export', t('exportColorTheme'), 'ThemeManager.exportTheme()')}
-                    ${this.createCompactControlButton('import', t('importColorTheme'), 'ThemeManager.importTheme()')}
-                    ${this.createCompactControlButton('delete', t('deleteTheme'), 'ThemeManager.deleteTheme()', 'theme-delete-btn')}
+                    <div class="theme-buttons-row">
+                        ${this.createCompactControlButton('save', t('saveTheme'), 'ThemeManager.saveCurrentTheme()')}
+                        ${this.createCompactControlButton('save-as', t('saveAsNewTheme'), 'ThemeManager.saveAsNewTheme()')}
+                        ${this.createCompactControlButton('rename', t('renameTheme'), 'ThemeManager.renameTheme()', 'theme-rename-btn')}
+                        ${this.createCompactControlButton('export', t('exportColorTheme'), 'ThemeManager.exportTheme()')}
+                        ${this.createCompactControlButton('import', t('importColorTheme'), 'ThemeManager.importTheme()')}
+                        ${this.createCompactControlButton('delete', t('deleteTheme'), 'ThemeManager.deleteTheme()', 'theme-delete-btn')}
+                    </div>
                 </div>
             </div>
             
             <!-- 顏色設定區域 -->
-            <div class="compact-section" style="text-align: left; padding: 0px; margin-top:30px;">
+            <div class="compact-section theme-color">
                 <div class="compact-section-title" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
                     ${IconManager.palette({width: 14, height: 14})}
                     ${t('colorCustomization')}
