@@ -419,7 +419,8 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                   
                   <!-- Trigger mode -->
                   <div class="field-group wb-field-no-margin wb-field-margin-right">
-                      <select class="field-input compact-input wb-input-width-55" onchange="updateEntryModeFromSelect('${worldBookId}', '${versionId}', '${entry.id}', this.value)">
+                      <select class="field-input compact-input wb-input-width-55"
+                      title="${t('triggerStrategy')}" onchange="updateEntryModeFromSelect('${worldBookId}', '${versionId}', '${entry.id}', this.value)">
                           <option value="selective" ${entry.selective && !entry.constant && !entry.vectorized ? 'selected' : ''}>🟢</option>
                           <option value="constant" ${entry.constant ? 'selected' : ''}>🔵</option>
                           <option value="vectorized" ${entry.vectorized ? 'selected' : ''}>🔗</option>
@@ -428,7 +429,8 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                   
                   <!-- Insertion position -->
                   <div class="field-group wb-field-no-margin wb-field-margin-right">
-                      <select class="field-input compact-input wb-input-width-150" onchange="updateWorldBookEntryPosition('${worldBookId}', '${versionId}', '${entry.id}', parseInt(this.value))">
+                      <select class="field-input compact-input wb-input-width-150"
+                      title="${t('insertPosition')}" onchange="updateWorldBookEntryPosition('${worldBookId}', '${versionId}', '${entry.id}', parseInt(this.value))">
                           <option value="0" ${entry.position === 0 ? 'selected' : ''}>${t('beforeCharDefs')}</option>
                           <option value="1" ${entry.position === 1 ? 'selected' : ''}>${t('afterCharDefs')}</option>
                           <option value="5" ${entry.position === 5 ? 'selected' : ''}>${t('beforeExampleMsg')}</option>
@@ -446,6 +448,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                       <span class="wb-mobile-label">${t('insertDepth')}:</span>
                       <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.depth || 4}" min="0" max="999" style="${entry.position !== 4 ? 'opacity: 0;' : ''}"
                           id="depth-${entry.id}"
+                          title="${t('insertDepth')}"
                           ${entry.position !== 4 ? 'disabled' : ''}
                           onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'depth', parseInt(this.value))">
                   </div>
@@ -454,6 +457,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                   <div class="field-group wb-field-no-margin wb-field-margin-right wb-numeric-field-mobile">
                       <span class="wb-mobile-label">${t('insertOrder')}:</span>
                       <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.order || 100}" min="0" max="999"
+                      title="${t('insertOrder')}"
                           onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'order', parseInt(this.value))">
                   </div>
 
@@ -461,6 +465,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                   <div class="field-group wb-field-no-margin wb-field-margin-right wb-numeric-field-mobile">
                       <span class="wb-mobile-label">${t('probabilityValue')}:</span>
                       <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.probability !== undefined ? entry.probability : 100}" min="0" max="100"
+                      title="${t('probabilityValue')}"
                           onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'probability', this.value === '' ? 0 : parseInt(this.value))">
                   </div>
               </div>
