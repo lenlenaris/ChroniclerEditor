@@ -104,11 +104,13 @@
 
 .wb-field-flex {
     flex: 1;
-    margin-right: 8px !important;
+    margin-right: 0px !important;
+    padding-right: 0px !important;
 }
 
 .wb-field-margin-right {
-    margin-right: 8px !important;
+    margin-right: 0px !important;
+    padding-right: 0px !important;
 }
 
 /* 6. 輸入框寬度系統 */
@@ -413,118 +415,17 @@
         display: none !important;
     } 
 
-    
-    /* === 第一行元素排序和樣式 === */
-    
-    /* 拖拽手柄 */
-    .wb-entry-header-grid > .drag-handle {
-        order: 1;
-        width: 20px;
-        height: 20px;
-        flex-shrink: 0;
-    }
-    
-    .wb-entry-header-grid > .drag-handle svg {
-        width: 10px;
-        height: 10px;
-    }
-    
-    /* 展開按鈕 */
-    .wb-entry-header-grid > .entry-toggle-btn {
-        order: 2;
-        width: 20px;
-        height: 20px;
-        padding: 2px;
-        font-size: 12px;
-        flex-shrink: 0;
-    }
-    
-    /* 啟用開關 */
-    .wb-entry-header-grid > .wb-toggle-wrapper {
-        order: 3;
-        margin-right: 6px;
-        flex-shrink: 0;
-        width: 28px;
-    }
-    
-/* 標題輸入框容器 - 占滿剩餘空間 */
-.wb-entry-header-grid > .wb-field-flex {
-    order: 4;
-    flex: 1;
-    margin-right: 0 !important;
-    width: calc(100% - 20px); /* 確保換行 */
-    min-width: 180px; /* 設定最小寬度確保文字可讀 */
+
+    /* 複製按鈕 - 右對齊 */
+.wb-entry-header-grid > .copy-btn {
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
-/* 標題輸入框內的輸入框也要設定最小寬度 */
-.wb-entry-header-grid > .wb-field-flex .field-input {
-    min-width: 120px;
-    width: 100%;
+/* 刪除按鈕 */
+.wb-entry-header-grid > .delete-btn {
+    flex-shrink: 0;
 }
-
-
-    
-    /* 強制換行 */
-    .wb-entry-header-grid > .wb-field-flex::after {
-        content: "";
-        flex-basis: 100%;
-        height: 0;
-        order: 5;
-    }
-
-    
-    
- /* === 第二行元素排序和樣式 === */
-    
-    /* 觸發模式 - 第一個wb-field-margin-right */
-    .wb-entry-header-grid > .wb-field-margin-right:nth-child(5) {
-        order: 10;
-        flex-shrink: 0;
-    }
-    
-    /* 插入位置 - 第二個wb-field-margin-right */
-    .wb-entry-header-grid > .wb-field-margin-right:nth-child(6) {
-        order: 11;
-        flex-shrink: 0;
-    }
-    
-    /* 深度 - 第三個wb-field-margin-right */
-    .wb-entry-header-grid > .wb-field-margin-right:nth-child(7) {
-        order: 12;
-        flex-shrink: 0;
-    }
-    
-    /* 強制第二行結束 */
-    .wb-entry-header-grid > .wb-field-margin-right:nth-child(7)::after {
-        content: "";
-        flex-basis: 100%;
-        height: 0;
-        order: 12.5;
-    }
-    
-    /* 順序 - 第四個wb-field-margin-right */
-    .wb-entry-header-grid > .wb-field-margin-right:nth-child(8) {
-        order: 20;
-        flex-shrink: 0;
-    }
-    
-    /* 機率 - 第五個wb-field-margin-right */
-    .wb-entry-header-grid > .wb-field-margin-right:nth-child(9) {
-        order: 21;
-        flex-shrink: 0;
-    }
-    
-/* 複製按鈕 */
-    .wb-entry-header-grid > .copy-btn {
-        order: 22;
-        flex-shrink: 0;
-    }
-    
-    /* 刪除按鈕 */
-    .wb-entry-header-grid > .delete-btn {
-        order: 23;
-        flex-shrink: 0;
-    }
     
     /* === 組件尺寸調整 === */
     
@@ -534,6 +435,12 @@
         font-size: 11px;
         height: 26px;
         border-radius: 4px;
+    }
+
+    /* 標題輸入框完全移除所有間距 */
+    .wb-entry-header-grid .wb-field-flex {
+        margin: 0 !important;
+        padding: 0 !important;
     }
     
     /* 觸發模式選擇框 */
@@ -578,7 +485,7 @@
     
     /* 啟用開關調整 */
     .wb-toggle-switch {
-        width: 30px !important;
+        width: 25px !important;
         height: 14px !important;
         border-radius: 8px;
     }
@@ -590,7 +497,7 @@
     }
     
     .wb-toggle-circle-enabled {
-        left: 16px !important;
+        left: 13px !important;
     }
     
     .wb-toggle-circle-disabled {
