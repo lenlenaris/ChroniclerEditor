@@ -369,7 +369,6 @@ class WorldBookRenderer {
         `;
     }
 
-        // 渲染世界書條目
 static renderWorldBookEntry(worldBookId, versionId, entry) {
     // Determine status icon
     let statusIcon = '';
@@ -384,94 +383,103 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
     return `
         <div class="entry-panel sortable-item wb-entry-panel" data-entry-id="${entry.id}" data-display-index="${entry.displayIndex || 0}">
           <!-- Entry header -->
-<div class="entry-header wb-entry-header-grid">
-    <!-- Drag handle -->
-    <div class="drag-handle custom-field-drag-handle">
-        ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
-    </div>
-    
-    <!-- Toggle button -->
-    <button class="entry-toggle-btn wb-toggle-btn" onclick="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entry.id}', event)">
-                    <span class="arrow-icon arrow-right"></span>
-                </button>
-                
-                <!-- Enable entry toggle -->
-                <label class="wb-toggle-wrapper">
-    <input type="checkbox" ${!entry.disable ? 'checked' : ''} 
-        onchange="toggleEntryEnabled('${worldBookId}', '${versionId}', '${entry.id}')"
-        class="wb-toggle-hidden-input">
-    <div class="toggle-switch wb-toggle-switch ${!entry.disable ? 'wb-toggle-switch-enabled' : 'wb-toggle-switch-disabled'}">
-        <div class="wb-toggle-circle ${!entry.disable ? 'wb-toggle-circle-enabled' : 'wb-toggle-circle-disabled'}"></div>
-    </div>
-</label>
-                
-                <!-- Comment -->
-                <div class="field-group wb-field-no-margin wb-field-flex">
-    <input type="text" class="field-input compact-input wb-input-bold" 
-        placeholder="${t('entryTitle')}"
-        value="${entry.comment || ''}"
-        oninput="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'comment', this.value)">
-</div>
-                
-                <!-- Trigger mode -->
-                <div class="field-group wb-field-no-margin wb-field-margin-right">
-                    <select class="field-input compact-input wb-input-width-55" onchange="updateEntryModeFromSelect('${worldBookId}', '${versionId}', '${entry.id}', this.value)">
-                        <option value="selective" ${entry.selective && !entry.constant && !entry.vectorized ? 'selected' : ''}>🟢</option>
-                        <option value="constant" ${entry.constant ? 'selected' : ''}>🔵</option>
-                        <option value="vectorized" ${entry.vectorized ? 'selected' : ''}>🔗</option>
-                    </select>
-                </div>
-                
-              <!-- Insertion position -->
-                <div class="field-group wb-field-no-margin wb-field-margin-right">
-                    <select class="field-input compact-input wb-input-width-150" onchange="updateWorldBookEntryPosition('${worldBookId}', '${versionId}', '${entry.id}', parseInt(this.value))">
-                        <option value="0" ${entry.position === 0 ? 'selected' : ''}>${t('beforeCharDefs')}</option>
-                        <option value="1" ${entry.position === 1 ? 'selected' : ''}>${t('afterCharDefs')}</option>
-                        <option value="5" ${entry.position === 5 ? 'selected' : ''}>${t('beforeExampleMsg')}</option>
-                        <option value="6" ${entry.position === 6 ? 'selected' : ''}>${t('afterExampleMsg')}</option>
-                        <option value="2" ${entry.position === 2 ? 'selected' : ''}>${t('topAuthorNote')}</option>
-                        <option value="3" ${entry.position === 3 ? 'selected' : ''}>${t('bottomAuthorNote')}</option>
-                        <option value="4" data-role="0" ${entry.position === 4 && (entry.role === 0 || entry.role === null) ? 'selected' : ''}>${t('atSystemDepth')}</option>
-                        <option value="4" data-role="1" ${entry.position === 4 && entry.role === 1 ? 'selected' : ''}>${t('atUserDepth')}</option>
-                        <option value="4" data-role="2" ${entry.position === 4 && entry.role === 2 ? 'selected' : ''}>${t('atAiDepth')}</option>
-                    </select>
-                </div>
+          <div class="entry-header wb-entry-header-grid">
+              <!-- Column 1: Left Controls -->
+              <div class="wb-entry-col-left">
+                  <!-- Drag handle -->
+                  <div class="drag-handle custom-field-drag-handle">
+                      ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+                  </div>
+                  
+                  <!-- Toggle button -->
+                  <button class="entry-toggle-btn wb-toggle-btn" onclick="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entry.id}', event)">
+                      <span class="arrow-icon arrow-right"></span>
+                  </button>
+                  
+                  <!-- Enable entry toggle -->
+                  <label class="wb-toggle-wrapper">
+                      <input type="checkbox" ${!entry.disable ? 'checked' : ''} 
+                          onchange="toggleEntryEnabled('${worldBookId}', '${versionId}', '${entry.id}')"
+                          class="wb-toggle-hidden-input">
+                      <div class="toggle-switch wb-toggle-switch ${!entry.disable ? 'wb-toggle-switch-enabled' : 'wb-toggle-switch-disabled'}">
+                          <div class="wb-toggle-circle ${!entry.disable ? 'wb-toggle-circle-enabled' : 'wb-toggle-circle-disabled'}"></div>
+                      </div>
+                  </label>
+              </div>
 
-<!-- Depth -->
-<div class="field-group wb-field-no-margin wb-field-margin-right">
-    <span class="wb-mobile-label">${t('insertDepth')}:</span>
-    <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.depth || 4}" min="0" max="999" style="${entry.position !== 4 ? 'opacity: 0;' : ''}"
-        id="depth-${entry.id}"
-        ${entry.position !== 4 ? 'disabled' : ''}
-        onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'depth', parseInt(this.value))">
-</div>
+              <!-- Column 2: Main Content (wrappable) -->
+              <div class="wb-entry-col-main">
+                  <!-- Comment -->
+                  <div class="field-group wb-field-no-margin wb-field-flex">
+                      <input type="text" class="field-input compact-input wb-input-bold" 
+                          placeholder="${t('entryTitle')}"
+                          value="${entry.comment || ''}"
+                          oninput="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'comment', this.value)">
+                  </div>
+                  
+                  <!-- Trigger mode -->
+                  <div class="field-group wb-field-no-margin wb-field-margin-right">
+                      <select class="field-input compact-input wb-input-width-55" onchange="updateEntryModeFromSelect('${worldBookId}', '${versionId}', '${entry.id}', this.value)">
+                          <option value="selective" ${entry.selective && !entry.constant && !entry.vectorized ? 'selected' : ''}>🟢</option>
+                          <option value="constant" ${entry.constant ? 'selected' : ''}>🔵</option>
+                          <option value="vectorized" ${entry.vectorized ? 'selected' : ''}>🔗</option>
+                      </select>
+                  </div>
+                  
+                  <!-- Insertion position -->
+                  <div class="field-group wb-field-no-margin wb-field-margin-right">
+                      <select class="field-input compact-input wb-input-width-150" onchange="updateWorldBookEntryPosition('${worldBookId}', '${versionId}', '${entry.id}', parseInt(this.value))">
+                          <option value="0" ${entry.position === 0 ? 'selected' : ''}>${t('beforeCharDefs')}</option>
+                          <option value="1" ${entry.position === 1 ? 'selected' : ''}>${t('afterCharDefs')}</option>
+                          <option value="5" ${entry.position === 5 ? 'selected' : ''}>${t('beforeExampleMsg')}</option>
+                          <option value="6" ${entry.position === 6 ? 'selected' : ''}>${t('afterExampleMsg')}</option>
+                          <option value="2" ${entry.position === 2 ? 'selected' : ''}>${t('topAuthorNote')}</option>
+                          <option value="3" ${entry.position === 3 ? 'selected' : ''}>${t('bottomAuthorNote')}</option>
+                          <option value="4" data-role="0" ${entry.position === 4 && (entry.role === 0 || entry.role === null) ? 'selected' : ''}>${t('atSystemDepth')}</option>
+                          <option value="4" data-role="1" ${entry.position === 4 && entry.role === 1 ? 'selected' : ''}>${t('atUserDepth')}</option>
+                          <option value="4" data-role="2" ${entry.position === 4 && entry.role === 2 ? 'selected' : ''}>${t('atAiDepth')}</option>
+                      </select>
+                  </div>
 
-                <!-- Order -->
-                <div class="field-group wb-field-no-margin wb-field-margin-right">
-    <span class="wb-mobile-label">${t('insertOrder')}:</span>
-    <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.order || 100}" min="0" max="999"
-                        onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'order', parseInt(this.value))">
-                </div>
+                  <!-- Depth -->
+                  <div class="field-group wb-field-no-margin wb-field-margin-right wb-numeric-field-mobile">
+                      <span class="wb-mobile-label">${t('insertDepth')}:</span>
+                      <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.depth || 4}" min="0" max="999" style="${entry.position !== 4 ? 'opacity: 0;' : ''}"
+                          id="depth-${entry.id}"
+                          ${entry.position !== 4 ? 'disabled' : ''}
+                          onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'depth', parseInt(this.value))">
+                  </div>
 
-                <!-- Probability -->
-                <div class="field-group wb-field-no-margin wb-field-margin-right">
-                    <span class="wb-mobile-label">${t('probabilityValue')}:</span>
-                    <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.probability !== undefined ? entry.probability : 100}" min="0" max="100"
-                        onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'probability', this.value === '' ? 0 : parseInt(this.value))">
-                </div>
-                
-                <!-- Copy entry button -->
-                <button class="copy-btn" onclick="copyWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}')" 
-                        title="${t('copyEntry')}">
-                    ${IconManager.copy({width: 14, height: 14})}
-                </button>
+                  <!-- Order -->
+                  <div class="field-group wb-field-no-margin wb-field-margin-right wb-numeric-field-mobile">
+                      <span class="wb-mobile-label">${t('insertOrder')}:</span>
+                      <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.order || 100}" min="0" max="999"
+                          onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'order', parseInt(this.value))">
+                  </div>
 
-                <!-- Delete entry button -->
-                <button class="delete-btn" onclick="confirmRemoveWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}')" 
-                        title="${t('deleteEntry')}">
-                    ${IconManager.delete({width: 14, height: 14})}
-                </button>
-            </div>
+                  <!-- Probability -->
+                  <div class="field-group wb-field-no-margin wb-field-margin-right wb-numeric-field-mobile">
+                      <span class="wb-mobile-label">${t('probabilityValue')}:</span>
+                      <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.probability !== undefined ? entry.probability : 100}" min="0" max="100"
+                          onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'probability', this.value === '' ? 0 : parseInt(this.value))">
+                  </div>
+              </div>
+
+              <!-- Column 3: Right Actions -->
+              <div class="wb-entry-col-right">
+                  <!-- Copy entry button -->
+                  <button class="copy-btn" onclick="copyWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}')" 
+                          title="${t('copyEntry')}">
+                      ${IconManager.copy({width: 14, height: 14})}
+                  </button>
+
+                  <!-- Delete entry button -->
+                  <button class="delete-btn" onclick="confirmRemoveWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}')" 
+                          title="${t('deleteEntry')}">
+                      ${IconManager.delete({width: 14, height: 14})}
+                  </button>
+              </div>
+          </div>
 
             <!-- Entry content area (initially empty) -->
             <div class="entry-content wb-entry-content" id="entry-content-${entry.id}">

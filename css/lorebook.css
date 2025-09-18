@@ -106,6 +106,7 @@
     flex: 1;
     margin-right: 0px !important;
     padding-right: 0px !important;
+    min-width: 150px;
 }
 
 .wb-field-margin-right {
@@ -391,10 +392,16 @@
     display: none;
 }
 
+/* ===== 桌面版樣式 (769px以上) ===== */
+.wb-entry-col-left,
+.wb-entry-col-main,
+.wb-entry-col-right {
+    display: contents; /* 在桌面版上忽略這些包裝，讓子元素直接成為grid item */
+}
 
 /* ===== 手機版響應式樣式 (768px以下) ===== */
 @media (max-width: 768px) {
-    
+
     /* 世界書條目面板調整 */
     .wb-entry-panel {
         width: 100%;
@@ -404,30 +411,34 @@
     
 .wb-entry-header-grid {
     display: flex;
-    flex-wrap: wrap; /* 允許換行 */
-    gap: 4px;
+    gap: 6px; /* 欄之間的間距 */
     margin: 6px 0; /* 左右margin設為0 */
-    align-items: center;
-    justify-content: flex-start; /* 改為左對齊，避免過大間距 */
+    align-items: center; /* 垂直居中對齊三欄 */
 }
 
     .entry-header-labels {
         display: none !important;
     } 
 
+    .wb-entry-header-grid .wb-numeric-field-mobile {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
 
-    /* 複製按鈕 - 右對齊 */
-.wb-entry-header-grid > .copy-btn {
-    flex-shrink: 0;
-    margin-left: auto;
-}
 
-/* 刪除按鈕 */
-.wb-entry-header-grid > .delete-btn {
-    flex-shrink: 0;
-}
+    /* 移除手機版條目內容區域的左右內邊距 */
+    .wb-entry-content {
+        padding-left: 2px;
+        padding-right: 2px;
+    }
     
     /* === 組件尺寸調整 === */
+
+    /* 移除啟用開關右側多餘的間距 */
+    .wb-toggle-wrapper {
+        margin-right: 2 !important;
+    }
     
     /* 所有輸入框基礎樣式調整 */
     .wb-entry-header-grid .field-input.compact-input {
@@ -462,9 +473,17 @@
     
     /* 數值輸入框（深度、順序、機率） */
     .wb-entry-header-grid .wb-input-width-60 {
-        width: 45px !important;
+        width: 55px !important;
         font-size: 10px;
         text-align: center;
+    }
+
+    .wb-entry-header-grid .copy-btn {
+        flex-shrink: 0;
+    }
+
+    .wb-entry-header-grid .delete-btn {
+        flex-shrink: 0;
     }
     
     /* 複製和刪除按鈕 */
@@ -531,14 +550,30 @@
         white-space: nowrap;
         flex-shrink: 0;
     }
-    
-    /* 調整包含標籤的輸入框容器佈局 */
-    .wb-entry-header-grid .wb-field-margin-right:nth-child(7),
-    .wb-entry-header-grid .wb-field-margin-right:nth-child(8),
-    .wb-entry-header-grid .wb-field-margin-right:nth-child(9) {
-        display: flex;
+
+    .wb-entry-col-left,
+    .wb-entry-col-main,
+    .wb-entry-col-right {
+        display: flex; /* 在手機版上啟用 flex 佈局 */
         align-items: center;
-        gap: 2px;
+        gap: 4px; /* 欄內項目間距 */
+    }
+
+    .wb-entry-col-right {
+        flex-direction: column; /* ✨ 核心改動：將按鈕從水平排列改為垂直堆疊 */
+        gap: 4px; /* 調整一下垂直堆疊時的間距 */
+    }
+
+    .wb-entry-col-main {
+        flex-wrap: wrap; /* 允許中間的元素換行 */
+        flex-grow: 1; /* 佔據所有剩餘空間 */
+        min-width: 0; /* 確保在空間不足時可以被壓縮 */
+    }
+
+    /* 確保主內容區域的標題輸入框能正常填滿 */
+    .wb-entry-col-main .wb-field-flex {
+        width: 100%;
+        min-width: 150px;
     }
     
 }
