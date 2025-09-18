@@ -14,7 +14,6 @@
 
 .wb-entry-header-grid {
     display: flex;
-    flex-wrap: wrap; /* 允許換行，這是響應式的關鍵 */
     gap: var(--wb-entry-gap);
     margin: 10px;
     align-items: center;
@@ -147,12 +146,12 @@
 /* 標題輸入框容器 - 占滿剩餘空間 */
 .wb-entry-header-grid > .wb-field-flex {
     flex: 1;
-    min-width: 180px;
+    min-width: 120px;
 }
 
 /* 標題輸入框內的輸入框也要設定最小寬度 */
 .wb-entry-header-grid > .wb-field-flex .field-input {
-    min-width: 180px;
+    min-width: 120px;
     width: 100%;
 }
 
@@ -440,8 +439,19 @@
     padding: 0 4px; /* 增加一點內邊距，讓文字更好看 */
 }
 
+
 /* ===== 平板與中等視窗響應式樣式 (992px以下) ===== */
 @media (max-width: 992px) {
+    .wb-mobile-label {
+        display: inline-block !important;
+        font-size: 0.7em;
+        color: var(--text-muted);
+        margin-right: 3px;
+        font-weight: 500;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
     /* 隱藏桌面版的標題列 */
     .entry-header-labels {
         display: none !important;
@@ -473,7 +483,7 @@
     /* 確保中間區塊的標題輸入框能正常填滿 */
     .wb-entry-col-main .wb-field-flex {
         width: 100%;
-        min-width: 150px;
+        min-width: 120px;
     }
 }
 
@@ -543,15 +553,15 @@
 
     /* 插入位置選擇框 */
     .wb-entry-header-grid .wb-input-width-150 {
-        width: 120px !important;
-        min-width: 120px !important; /* 確保最小寬度 */
+        width: 115px !important;
+        min-width: 115px !important; /* 確保最小寬度 */
         font-size: 10px;
         flex-shrink: 0; /* 防止被擠壓 */
     }
     
     /* 數值輸入框（深度、順序、機率） */
     .wb-entry-header-grid .wb-input-width-60 {
-        width: 55px !important;
+        width: 50px !important;
         font-size: 10px;
         text-align: center;
     }
@@ -651,7 +661,7 @@
     /* 確保主內容區域的標題輸入框能正常填滿 */
     .wb-entry-col-main .wb-field-flex {
         width: 100%;
-        min-width: 150px;
+        min-width: 120px;
     }
     
 
