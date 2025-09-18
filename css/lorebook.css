@@ -128,7 +128,7 @@
 }
 
 .wb-input-width-150 {
-    width: 150px !important;
+    width: 55px;
 }
 
 /* 7. 按鈕間距 */
@@ -331,11 +331,23 @@
 
 /* ===== 遞歸控制區域樣式 ===== */
 .wb-grid-recursion {
-    display: grid !important;
-    grid-template-columns: 1fr 300px !important;
+    display: flex !important; /* ✨ 1. 從 grid 改為 flex */
+    flex-wrap: wrap !important; /* ✨ 2. 允許換行 */
     gap: 12px !important;
     margin-bottom: 12px !important;
     align-items: start !important;
+}
+
+/* 為左側區塊（遞歸選項）設定彈性 */
+.wb-grid-recursion > div:first-child {
+    flex: 1; /* 佔據主要剩餘空間 */
+    min-width: 250px; /* 給它一個最小寬度，避免被過度擠壓 */
+}
+
+/* 為右側區塊（數值設定）設定彈性 */
+.wb-values-right {
+    flex: 1; /* 也讓它參與空間分配 */
+    min-width: 300px; /* 給它一個最小寬度，決定了它何時會換行 */
 }
 
 .wb-recursion-title {
@@ -363,17 +375,15 @@
     justify-self: end !important;
 }
 
-.wb-grid-3x150-mb {
-    display: grid !important;
-    grid-template-columns: 150px 150px 150px !important;
-    gap: 8px !important;
-    margin-bottom: 8px !important;
-}
-
+.wb-grid-3x150-mb,
 .wb-grid-3x150 {
     display: grid !important;
-    grid-template-columns: 150px 150px 150px !important;
+    grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)) !important;
     gap: 8px !important;
+}
+
+.wb-grid-3x150-mb {
+    margin-bottom: 8px !important;
 }
 
 /* ===== 額外匹配來源區域樣式 ===== */
@@ -576,4 +586,11 @@
         min-width: 150px;
     }
     
+
+    /* ===== 遞歸控制與數值設定區域響應式調整 ===== */
+
+    /* 讓裡面的輸入框寬度不再寫死，而是自動填滿可用空間 */
+    .wb-values-right .wb-input-width-150 {
+        width: 100% !important;
+    }
 }
