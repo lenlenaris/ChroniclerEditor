@@ -133,6 +133,18 @@
     margin-top: 16px !important;
 }
 
+/* 標題輸入框容器 - 占滿剩餘空間 */
+.wb-entry-header-grid > .wb-field-flex {
+    flex: 1;
+    min-width: 180px;
+}
+
+/* 標題輸入框內的輸入框也要設定最小寬度 */
+.wb-entry-header-grid > .wb-field-flex .field-input {
+    min-width: 180px;
+    width: 100%;
+}
+
 /* ===== 世界書條目詳細內容樣式 ===== */
 
 /* 網格布局 */
