@@ -336,62 +336,31 @@ function restoreWorldBookEntryCollapseStates(states) {
 class WorldBookRenderer {
     // 渲染世界書版本內容
     static renderWorldBookVersionContent(worldBook, version) {
-        // ✨ 新增：標題列的 HTML 結構，完全仿照條目的結構 ✨
-        const tableHeaderHTML = `
-            <div class="entry-header-labels wb-entry-header-grid">
-                <!-- Column 1: Left Controls (留空) -->
-                <div class="wb-entry-col-left">
-                    <div style="width: 24px;"></div> <!-- Drag handle placeholder -->
-                    <div style="width: 24px;"></div> <!-- Toggle button placeholder -->
-                    <div style="width: 36px;"></div> <!-- Enable toggle placeholder -->
-                </div>
-
-                <!-- Column 2: Main Content (包含所有會換行的標題) -->
-                <div class="wb-entry-col-main" style="padding-left: 20px;">
-                    <!-- 標題/備註 -->
-                    <div class="field-group wb-field-no-margin wb-field-flex header-label-item" >
-                        ${t('entryTitleComment')}
-                    </div>
-                    <!-- 策略 -->
-                    <div class="field-group wb-field-no-margin wb-field-margin-right header-label-item" style="left: -150px; width: 52px; justify-content: center;">
-                        ${t('triggerStrategy')}
-                    </div>
-                    <!-- 位置 -->
-                    <div class="field-group wb-field-no-margin wb-field-margin-right header-label-item" style="width: 150px; justify-content: center;">
-                        ${t('insertPosition')}
-                    </div>
-                    <!-- 深度 -->
-                    <div class="field-group wb-field-no-margin wb-field-margin-right header-label-item" style="width: 60px; justify-content: center;">
-                        ${t('insertDepth')}
-                    </div>
-                    <!-- 順序 -->
-                    <div class="field-group wb-field-no-margin wb-field-margin-right header-label-item" style="width: 60px; justify-content: center;">
-                        ${t('insertOrder')}
-                    </div>
-                    <!-- 觸發% -->
-                    <div class="field-group wb-field-no-margin wb-field-margin-right header-label-item" style="width: 60px; justify-content: center;">
-                        ${t('probabilityValue')}
-                    </div>
-                </div>
-
-                <!-- Column 3: Right Actions (留空) -->
-                <div class="wb-entry-col-right">
-                    <div style="width: 32px;"></div> <!-- Copy button placeholder -->
-                    <div style="width: 32px;"></div> <!-- Delete button placeholder -->
-                </div>
-            </div>
-        `;
-
         return `
         <div class="character-version-content">
             <!-- 條目列表 -->
             <div class="entries-container" data-world-book-id="${worldBook.id}" data-version-id="${version.id}">
-                ${version.entries.length > 0 ? tableHeaderHTML : ''}
+                ${version.entries.length > 0 ? `
+                    <!-- 條目標題標籤（只顯示一次） -->
+                  ${UIUtils.createTableHeader([
+    { width: '24px', title: '' },
+    { width: '40px', title: '' },
+    { width: '40px', title: '' },
+    { width: '1fr', title: t('entryTitleComment') },
+    { width: '35px', title: t('triggerStrategy'), style: 'text-align: center; margin-left: -25px;' },
+    { width: '150px', title: t('insertPosition'), style: 'text-align: center; margin-left: -30px;' },
+    { width: '60px', title: t('insertDepth'), style: 'text-align: center; margin-left: 0px;' },
+    { width: '60px', title: t('insertOrder'), style: 'text-align: center; margin-left: 0px;' },
+    { width: '60px', title: t('probabilityValue'), style: 'text-align: center; margin-left: 0px;' },
+    { width: '40px', title: '' },
+    { width: '40px', title: '' }
+])}
+                ` : ''}
                 
                 ${version.entries.map(entry => this.renderWorldBookEntry(worldBook.id, version.id, entry)).join('')}
                 
                <!-- 新增條目按鈕 -->
-            <button class="loveydovey-add-btn wb-add-btn-spacing" onclick="addWorldBookEntry('${worldBook.id}', '${version.id}')">
+            <button class="loveydovey-add-btn" onclick="addWorldBookEntry('${worldBook.id}', '${version.id}')" style="margin-top: 16px;">
                 ${IconManager.plus({width: 16, height: 16})}
                 ${t('addEntry')}
             </button>
