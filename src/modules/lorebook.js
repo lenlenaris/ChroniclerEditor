@@ -437,9 +437,10 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                     </select>
                 </div>
 
-               <!-- Depth -->
-<div class="field-group wb-field-no-margin wb-field-margin-right">
-    <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.depth || 4}" min="0" max="999" style="${entry.position !== 4 ? 'opacity: 0;' : ''}"
+<!-- Depth -->
+<div class="field-group wb-field-no-margin wb-field-margin-right" style="${entry.position !== 4 ? 'opacity: 0;' : ''}">
+    <span class="wb-mobile-label">${t('insertDepth')}:</span>
+    <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.depth || 4}" min="0" max="999"
         id="depth-${entry.id}"
         ${entry.position !== 4 ? 'disabled' : ''}
         onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'depth', parseInt(this.value))">
@@ -447,12 +448,14 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
 
                 <!-- Order -->
                 <div class="field-group wb-field-no-margin wb-field-margin-right">
+    <span class="wb-mobile-label">${t('insertOrder')}:</span>
     <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.order || 100}" min="0" max="999"
                         onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'order', parseInt(this.value))">
                 </div>
 
                 <!-- Probability -->
                 <div class="field-group wb-field-no-margin wb-field-margin-right">
+                    <span class="wb-mobile-label">${t('probabilityValue')}:</span>
                     <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.probability !== undefined ? entry.probability : 100}" min="0" max="100"
                         onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'probability', this.value === '' ? 0 : parseInt(this.value))">
                 </div>
@@ -962,12 +965,29 @@ function updateWorldBookEntryPosition(worldBookId, versionId, entryId, newPositi
 function updateDepthFieldState(entryId, position) {
     const depthField = document.getElementById(`depth-${entryId}`);
     if (depthField) {
+        const container = depthField.closest('.field-group');
+        
         if (position === 4) {
+            // 顯示模式
             depthField.disabled = false;
-            depthField.style.opacity = '1';
+            if (container) {
+                container.style.opacity = '1';
+                // 手機版顯示，桌面版保持原樣
+                if (window.innerWidth <= 768) {
+                    container.style.display = 'flex';
+                }
+            }
         } else {
+            // 隱藏模式
             depthField.disabled = true;
-            depthField.style.opacity = '0';
+            if (container) {
+                // 手機版完全隱藏，桌面版只是透明
+                if (window.innerWidth <= 768) {
+                    container.style.display = 'none';
+                } else {
+                    container.style.opacity = '0';
+                }
+            }
         }
     }
 }
