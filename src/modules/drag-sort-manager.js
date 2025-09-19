@@ -1,5 +1,9 @@
 // ===== 基於 SortableJS 的超流暢拖曳排序系統 =====
 class DragSortManager {
+    static isMobileDevice() {
+        return window.innerWidth <= 768;
+    }
+
     static sortableInstances = new Map();
     
     static enableDragSort(config) {
@@ -10,6 +14,25 @@ class DragSortManager {
             mode = 'grid',
             onReorder = null
         } = config;
+
+        // 🚫 手機版禁用這些特定容器的拖曳
+        const mobileBannedContainers = [
+            '#character-grid',      // 主頁卡片
+            '#sidebarContent',      // 側邊欄角色
+            '#worldBookContent',    // 側邊欄世界書
+            '#customSectionContent', // 側邊欄筆記
+            '#userPersonaContent',   // 側邊欄玩家角色
+            '#loveyDoveyContent',    // 側邊欄卿卿我我
+        ];
+        
+        // 🚫 手機版禁用列表頁拖曳（以 -list 結尾的容器）
+        const isListContainer = containerSelector.endsWith('-list');
+        
+        if (this.isMobileDevice() && 
+            (mobileBannedContainers.includes(containerSelector) || isListContainer)) {
+            console.log(`🚫 手機版：跳過 ${containerSelector} 拖曳功能`);
+            return null;
+        }
 
         const container = document.querySelector(containerSelector);
         if (!container) {
@@ -952,6 +975,11 @@ static autoInitializeAdditionalInfoDragSort() {
     
     //  初始化拖曳匯入功能（首頁專用）
     static initializeDragImport() {
+        // 🚫 手機版完全禁用拖曳匯入功能
+        if (this.isMobileDevice()) {
+            console.log('🚫 手機版：跳過拖曳匯入功能初始化');
+            return;
+        }
         let dragCounter = 0;
         
         //  先移除現有的事件監聽器（如果有的話）

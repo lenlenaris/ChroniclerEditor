@@ -648,6 +648,7 @@ static add(type) {
     ItemManager.setCurrentItem(type, newItem.id, newItem.versions[0].id);
     
     renderAll();
+    updateMobileBreadcrumb();
     markAsChanged();
     return newItem;
 }
@@ -764,6 +765,7 @@ static clearCurrentItemIds() {
         ItemManager.setCurrentItem(type, newItem.id, newItem.versions[0].id);
         
         renderAll();
+        updateMobileBreadcrumb();
         markAsChanged();
         return newItem;
     }
@@ -862,6 +864,7 @@ class VersionCRUD {
         ItemManager.setCurrentItem(type, itemId, newVersion.id);
         
         renderAll();
+        updateMobileBreadcrumb();
         markAsChanged();
         return newVersion;
     }
@@ -880,6 +883,7 @@ class VersionCRUD {
         ItemManager.setCurrentItem(type, itemId, newVersion.id);
         
         renderAll();
+        updateMobileBreadcrumb();
         markAsChanged();
         return newVersion;
     }

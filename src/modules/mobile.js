@@ -395,8 +395,33 @@ function getMobileBreadcrumbForEdit() {
 window.addEventListener('resize', handleResponsiveChanges);
 document.addEventListener('DOMContentLoaded', function() {
     handleResponsiveChanges();
-    // 延遲更新麵包屑，確保翻譯系統載入完成
-    setTimeout(() => {
+    
+    // 🔧 強化版翻譯系統等待邏輯
+    function waitForTranslations() {
+        // 檢查翻譯系統是否真的準備好
+        const testKey = 'character';
+        const translated = t(testKey);
+        
+        // 如果翻譯結果還是英文鍵值，代表翻譯系統還沒準備好
+        if (typeof t !== 'function' || 
+            translated === testKey || 
+            translated === undefined || 
+            translated === null ||
+            translated.length === 0) {
+            
+            console.log('🔄 等待翻譯系統載入...', {
+                tFunction: typeof t,
+                testResult: translated
+            });
+            
+            setTimeout(waitForTranslations, 100);
+            return;
+        }
+        
+        console.log('✅ 翻譯系統準備完成，更新麵包屑');
         updateMobileBreadcrumb();
-    }, 50);
+    }
+    
+    // 延遲啟動，給翻譯系統更多時間
+    setTimeout(waitForTranslations, 200);
 });

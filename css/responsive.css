@@ -1430,3 +1430,57 @@
         padding-top: 0px !important; /* 重設內容的 padding */
     }
 }
+
+@media (max-width: 768px) {
+    /* 🚫 禁用手機版長按預設行為 */
+    
+    /* 禁用角色卡長按保存圖片 */
+    .home-card,
+    .overview-card,
+    .overview-card img,
+    .overview-card-image,
+    .character-grid .home-card,
+    .userpersona-grid .overview-card,
+    .loveydovey-grid .overview-card {
+        -webkit-touch-callout: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        pointer-events: auto !important;
+    }
+    
+    /* 禁用列表項目長按選取文字 */
+    .list-item,
+    .folder-card,
+    .folder-list-item,
+    .character-item {
+        -webkit-touch-callout: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+    }
+    
+    /* 🔧 確保卡片內的圖片無法被長按保存 */
+    .home-card img,
+    .overview-card img,
+    .overview-folder-card-body,
+    .overview-card-body img {
+        -webkit-touch-callout: none !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+        pointer-events: none !important; /* 圖片完全不響應觸摸 */
+    }
+    
+    /* 🎯 但保留卡片本身的點擊功能 */
+    .home-card,
+    .overview-card,
+    .list-item,
+    .folder-card {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+}

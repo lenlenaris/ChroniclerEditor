@@ -1827,7 +1827,7 @@ class ImportManager {
                 // 沒有世界書，正常匯入角色
                 this.importCharacterFromData(data);
             }
-            
+            updateMobileBreadcrumb();
             return true;
             
         } catch (error) {
@@ -1982,6 +1982,7 @@ versions: [{
             // 檢查是否為 SillyTavern 世界書格式
             if (data.entries && typeof data.entries === 'object') {
                 this.importSillyTavernWorldBook(data, file.name);
+                updateMobileBreadcrumb();
                 return true;
             } else {
                 NotificationManager.error(t('invalidWorldBookFile'));
