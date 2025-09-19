@@ -1250,64 +1250,71 @@
 
 /* 🎯 主要模態框容器 - 減小邊框、間距、圓角 */
 @media (max-width: 768px) {
+
+    /* 模態框背景遮罩 */
+    .modal {
+        overflow-y: auto !important;
+    }
+    
     .compact-modal-content {
-        padding: 16px !important; /* 從 28px 減少到 16px */
-        border-radius: 8px !important; /* 從 var(--radius-lg) 減少到 8px */
-        max-width: 95vw !important; /* 手機版使用更多寬度 */
-        max-height: 85vh !important; /* 稍微增加高度利用率 */
-        margin: 45vh auto 0 auto !important; /* 調整垂直位置 */
-        border-width: 0.5px !important; /* 減細邊框 */
+        padding: 16px !important;
+        border-radius: 8px !important; 
+        max-width: 95vw !important;
+        max-height: 85vh !important; 
+        margin: 50vh auto 0 auto !important;
+        border-width: 0.5px !important;
+        overflow-y: auto !important;
     }
 
     /* 🎯 模態框標題區域 - 縮小間距和文字 */
     .compact-modal-header {
-        gap: 6px !important; /* 從 var(--spacing-sm) 減少到 6px */
-        margin-bottom: 12px !important; /* 從 var(--spacing-lg) 減少到 12px */
-        padding-bottom: 8px !important; /* 從 var(--spacing-md) 減少到 8px */
+        gap: 6px !important; 
+        margin-bottom: 12px !important; 
+        padding-bottom: 8px !important; 
     }
 
     /* 🎯 模態框標題文字 - 縮小字體 */
     .compact-modal-title {
-        font-size: 0.95em !important; /* 從 1.1em 減少到 0.95em */
-        font-weight: 500 !important; /* 從 600 減少到 500 */
+        font-size: 0.95em !important; 
+        font-weight: 500 !important; 
     }
 
     /* 🎯 關閉按鈕 - 縮小尺寸 */
     .close-modal {
-        width: 24px !important; /* 從 30px 減少到 24px */
-        font-size: 18px !important; /* 從 24px 減少到 18px */
-        padding: 2px !important; /* 減小內邊距 */
+        width: 24px !important; 
+        font-size: 18px !important;
+        padding: 2px !important; 
     }
 
     /* 🎯 模態框區塊容器 - 減小間距 */
     .compact-section {
-        padding: 12px !important; /* 從 var(--spacing-lg) 減少到 12px */
-        margin-bottom: 12px !important; /* 從 var(--spacing-lg) 減少到 12px */
-        border-radius: 6px !important; /* 從 var(--radius-md) 減少到 6px */
+        padding: 12px !important; 
+        margin-bottom: 12px !important; 
+        border-radius: 6px !important; 
     }
 
     /* 🎯 區塊描述文字 - 縮小文字 */
     .compact-section-desc {
-        font-size: 0.75em !important; /* 從 0.85em 減少到 0.75em */
-        margin-bottom: 8px !important; /* 從 var(--spacing-md) 減少到 8px */
+        font-size: 0.75em !important; 
+        margin-bottom: 8px !important; 
     }
 
     /* 🎯 模態框描述文字 - 縮小文字和間距 */
     .compact-modal-desc {
-        font-size: 0.8em !important; /* 從 0.9em 減少到 0.8em */
-        margin-bottom: 12px !important; /* 從 var(--spacing-lg) 減少到 12px */
+        font-size: 0.8em !important; 
+        margin-bottom: 12px !important; 
     }
 
     /* 🎯 模態框底部按鈕區域 - 減小間距 */
     .compact-modal-footer {
-        gap: 8px !important; /* 從 var(--spacing-md) 減少到 8px */
-        margin-top: 16px !important; /* 適當的頂部間距 */
+        gap: 8px !important; 
+        margin-top: 16px !important; 
     }
 
     /* 🎯 模態框內的按鈕 - 縮小尺寸 */
     .compact-modal-footer .overview-btn {
-        padding: 8px 12px !important; /* 從預設值縮小 */
-        font-size: 0.85em !important; /* 縮小字體 */
+        padding: 8px 12px !important; 
+        font-size: 0.85em !important; 
     }
 
     /* 🎯 列表項目 - 縮小間距 */
