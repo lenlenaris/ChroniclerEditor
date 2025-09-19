@@ -1353,3 +1353,22 @@
     margin-top: 0px !important;
 }
 }
+
+@media (max-width: 768px) {
+    /* 只給最基本的間距，避免被瀏覽器 UI 遮擋 */
+    .sidebar-footer {
+        padding-bottom: 12px !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .sidebar-action-bar {
+        min-height: 44px !important;
+    }
+    
+    /* PWA 全螢幕模式時才增加更多間距 */
+    @media (display-mode: standalone) {
+        .sidebar-footer {
+            padding-bottom: 20px !important;
+        }
+    }
+}

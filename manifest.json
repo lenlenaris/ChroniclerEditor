@@ -1,0 +1,19 @@
+{
+  "name": "Chronicler Editor",
+  "short_name": "Chronicler",
+  "description": "AI角色編輯器",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "favicon-03.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
