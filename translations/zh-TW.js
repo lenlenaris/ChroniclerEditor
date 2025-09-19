@@ -72,6 +72,9 @@ window.ChroniclerTranslations['zh-TW'] = {
     dualScreenSelector: '雙屏編輯選擇器',
     dualScreenDescription: '選擇要同時編輯的兩個項目，支援跨類型對比編輯。',
     startDualScreen: '開始雙屏編輯',
+    recentCombinations: '最近使用',
+    clear: '清除',
+
 
     // 最愛功能相關
     tooltipManageFavorites: '管理最愛',

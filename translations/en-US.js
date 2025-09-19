@@ -72,6 +72,9 @@ window.ChroniclerTranslations['en-US'] = {
     dualScreenSelector: 'Dual Screen Selector', 
     dualScreenDescription: 'Select two items to edit side-by-side. You can even compare items of different types.',
     startDualScreen: 'Start Dual Screen',
+    recentCombinations: 'Recently Used',
+    clear: 'Clear',
+
 
     // Favorite functionality
     tooltipManageFavorites: 'Manage Favorites',

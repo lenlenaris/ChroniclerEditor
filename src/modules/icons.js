@@ -130,6 +130,23 @@ class IconManager {
         </svg>`;
     }
 
+    // 時間重用圖示（歷史記錄）
+    static history(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            strokeWidth = 2,
+            className = '',
+            style = ''
+        } = options;
+        
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M12 7v5l4 2"/>
+        </svg>`;
+    }
+
     // 首頁圖示
     static home(options = {}) {
         const {

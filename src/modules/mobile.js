@@ -1,3 +1,5 @@
+let longPressedElement = null;
+
 // 手機版側邊欄不自動展開列表
 function toggleMobileSidebar() {
     if (window.innerWidth > 768) return;
@@ -203,6 +205,10 @@ function handleResponsiveChanges() {
     if (window.innerWidth <= 768) {
         updateMobileBreadcrumb();
     }
+    // 手機版初始化長按功能
+    if (window.innerWidth <= 768) {
+        initializeMobileLongPress();
+    }
 }
 
 // 手機版模態框輔助函數
@@ -390,6 +396,141 @@ function getMobileBreadcrumbForEdit() {
     }
     
     return typeName || t('edit') || '編輯';
+}
+
+function initializeMobileLongPress() {
+    if (window.innerWidth > 768) return;
+    
+    let longPressTimer;
+    let isLongPress = false;
+    
+    // 長按開始
+    function handleTouchStart(e) {
+        isLongPress = false;
+        longPressTimer = setTimeout(() => {
+            isLongPress = true;
+            handleLongPress(e);
+        }, 500); // 500ms 長按觸發
+    }
+    
+    // 長按結束
+    function handleTouchEnd(e) {
+        clearTimeout(longPressTimer);
+        
+        if (isLongPress) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // 🔧 記住被長按的元素
+            longPressedElement = e.target.closest('.home-card, .overview-card, .list-item, .folder-card');
+            
+            // 200ms 後清除標記
+            setTimeout(() => {
+                longPressedElement = null;
+            }, 200);
+        }
+    }
+
+    // 點擊攔截器 - 只攔截被長按的元素
+    function interceptClick(e) {
+        const clickedElement = e.target.closest('.home-card, .overview-card, .list-item, .folder-card');
+        
+        // 🎯 只有被長按的那個元素才阻止點擊
+        if (longPressedElement && clickedElement === longPressedElement) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }
+    
+    // 觸摸移動時取消長按
+    function handleTouchMove(e) {
+        clearTimeout(longPressTimer);
+        isLongPress = false;
+    }
+    
+    // 處理長按邏輯
+    function handleLongPress(e) {
+        const target = e.target;
+        const card = target.closest('.home-card, .overview-card, .list-item, .folder-card, .folder-list-item');
+        
+        if (!card) return;
+        
+        // 添加觸感反饋
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+        
+        // 創建模擬的右鍵事件
+        const syntheticEvent = {
+            preventDefault: () => {},
+            stopPropagation: () => {},
+            clientX: e.touches[0].clientX,
+            clientY: e.touches[0].clientY
+        };
+        
+        // 🔧 更詳細的判斷邏輯
+        if (card.classList.contains('folder-card') || 
+            card.classList.contains('folder-list-item') || 
+            card.id?.startsWith('folder-')) {
+            
+            // 資料夾長按
+            const folderId = card.dataset.folderId || card.id?.replace(/^folder-(card|list-item)-/, '');
+            const folderName = card.querySelector('.overview-folder-name, .list-item-name span, span')?.textContent?.trim();
+            const type = getCurrentPageType();
+            
+            console.log('📁 資料夾長按:', { type, folderId, folderName });
+            
+            if (folderId && folderName) {
+                ContextMenuManager.showFolderMenu(syntheticEvent, type, folderId, folderName);
+            }
+            
+        } else if (card.classList.contains('list-item')) {
+            
+            // 🔧 列表項目長按
+            const itemId = card.dataset.itemId;
+            const itemName = card.querySelector('.list-item-name')?.textContent?.trim();
+            const type = getCurrentPageType();
+            
+            console.log('📋 列表項目長按:', { type, itemId, itemName });
+            
+            if (itemId && itemName) {
+                ContextMenuManager.showItemMenu(syntheticEvent, type, itemId, itemName);
+            }
+            
+        } else {
+            
+            // 卡片項目長按
+            const itemId = card.dataset.characterId || card.dataset.personaId || card.dataset.itemId;
+            const itemName = card.querySelector('.character-name, .persona-name, .overview-card-name')?.textContent?.trim();
+            const type = getCurrentPageType();
+            
+            console.log('🎴 卡片項目長按:', { type, itemId, itemName });
+            
+            if (itemId && itemName) {
+                ContextMenuManager.showItemMenu(syntheticEvent, type, itemId, itemName);
+            }
+        }
+    }
+    
+    // 獲取當前頁面類型
+    function getCurrentPageType() {
+        if (isHomePage) return 'character';
+        if (isListPage) return listPageType;
+        if (currentMode === 'userpersona') return 'userpersona';
+        if (currentMode === 'loveydovey') return 'loveydovey';
+        return 'character';
+    }
+    
+    // 🔧 添加精準的點擊攔截
+    document.addEventListener('click', interceptClick, { 
+        passive: false, 
+        capture: true 
+    });
+    // 綁定事件到文檔
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd, { passive: false });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
 }
 
 window.addEventListener('resize', handleResponsiveChanges);

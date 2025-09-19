@@ -28,6 +28,9 @@ class CrossTypeCompareManager {
                 ${t('dualScreenDescription')}
             </p>
 
+                <!-- 最近使用區塊 -->
+            ${this.renderRecentCombinations()}
+
             <!-- 左右選擇區域 -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                 
@@ -64,6 +67,132 @@ class CrossTypeCompareManager {
         // 初始化選擇器
         this.updateItemOptions('left');
         this.updateItemOptions('right');
+    }
+
+    static renderRecentCombinations() {
+        const recent = this.getRecentCombinations();
+        
+        if (recent.length === 0) {
+            return ''; // 沒有記錄就不顯示
+        }
+        
+        return `
+            <div style="margin-bottom: 16px; padding: 12px; background: var(--surface-color); border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h4 style="margin: 0; font-size: 0.85em; color: var(--text-color); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <span style="display: flex; align-items: center;">
+                            ${IconManager.history({width: 14, height: 14})}
+                        </span>
+                        ${t('recentCombinations')}
+                    </h4>
+                    <button onclick="CrossTypeCompareManager.clearRecentCombinations(); this.closest('.modal').querySelector('#recent-combinations-container').style.display='none';" 
+                            style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.75em; padding: 2px 4px;">
+                        ${t('clear')}
+                    </button>
+                </div>
+                
+                <div id="recent-combinations-container">
+                    ${recent.map(combination => this.renderRecentItem(combination)).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    static renderRecentItem(combination) {
+        const leftItem = this.getItemById(combination.left.type, combination.left.itemId);
+        const leftVersion = leftItem?.versions.find(v => v.id === combination.left.versionId);
+        
+        const rightItem = this.getItemById(combination.right.type, combination.right.itemId);
+        const rightVersion = rightItem?.versions.find(v => v.id === combination.right.versionId);
+        
+        if (!leftItem || !leftVersion || !rightItem || !rightVersion) {
+            return ''; // 如果找不到對應項目，跳過
+        }
+        
+        return `
+            <div class="tag-detail-item tag-item-hover" 
+                onclick="CrossTypeCompareManager.applyRecentCombination('${combination.id}')"
+                style="padding: 8px 16px; margin-bottom: 0px; cursor: pointer; background: transparent; border: none; transition: all 0.2s ease;">
+                
+                <div style="font-size: 0.85em; color: var(--text-color);">
+                    <span style="font-weight: 500;">${leftItem.name}</span>
+                    <span style="color: var(--text-muted); margin: 0 4px;">-</span>
+                    <span style="color: var(--text-muted);">${leftVersion.name}</span>
+                    
+                    <span style="color: var(--primary-color); margin: 0 6px; font-weight: 600;">+</span>
+                    
+                    <span style="font-weight: 500;">${rightItem.name}</span>
+                    <span style="color: var(--text-muted); margin: 0 4px;">-</span>
+                    <span style="color: var(--text-muted);">${rightVersion.name}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    static applyRecentCombination(combinationId) {
+        const recent = this.getRecentCombinations();
+        const combination = recent.find(item => item.id === combinationId);
+        
+        if (!combination) return;
+        
+        // 設定左右選擇
+        crossTypeItems.left = { ...combination.left };
+        crossTypeItems.right = { ...combination.right };
+        
+        // 更新UI
+        document.getElementById('left-type-selector').value = combination.left.type;
+        document.getElementById('right-type-selector').value = combination.right.type;
+        
+        // 重新載入項目列表
+        this.updateItemOptions('left');
+        this.updateItemOptions('right');
+        
+        // 選中對應項目
+        setTimeout(() => {
+            this.selectItem('left', combination.left.itemId, combination.left.versionId, '');
+            this.selectItem('right', combination.right.itemId, combination.right.versionId, '');
+        }, 50);
+    }
+
+    // ===== 最近使用記錄管理 =====
+    static getRecentCombinations() {
+        try {
+            const stored = localStorage.getItem('dualScreenRecentCombinations');
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            console.warn('讀取最近使用記錄失敗:', e);
+            return [];
+        }
+    }
+
+    static saveRecentCombination(leftItem, rightItem) {
+        try {
+            const combination = {
+                id: `${leftItem.type}-${leftItem.itemId}-${leftItem.versionId}_${rightItem.type}-${rightItem.itemId}-${rightItem.versionId}`,
+                left: { ...leftItem },
+                right: { ...rightItem },
+                timestamp: Date.now()
+            };
+            
+            let recent = this.getRecentCombinations();
+            
+            // 移除相同的組合（避免重複）
+            recent = recent.filter(item => item.id !== combination.id);
+            
+            // 添加到開頭
+            recent.unshift(combination);
+            
+            // 只保留最近3個
+            recent = recent.slice(0, 3);
+            
+            localStorage.setItem('dualScreenRecentCombinations', JSON.stringify(recent));
+        } catch (e) {
+            console.warn('儲存最近使用記錄失敗:', e);
+        }
+    }
+
+    static clearRecentCombinations() {
+        localStorage.removeItem('dualScreenRecentCombinations');
     }
     
  static renderSelector(side) {
@@ -191,6 +320,8 @@ static startCrossTypeCompare() {
     // 關閉模態框
     const modal = document.querySelector('.modal');
     if (modal) modal.remove();
+    // 記錄最近使用的組合
+    this.saveRecentCombination(left, right);
     
     //  直接進入雙屏編輯模式
     crossTypeCompareMode = true;
