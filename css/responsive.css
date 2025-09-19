@@ -1354,21 +1354,72 @@
 }
 }
 
+/* 第6區塊：手機版側邊欄和安全區域適配 */
 @media (max-width: 768px) {
-    /* 只給最基本的間距，避免被瀏覽器 UI 遮擋 */
-    .sidebar-footer {
-        padding-bottom: 12px !important;
-        margin-bottom: 0 !important;
+    /* 新增：手機版側邊欄展開時的高度和位置調整 */
+    .sidebar[style*="position: fixed"] {
+        top: 0 !important;
+        bottom: 0 !important;
+        height: auto !important;
+        max-height: 100vh !important;
+        
+        /* 關鍵：使用可視區域高度，避免被瀏覽器UI遮擋 */
+        height: 100dvh !important; /* dynamic viewport height - 會自動排除瀏覽器UI */
     }
     
-    .sidebar-action-bar {
-        min-height: 44px !important;
+    /* 讓側邊欄內容可以滾動，底部按鈕始終可見 */
+    .sidebar[style*="position: fixed"] {
+        display: flex !important;
+        flex-direction: column !important;
     }
     
-    /* PWA 全螢幕模式時才增加更多間距 */
-    @media (display-mode: standalone) {
-        .sidebar-footer {
-            padding-bottom: 20px !important;
-        }
+    .sidebar[style*="position: fixed"] .sidebar-content {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        padding-bottom: 10px !important;
+    }
+    
+    .sidebar[style*="position: fixed"] .sidebar-footer {
+        flex-shrink: 0 !important;
+        background: var(--sidebar-bg) !important;
+        border-top: 0px solid var(--border-color);
+        margin-top: auto !important;
+    }
+}
+
+/* 超級簡潔的全域適配 */
+@media (max-width: 768px) and (display-mode: standalone) {
+    
+    /* 定義全域安全區域變數 */
+    :root {
+        --pwa-safe-top: calc(env(safe-area-inset-top, 0px) + 8px);
+        --pwa-safe-bottom: env(safe-area-inset-bottom, 0px);
+        --pwa-safe-left: env(safe-area-inset-left, 0px);
+        --pwa-safe-right: env(safe-area-inset-right, 0px);
+    }
+    
+    /* 一次性處理所有需要適配的元素 */
+    .mobile-top-nav,
+    .sidebar[style*="position: fixed"],
+    .main-content,
+    .modal-overlay,
+    .fullscreen-editor-container {
+        /* 自動適配安全區域 */
+        padding-top: var(--pwa-safe-top) !important;
+        padding-bottom: var(--pwa-safe-bottom) !important;
+        padding-left: var(--pwa-safe-left) !important;
+        padding-right: var(--pwa-safe-right) !important;
+    }
+    
+    /* 特殊調整 */
+    .mobile-top-nav {
+        background: var(--main-content-bg) !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .main-content {
+        top: calc(25px + var(--pwa-safe-top)) !important;
+        padding-top: 0px !important; /* 重設內容的 padding */
     }
 }
