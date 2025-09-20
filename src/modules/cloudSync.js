@@ -648,8 +648,16 @@ class GoogleCloudSync {
             authButton.textContent = t('disconnect');
             authButton.onclick = () => this.signOut();
             
-            if (uploadButton) uploadButton.disabled = false;
-            if (downloadButton) downloadButton.disabled = false;
+            if (uploadButton) {
+                uploadButton.disabled = false;
+                uploadButton.style.opacity = '1';
+                uploadButton.style.cursor = 'pointer';
+            }
+            if (downloadButton) {
+                downloadButton.disabled = false;
+                downloadButton.style.opacity = '1';
+                downloadButton.style.cursor = 'pointer';
+            }
 
         } else {
             statusElement.innerHTML = `
@@ -661,8 +669,16 @@ class GoogleCloudSync {
             authButton.textContent = t('connectToGoogle');
             authButton.onclick = () => this.signIn();
             
-            if (uploadButton) uploadButton.disabled = true;
-            if (downloadButton) downloadButton.disabled = true;
+            if (uploadButton) {
+                uploadButton.disabled = false; // 保持可點擊
+                uploadButton.style.opacity = '0.6'; // 視覺上顯示未啟用
+                uploadButton.style.cursor = 'pointer';
+            }
+            if (downloadButton) {
+                downloadButton.disabled = false; // 保持可點擊
+                downloadButton.style.opacity = '0.6'; // 視覺上顯示未啟用
+                downloadButton.style.cursor = 'pointer';
+            }
         }
     }
 
@@ -685,10 +701,22 @@ function handleGoogleAuth() {
 }
 
 function uploadBackupToCloud() {
+    // 🛡️ 添加：未登入時的友善提醒
+    if (!googleCloudSync.isSignedIn) {
+        NotificationManager.warning(t('pleaseLoginFirst'));
+        return;
+    }
+    
     googleCloudSync.uploadBackup();
 }
 
 function downloadBackupFromCloud() {
+    // 🛡️ 添加：未登入時的友善提醒
+    if (!googleCloudSync.isSignedIn) {
+        NotificationManager.warning(t('pleaseLoginFirst'));
+        return;
+    }
+    
     googleCloudSync.downloadBackup();
 }
 

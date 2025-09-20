@@ -837,8 +837,8 @@ window.ChroniclerTranslations['zh-TW'] = {
     notConnectedToGoogle: '尚未連接 Google 帳號',
     connectToGoogle: '連接 Google 帳號',
     cloudOperations: '雲端操作',
-    uploadBackup: '匯出備份',
-    downloadBackup: '匯入備份',
+    uploadBackup: '上傳備份至雲端',
+    downloadBackup: '從雲端下載備份',
     cloudSyncDescription: '手動同步備份檔案到 Google Drive，最多保留 5 個最新版本。',
     connectedToGoogle: '已連接到 Google',
     disconnectFromGoogle: '中斷連接',
@@ -882,6 +882,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     disconnect: '中斷連接',
     processing: '處理中...',
     restoringBackup: '正在恢復備份，請稍候...',
+    pleaseLoginFirst: '請先登入 Google 帳號',
 
     // ========================================
     // 19. 說明與聯絡

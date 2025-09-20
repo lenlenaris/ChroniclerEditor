@@ -835,8 +835,8 @@ window.ChroniclerTranslations['en-US'] = {
     notConnectedToGoogle: 'Not connected to Google account', 
     connectToGoogle: 'Connect to Google',
     cloudOperations: 'Cloud Operations',
-    uploadBackup: 'Upload Backup',
-    downloadBackup: 'Download Backup',
+    uploadBackup: 'Upload Backup to Cloud',
+    downloadBackup: 'Download Backup from Cloud',
     cloudSyncDescription: 'Manually sync backup files to Google Drive, keep up to 5 latest versions',
     connectedToGoogle: 'Connected to Google',
     disconnectFromGoogle: 'Disconnect',
@@ -880,6 +880,7 @@ window.ChroniclerTranslations['en-US'] = {
     disconnect: 'Disconnect',
     processing: 'Processing...',
     restoringBackup: 'Restoring Backup...',
+    pleaseLoginFirst: 'Please log in to Google first',
 
     // ========================================
     // 19. Contact & Feedback
