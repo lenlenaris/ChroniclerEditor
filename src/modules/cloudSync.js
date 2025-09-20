@@ -1,4 +1,4 @@
-// ===== Google 雲端同步管理器（簡化版）=====
+// ===== Google 雲端同步管理器（使用新的 Google Identity Services）=====
 class GoogleCloudSync {
     constructor() {
         this.isSignedIn = false;
@@ -11,96 +11,88 @@ class GoogleCloudSync {
         this.FOLDER_NAME = 'ChroniclerBackups';
         this.folderId = null;
         this.maxBackups = 5;
+        this.tokenClient = null;
     }
 
-    // 🎯 簡化的初始化
+    // 🎯 使用新的 Google Identity Services
     async init() {
         try {
-            // 載入 Google API
-            await this.loadGoogleAPI();
+            // 載入新的 Google Identity Services
+            await this.loadGoogleIdentityServices();
             
-            // 🔧 使用更簡單的載入方式
-            await new Promise((resolve, reject) => {
-                gapi.load('auth2', {
-                    callback: () => {
-                        gapi.auth2.init({
-                            client_id: this.CLIENT_ID
-                        }).then(() => {
-                            const authInstance = gapi.auth2.getAuthInstance();
-                            this.isSignedIn = authInstance.isSignedIn.get();
-                            
-                            if (this.isSignedIn) {
-                                this.currentUser = authInstance.currentUser.get();
-                                this.accessToken = this.currentUser.getAuthResponse().access_token;
-                            }
-                            
-                            this.updateAuthStatus();
-                            resolve();
-                        }).catch(reject);
-                    },
-                    onerror: reject
-                });
+            // 初始化 token client
+            this.tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: this.CLIENT_ID,
+                scope: this.SCOPES,
+                callback: (response) => {
+                    if (response.error) {
+                        console.error('OAuth 錯誤:', response);
+                        this.showError('授權失敗：' + response.error);
+                        return;
+                    }
+                    
+                    this.accessToken = response.access_token;
+                    this.isSignedIn = true;
+                    this.updateAuthStatus();
+                    NotificationManager.success('Google 登入成功！');
+                }
             });
             
+            this.updateAuthStatus();
+            
         } catch (error) {
-            console.error('Google API 初始化失敗:', error);
-            this.showError('Google API 初始化失敗，請稍後再試');
+            console.error('Google Identity Services 初始化失敗:', error);
+            this.showError('Google 服務初始化失敗，請稍後再試');
         }
     }
 
-    // 載入 Google API 腳本
-    async loadGoogleAPI() {
-        if (window.gapi) return;
+    // 載入新的 Google Identity Services
+    async loadGoogleIdentityServices() {
+        if (window.google?.accounts) return;
         
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = 'https://apis.google.com/js/api.js';
-            script.onload = resolve;
-            script.onerror = () => reject(new Error('Google API 腳本載入失敗'));
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.onload = () => {
+                // 等待 Google Identity Services 完全載入
+                const checkGSI = () => {
+                    if (window.google?.accounts?.oauth2) {
+                        resolve();
+                    } else {
+                        setTimeout(checkGSI, 100);
+                    }
+                };
+                checkGSI();
+            };
+            script.onerror = () => reject(new Error('Google Identity Services 載入失敗'));
             document.head.appendChild(script);
         });
     }
 
-    // 🎯 簡化的登入流程
+    // 🎯 使用新的授權流程
     async signIn() {
         try {
-            if (!window.gapi || !gapi.auth2) {
-                throw new Error('Google API 未就緒');
+            if (!this.tokenClient) {
+                throw new Error('Google Identity Services 未就緒');
             }
 
-            const authInstance = gapi.auth2.getAuthInstance();
-            
-            // 🔧 使用 signIn 並請求特定權限
-            const user = await authInstance.signIn({
-                scope: this.SCOPES,
-                prompt: 'consent' // 強制顯示同意畫面
-            });
-            
-            this.currentUser = user;
-            this.isSignedIn = true;
-            this.accessToken = user.getAuthResponse().access_token;
-            
-            // 檢查權限
-            const hasScopes = user.hasGrantedScopes(this.SCOPES);
-            if (!hasScopes) {
-                throw new Error('未獲得 Drive 存取權限');
-            }
-            
-            this.updateAuthStatus();
-            NotificationManager.success('Google 登入成功！');
+            // 請求授權 token
+            this.tokenClient.requestAccessToken({ prompt: 'consent' });
             
         } catch (error) {
             console.error('Google 登入失敗:', error);
-            this.showError('登入失敗：' + (error.error || error.message || '未知錯誤'));
+            this.showError('登入失敗：' + (error.message || '未知錯誤'));
         }
     }
 
     // 登出
     async signOut() {
         try {
-            if (gapi.auth2) {
-                const authInstance = gapi.auth2.getAuthInstance();
-                await authInstance.signOut();
+            if (this.accessToken) {
+                // 撤銷 access token
+                google.accounts.oauth2.revoke(this.accessToken, () => {
+                    console.log('Token 已撤銷');
+                });
             }
             
             this.currentUser = null;
@@ -117,32 +109,12 @@ class GoogleCloudSync {
         }
     }
 
-    // 檢查並刷新 token
+    // 檢查 token 有效性
     async ensureValidToken() {
-        if (!this.currentUser) {
-            throw new Error('未登入');
+        if (!this.accessToken) {
+            throw new Error('未登入，請先連接 Google 帳號');
         }
-
-        try {
-            // 檢查 token 是否即將過期
-            const authResponse = this.currentUser.getAuthResponse();
-            const expiresAt = authResponse.expires_at;
-            const now = Date.now();
-            
-            // 如果 5 分鐘內過期，重新載入
-            if (expiresAt - now < 5 * 60 * 1000) {
-                const newAuthResponse = await this.currentUser.reloadAuthResponse();
-                this.accessToken = newAuthResponse.access_token;
-            }
-            
-            return this.accessToken;
-            
-        } catch (error) {
-            console.error('Token 更新失敗:', error);
-            // 要求重新登入
-            await this.signOut();
-            throw new Error('請重新登入');
-        }
+        return this.accessToken;
     }
 
     // 🚀 上傳備份
@@ -176,6 +148,9 @@ class GoogleCloudSync {
     async downloadBackup() {
         try {
             const token = await this.ensureValidToken();
+            
+            // 確保資料夾存在
+            await this.ensureBackupFolder();
             
             // 列出備份檔案
             const files = await this.listBackupFiles(token);
@@ -237,7 +212,7 @@ class GoogleCloudSync {
         return `chronicler_backup_${dateStr}_${timeStr}.json`;
     }
 
-    // 🔧 使用 fetch API 直接呼叫 Drive API
+    // 確保備份資料夾存在
     async ensureBackupFolder() {
         if (this.folderId) return this.folderId;
         
@@ -381,7 +356,7 @@ class GoogleCloudSync {
         }
     }
 
-    // 顯示備份選擇器（保持不變）
+    // 顯示備份選擇器
     showBackupSelector(backupFiles) {
         const modal = document.createElement('div');
         modal.className = 'modal';
@@ -460,7 +435,7 @@ class GoogleCloudSync {
         }
     }
 
-    // 恢復備份資料（保持不變）
+    // 恢復備份資料
     async restoreBackupData(data) {
         try {
             characters = data.characters || [];
@@ -534,19 +509,15 @@ class GoogleCloudSync {
 
         if (!statusElement) return;
 
-        if (this.isSignedIn && this.currentUser) {
-            const profile = this.currentUser.getBasicProfile();
-            const userName = profile.getName();
-            const userEmail = profile.getEmail();
-
+        if (this.isSignedIn && this.accessToken) {
             statusElement.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="color: var(--success-color); font-weight: 500;">
-                        ✅ 已連接到 Google
+                        ✅ 已連接到 Google Drive
                     </div>
                 </div>
                 <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 4px;">
-                    ${userName} (${userEmail})
+                    可以進行雲端備份和恢復操作
                 </div>
             `;
 
@@ -598,11 +569,7 @@ function downloadBackupFromCloud() {
 }
 
 function checkGoogleAuthStatus() {
-    if (!googleCloudSync.currentUser) {
-        googleCloudSync.init();
-    } else {
-        googleCloudSync.updateAuthStatus();
-    }
+    googleCloudSync.init();
 }
 
 // 建立全域實例
