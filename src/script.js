@@ -3494,7 +3494,7 @@ function updateWorldBookBinding(value) {
 // ===== 其他設定管理器 =====
 class OtherSettings {
     static settings = {
-        showLoveyDovey: true  // 卿卿我我區塊顯示設定，預設開啟
+        showLoveyDovey: false  // 卿卿我我區塊顯示設定，預設關閉
     };
     
     static initialize() {

@@ -65,11 +65,10 @@ window.ChroniclerTranslations['en-US'] = {
     tooltipBatchEdit: 'Batch Edit',
     tooltipTagFilter: 'Tag Filter',
     tooltipSortDropdown: 'Item Sorting Method\nDrag to customize order',
-    clickToReturn: 'Click to return', 
     
     // Dual Screen Editing
     dualScreenSelector: 'Dual Screen Selector', 
-    dualScreenDescription: 'Select two items to edit side-by-side. You can even compare items of different types.',
+    dualScreenDescription: 'Select two items for side-by-side editing. Compare different types too!',
     startDualScreen: 'Start Dual Screen',
     recentCombinations: 'Recently Used',
     clear: 'Clear',
@@ -81,7 +80,7 @@ window.ChroniclerTranslations['en-US'] = {
     favoriteChangesApplied: 'Favorite settings updated',
     selectedFavoriteCount: 'Selected for favorites: ',
     toggleFavorite: 'Set Favorite',
-    foldersCannotBeAddedToFavorites: 'Folders cannot be added to favorites',
+    foldersCannotBeAddedToFavorites: 'Folders can\'t be added to favorites.',
 
     // Folder related
     moveToFolder: 'Move',
@@ -89,7 +88,7 @@ window.ChroniclerTranslations['en-US'] = {
     createNewFolder: 'Create New Folder',
     moveToRoot: 'Move to Root',
     enterFolderName: 'Enter folder name',
-    moveToRootComplete: 'Items moved to root directory',
+    moveToRootComplete: 'Items moved to main page',
     moveToFolderComplete: 'Items moved to folder',
     folder: 'Folder',
     folders: 'Folders',
@@ -118,9 +117,8 @@ window.ChroniclerTranslations['en-US'] = {
     moveSelectedFolders: 'Move folder contents to:',
     moveSelectedItems: 'Move selected items to:',
     folderCreatedSuccess: 'Folder created successfully',
-    clickToReturn: 'Click to return',
     folderContentsMovedComplete: 'Folder contents moved successfully',
-    folderContentsMovedToRootComplete: 'Folder contents moved to root directory',
+    folderContentsMovedToRootComplete: 'Folder contents moved to main page',
     deselectToCreateFolder: 'Deselect items to create new folder',
     organise: 'Organise',
 
@@ -379,7 +377,7 @@ window.ChroniclerTranslations['en-US'] = {
     unset: 'Not Set',
     
     // Basic Settings Fields
-    basicInfo: 'Basic Infomation',
+    basicInfo: 'Basic Information',
     speakingStyle: 'Speaking Style and Habit',
     
     // First Chat Scenario
@@ -394,7 +392,7 @@ window.ChroniclerTranslations['en-US'] = {
     additionalTitle: 'Title',
     additionalContent: 'Content',
     addAdditionalInfo: 'Add Additional Information',
-    deleteAdditionalInfo: 'Delete this Block',
+    deleteAdditionalInfo: 'Delete',
     
     // Creator Events
     creatorEvents: 'Creator Events',
@@ -402,8 +400,8 @@ window.ChroniclerTranslations['en-US'] = {
     timeAndPlace: 'Time & Place',
     eventTitle: 'Title',
     eventContent: 'Content',
-    isSecret: 'Secret Narrative',
-    secretNarrativeSetting: 'Secret Narrative Setting',
+    isSecret: 'Secret Event',
+    secretNarrativeSetting: 'Secret Settings',
     addCreatorEvent: 'Add Event',
     addCreatorEvents: 'Add Creator Event',
     deleteCreatorEvent: 'Delete Event',
@@ -479,7 +477,7 @@ window.ChroniclerTranslations['en-US'] = {
     followingVersionsHaveWorldBook: 'Some selected versions are linked to a Lorebook. Export the linked Lorebook as well?',
     exportCharacterOnly: 'No, Export Character Only',
     exportWithWorldBook: 'Yes, Export with Lorebook',
-    worldBookBindingExplanation: 'Select "Yes" to embed the full Lorebook data within the character card.<br>Select "No" to export only the character card.',
+    worldBookBindingExplanation: 'Select "Yes" to embed full Lorebook in the character card.<br>Select "No" to export character card only.',
     
     // Format Options
     exportJSON: 'Export as JSON',
@@ -640,7 +638,7 @@ window.ChroniclerTranslations['en-US'] = {
     clearAllData: 'Clear All Data',
     clearDataTitle: 'Clear All Data & Settings',
     clearDataWarning: 'DANGEROUS OPERATION',
-    clearDataMessage: 'You are about to permanently erase everything, including:\n\n• All characters and their versions\n• All Lorebooks and their entries\n• All notebooks\n• All personal settings & themes\n\nThis action cannot be undone!\n\nIt is highly recommended to export a backup first.',
+    clearDataMessage: 'You\'re about to permanently delete all data, including:\n\n• All characters and versions\n• All lorebooks and entries\n• All notebooks\n• All settings and themes\n\nThis can\'t be undone!\n\nWe recommend exporting a backup first.',
     clearDataDesc: 'This will permanently delete all data stored in the browser.',
     clearDataCompleteDesc: 'This operation will reset the application to its initial, empty state.',
     itemsToBeCleared: 'The following will be permanently deleted:',
@@ -653,7 +651,7 @@ window.ChroniclerTranslations['en-US'] = {
     backupExportComplete: 'Backup Exported Successfully',
     nowSafeToClearData: 'It is now safe to clear your data.',
     finalClearConfirm: 'Final Confirmation',
-    finalClearWarning: '⚠️ FINAL WARNING ⚠️\n\nYou are about to permanently delete ALL of your data. This includes all characters, lorebooks, notebooks, and settings.\n\nThis action CANNOT be undone!\n\nAre you sure you wish to proceed?',
+    finalClearWarning: '⚠️ Final Warning ⚠️\n\nYou\'re about to delete all your data, including characters, lorebooks, notebooks, and settings.\n\nThis can\'t be undone. Proceed?',
     yesDeleteEverything: 'Yes, Delete Everything',
     confirmClearData: 'I understand the risk, clear all data',
     cancelClear: 'Cancel',
@@ -828,4 +826,10 @@ window.ChroniclerTranslations['en-US'] = {
     unnamedItem: 'Unnamed Item',
     secretMark: ' [Secret]',
     modifiedSuffix: ' (modified)',
+
+
+    //聯絡
+    contactTitle: 'Feedback',
+    contactMethodsContent: 'Found a bug or have suggestions? Please report via:<br><br>📋 <a href="https://github.com/lenlenaris/ChroniclerEditor/issues" target="_blank" style="color: var(--accent-color);">GitHub Issues</a><br>🍭 <a href="https://marshmallow-qa.com/wofpdrozz47jwkz?t=bTwcNR&utm_medium=url_text&utm_source=promotion" target="_blank" style="color: var(--accent-color);">Marshmallow</a><br><br><small style="color: var(--text-muted-color); opacity: 0.7;">Created by @lenlenaris with AI assistance (YES I LOVE Claude)</small>'
+
 };

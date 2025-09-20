@@ -201,7 +201,6 @@
         min-width: 65px;
         max-width: 90px; 
         line-height: 1.2; 
-        white-space: nowrap;
         overflow: hidden; 
         text-overflow: ellipsis;
         display: flex;
@@ -318,7 +317,6 @@
         min-width: 65px;
         max-width: 90px; 
         line-height: 1.2; 
-        white-space: nowrap;
         overflow: hidden; 
         text-overflow: ellipsis;
         display: flex;
@@ -785,15 +783,16 @@
         padding: 5px 6px;
         flex: 1;
         min-width: 65px;
-        max-width: 90px; 
+        max-width: 150px; 
         line-height: 1.2; 
-        white-space: nowrap;
         overflow: hidden; 
         text-overflow: ellipsis;
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center;
+        height: auto;
+        min-height: 28px;
     }
 
     /* 總覽頁卡片列表手機版 */

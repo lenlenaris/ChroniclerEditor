@@ -942,10 +942,6 @@ function showContact() {
             
             <!-- 聯絡方式區 -->
             <div class="compact-section" style="text-align: left; margin-top: 25px; padding: 0px;">
-                <div class="compact-section-title" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                    <span style="font-weight: 600; color: var(--text-color); font-size: 0.95em;">${t('contactMethodsTitle')}</span>
-                </div>
-                
                 <div style="color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
                     ${t('contactMethodsContent')}
                 </div>

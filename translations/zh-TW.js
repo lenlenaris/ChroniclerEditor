@@ -66,7 +66,6 @@ window.ChroniclerTranslations['zh-TW'] = {
     tooltipBatchEdit: '批量編輯',
     tooltipTagFilter: '以標籤篩選顯示項目',
     tooltipSortDropdown: '項目排序方式\n拖曳卡片可自定義排序',
-    clickToReturn: '點擊返回上層',
     
     // 雙屏編輯
     dualScreenSelector: '雙屏編輯選擇器',
@@ -119,7 +118,6 @@ window.ChroniclerTranslations['zh-TW'] = {
     moveSelectedFolders: '將資料夾中的內容移動到：',
     moveSelectedItems: '將選取的項目移動到：',
     folderCreatedSuccess: '資料夾創建成功',
-    clickToReturn: '點擊返回上層',
     folderContentsMovedComplete: '資料夾內容已移動完成',
     folderContentsMovedToRootComplete: '資料夾內容已移動到根目錄',
     deselectToCreateFolder: '請先取消選取項目才能新建資料夾',
@@ -395,7 +393,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     additionalTitle: '標題',
     additionalContent: '內容',
     addAdditionalInfo: '新增附加資訊',
-    deleteAdditionalInfo: '刪除此項',
+    deleteAdditionalInfo: '刪除',
     
     // 創作者事件
     creatorEvents: '創作者事件',
@@ -843,7 +841,7 @@ window.ChroniclerTranslations['zh-TW'] = {
 
     //聯絡
     contactTitle: 'Feedback',
-    contactMethodsTitle: '準備中',
-    contactMethodsContent: '準備中'
+    contactMethodsContent: '若有使用建議或發現Bug，歡迎透過以下方式回報：<br><br>📋 <a href="https://github.com/lenlenaris/ChroniclerEditor/issues" target="_blank" style="color: var(--accent-color);">GitHub Issues</a><br>🍭 <a href="https://marshmallow-qa.com/wofpdrozz47jwkz?t=bTwcNR&utm_medium=url_text&utm_source=promotion" target="_blank" style="color: var(--accent-color);">匿名棉花糖</a><br><br><small style="color: var(--text-muted-color); opacity: 0.7;">Created by @lenlenaris with AI assistance (YES I LOVE Claude)</small>'
+
 
 };
