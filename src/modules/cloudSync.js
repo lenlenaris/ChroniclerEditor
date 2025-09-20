@@ -7,7 +7,7 @@ class GoogleCloudSync {
         this.accessToken = null;
         
         // 🛡️ 只需要 Client ID（公開安全）
-        this.CLIENT_ID = '601592669531-qkfmmi5tnuoa9ujuk2gnq853imh5apr6.apps.googleusercontent.com'; // 🔧 記得替換
+        this.CLIENT_ID = '601592669531-36o2ec8fbb8b103sc9agio8239dm33ll.apps.googleusercontent.com'; // 🔧 記得替換
         this.SCOPES = 'https://www.googleapis.com/auth/drive.file';
         this.FOLDER_NAME = 'ChroniclerBackups';
         this.folderId = null;
