@@ -875,7 +875,7 @@ window.ChroniclerTranslations['en-US'] = {
     selectBackupFile: 'Select a backup file to restore',
     backupRestoreSuccess: 'Backup restored successfully! The page will now reload...',
     restoreFailed: 'Restore Failed',
-    connectedToGoogleDrive: '✅ Connected to Google Drive',
+    connectedToGoogleDrive: 'Connected to Google Drive',
     canPerformCloudOperations: 'You can perform cloud backup and restore operations',
     disconnect: 'Disconnect',
 

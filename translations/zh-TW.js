@@ -877,7 +877,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     selectBackupFile: '選擇要恢復的備份檔案',
     backupRestoreSuccess: '備份恢復成功！頁面將重新載入...',
     restoreFailed: '恢復失敗',
-    connectedToGoogleDrive: '✅ 已連接到 Google Drive',
+    connectedToGoogleDrive: '已連接到 Google Drive',
     canPerformCloudOperations: '可以進行雲端備份和恢復操作',
     disconnect: '中斷連接',
 

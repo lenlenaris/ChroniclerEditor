@@ -659,7 +659,7 @@ function showStorageWarning(sizeKB) {
         padding: 16px 24px;
         border-radius: 8px;
         font-size: 0.9em;
-        z-index: 9999;
+        z-index: 99999;
         box-shadow: var(--shadow-large);
         max-width: 300px;
     `;

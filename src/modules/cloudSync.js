@@ -7,32 +7,60 @@ class GoogleCloudSync {
         
         // 🛡️ 只需要 Client ID（公開安全）
         this.CLIENT_ID = '601592669531-36o2ec8fbb8b103sc9agio8239dm33ll.apps.googleusercontent.com';
-        this.SCOPES = 'https://www.googleapis.com/auth/drive.file';
+        this.SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
         this.FOLDER_NAME = 'ChroniclerBackups';
         this.folderId = null;
         this.maxBackups = 5;
         this.tokenClient = null; // 新增：用來儲存 GIS 的 token client
     }
 
-    // 🎯 使用新的 Google Identity Services 初始化
     async init() {
         try {
-            // 載入新的 Google Identity Services
+            const storedToken = localStorage.getItem('google_auth_token');
+            if (storedToken) {
+                const tokenData = JSON.parse(storedToken);
+                if (tokenData.expiresAt && Date.now() < tokenData.expiresAt) {
+                    this.accessToken = tokenData.accessToken;
+                    this.isSignedIn = true;
+                    // ⭐⭐⭐ 新增：從 localStorage 恢復使用者資訊 ⭐⭐⭐
+                    this.currentUser = tokenData.userProfile || null;
+                } else {
+                    localStorage.removeItem('google_auth_token');
+                }
+            }
+
             await this.loadGoogleIdentityServices();
             
-            // 初始化 token client
             this.tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: this.CLIENT_ID,
                 scope: this.SCOPES,
-                callback: (tokenResponse) => {
+                // ⭐⭐⭐ 修改 callback ⭐⭐⭐
+                callback: async (tokenResponse) => { // <-- 將 callback 變成 async 函數
                     if (tokenResponse.error) {
                         console.error(t('oauthError'), tokenResponse);
                         this.showError(t('authFailed') + ': ' + tokenResponse.error);
+                        localStorage.removeItem('google_auth_token');
+                        this.isSignedIn = false;
+                        this.accessToken = null;
+                        this.currentUser = null; // 登入失敗也要清除使用者資訊
+                        this.updateAuthStatus();
                         return;
                     }
                     
                     this.accessToken = tokenResponse.access_token;
                     this.isSignedIn = true;
+
+                    // ⭐⭐⭐ 新增：獲取使用者資訊 ⭐⭐⭐
+                    await this.fetchUserProfile(); 
+                    
+                    const expiresAt = Date.now() + (parseInt(tokenResponse.expires_in, 10) * 1000);
+                    const tokenData = {
+                        accessToken: this.accessToken,
+                        expiresAt: expiresAt,
+                        userProfile: this.currentUser // 將使用者資訊一起儲存
+                    };
+                    localStorage.setItem('google_auth_token', JSON.stringify(tokenData));
+                    
                     this.updateAuthStatus();
                     NotificationManager.success(t('googleLoginSuccess'));
                 },
@@ -43,6 +71,34 @@ class GoogleCloudSync {
         } catch (error) {
             console.error('Google Identity Services 初始化失敗:', error);
             this.showError(t('googleServicesInitFailed'));
+        }
+    }
+
+    // ⭐⭐⭐ 添加這整個新函數 ⭐⭐⭐
+    async fetchUserProfile() {
+        try {
+            if (!this.accessToken) return;
+            
+            const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch user info: ${response.status}`);
+            }
+            
+            const profile = await response.json();
+            this.currentUser = {
+                name: profile.name,
+                email: profile.email,
+                picture: profile.picture
+            };
+            
+        } catch (error) {
+            console.error("獲取 Google 使用者資訊失敗:", error);
+            this.currentUser = null; // 獲取失敗時清空
         }
     }
 
@@ -99,16 +155,17 @@ class GoogleCloudSync {
     }
 
     // 登出
-    async signOut() {
+     async signOut() {
         try {
             if (this.accessToken) {
-                // 撤銷 access token
                 google.accounts.oauth2.revoke(this.accessToken, () => {
                     console.log('Token 已撤銷');
                 });
             }
             
-            this.currentUser = null;
+            localStorage.removeItem('google_auth_token');
+            
+            this.currentUser = null; // 登出時清除使用者資訊
             this.isSignedIn = false;
             this.accessToken = null;
             this.folderId = null;
@@ -529,15 +586,21 @@ class GoogleCloudSync {
 
         if (!statusElement) return;
 
-        if (this.isSignedIn && this.accessToken) {
+        if (this.isSignedIn && this.currentUser) {
             statusElement.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="color: var(--success-color); font-weight: 500;">
-                        ✅ ${t('connectedToGoogleDrive')}
+                <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
+                    <img src="${this.currentUser.picture}" alt="avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                    <div style="line-height: 1.4;">
+                        <div style="font-weight: 600; color: var(--text-color); font-size: 0.95em;">
+                            ${this.currentUser.name}
+                        </div>
+                        <div style="font-size: 0.85em; color: var(--text-muted);">
+                            ${this.currentUser.email}
+                        </div>
                     </div>
                 </div>
-                <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 4px;">
-                    ${t('canPerformCloudOperations')}
+                <div style="font-size: 0.85em; color: var(--success-color); margin-top: 8px; font-weight: 500;">
+                    ✅ ${t('connectedToGoogleDrive')}
                 </div>
             `;
 
@@ -549,7 +612,7 @@ class GoogleCloudSync {
 
         } else {
             statusElement.innerHTML = `
-                <div style="color: var(--text-muted); font-size: 0.9em;">
+                <div style="color: var(--text-muted); font-size: 0.9em; padding: 20px 0; text-align: center;">
                     ${t('notConnectedToGoogle')}
                 </div>
             `;

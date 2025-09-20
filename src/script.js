@@ -1297,7 +1297,7 @@ class NotificationManager {
             border-radius: ${config.large ? '8px' : '6px'};
             font-size: 0.9em;
             font-weight: 500;
-            z-index: 9999;
+            z-index: 99999;
             box-shadow: var(--shadow-medium);
             transform: translateX(100%);
             transition: transform 0.3s ease;
