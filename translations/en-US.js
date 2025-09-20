@@ -830,14 +830,14 @@ window.ChroniclerTranslations['en-US'] = {
     // ========================================
     // 18. Cloud Sync
     // ========================================
-    cloudSync: 'Cloud Sync (Testing)',
+    cloudSync: 'Cloud Sync',
     accountStatus: 'Account Status',
     notConnectedToGoogle: 'Not connected to Google account', 
     connectToGoogle: 'Connect to Google',
     cloudOperations: 'Cloud Operations',
-    uploadBackup: 'Upload Backup to Cloud',
-    downloadBackup: 'Download Backup from Cloud',
-    cloudSyncDescription: 'Manually sync backup files to Google Drive, keep up to 5 latest versions',
+    uploadBackup: 'Upload Backup',
+    downloadBackup: 'Download Backup',
+    cloudSyncDescription: 'Manual operation required: Click buttons to backup to Google Drive, no automatic sync. Automatically keeps latest 5 versions, old files will be cleaned up.',
     connectedToGoogle: 'Connected to Google',
     disconnectFromGoogle: 'Disconnect',
     googleSignInSuccess: 'Google sign in successful',
@@ -881,6 +881,32 @@ window.ChroniclerTranslations['en-US'] = {
     processing: 'Processing...',
     restoringBackup: 'Restoring Backup...',
     pleaseLoginFirst: 'Please log in to Google first',
+
+
+    helpTitle: 'User Guide',
+    helpContent: '<h3 style="color: var(--text-color); margin: 0 0 12px 0; font-size: 1.1em;">Main Features</h3>' +
+    'This is a character card editor specifically designed for SillyTavern, supporting version iteration management and dual-pane synchronous editing for any combination such as <strong>Character+Lorebook</strong>／<strong>Character A+Character B</strong>／<strong>Character A+Notebook</strong>.<br><br>' +
+    'This tool supports exporting character cards (with optional lorebook binding) to SillyTavern, and importing SillyTavern format character cards and lorebook files for seamless editing and management.<br><br>' +
+    '<h3 style="color: var(--text-color); margin: 20px 0 12px 0; font-size: 1.1em;">Disclaimer & Important Notes</h3>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">🚧 This tool is currently in Beta version. Please note:</h4>' +
+    '• <strong>Please backup important content yourself. This site assumes no responsibility for any data loss.</strong><br>' +
+    '• Feel free to report issues, but please understand that the beta version may contain unstable elements.<br>' +
+    '• All data is stored in your local browser. Clearing browser data will result in content loss.<br>' +
+    '• This tool uses a manual saving mechanism with no auto-save function. Please remember to use Ctrl+S or click the 💾 button to save.<br>' +
+    '• The interface is primarily designed for desktop use. Mobile devices may experience performance or layout issues.<br><br>' +
+    '<h3 style="color: var(--text-color); margin: 20px 0 12px 0; font-size: 1.1em;">Basic Operation Guide</h3>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">Data Backup Methods</h4>' +
+    '• Full backup: Sidebar ⚙️ → "Cloud Sync" or "Export Full Backup"<br>' +
+    '• Individual backup: Click "Export" button on the editing page<br><br>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">Dual-Pane Synchronous Editing</h4>' +
+    '• Same item comparison: Enter edit page and click "Dual" button in the top-right corner to select versions.<br>' +
+    '• Cross-category item editing: Click "Dual Screen" button in sidebar to configure.<br><br>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">Tag Function Description</h4>' +
+    '• Character card tags remain synchronized with SillyTavern tags. Tags for other types are used only for filtering within this site and do not sync with SillyTavern.<br><br>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">Other Function Descriptions</h4>' +
+    '• Folders currently do not support custom drag sorting functionality.<br>' +
+    '• Lorebooks default to "Custom Sort" mode. Entry order will be recorded in JSON files and synchronized when imported to SillyTavern.<br>' +
+    '• The "LoveyDovey" AI platform character editing feature can be enabled in "Other Settings" under the gear menu at the bottom of the sidebar.',
 
     // ========================================
     // 19. Contact & Feedback

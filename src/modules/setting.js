@@ -872,70 +872,45 @@ function updateToggleSwitch(checkboxName, isChecked) {
 slider.style.left = isChecked ? '23px' : '3px';
     }
 }
-// 顯示說明功能
-function showHelp() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'block';
-    
-    modal.innerHTML = `
-        <div class="compact-modal-content" style="max-width: 800px; padding: 30px;">
-            <div class="compact-modal-header" style="justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                    ${IconManager.question({width: 18, height: 18})}
-                    <h3 class="compact-modal-title">${t('helpTitle')}</h3>
-                </div>
-                <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
-            </div>
-            
-            <!-- 使用說明區 -->
-            <div class="compact-section" style="text-align: left; margin-top: 25px; padding: 0px;">
-                <div class="compact-section-title" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                    <span style="font-weight: 600; color: var(--text-color); font-size: 1.2em;">${t('helpUsageTitle')}</span>
+
+    // 顯示說明功能
+    function showHelp() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        
+        modal.innerHTML = `
+            <div class="compact-modal-content" style="max-width: 800px; padding: 30px; max-height: 90vh; overflow-y: auto;">
+                <div class="compact-modal-header" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                        ${IconManager.question({width: 18, height: 18})}
+                        <h3 class="compact-modal-title">${t('helpTitle')}</h3>
+                    </div>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
                 </div>
                 
-                <div style="color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
-                    ${t('helpUsageContent')}
+                <!-- 使用說明區 -->
+                <div class="compact-section" style="text-align: left; margin-top: 25px; padding: 8px;">
+                    <div style="color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
+                        ${t('helpContent')}
+                    </div>
+                </div>
+
+                <div class="compact-modal-footer" style="margin-top: 25px;">
+                    <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">${t('close')}</button>
                 </div>
             </div>
-            
-            <!-- 功能介紹區 -->
-            <div class="compact-section" style="text-align: left; margin-top: 30px; padding: 0px;">
-                <div class="compact-section-title" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                    <span style="font-weight: 600; color: var(--text-color); font-size: 1.2em;">${t('helpFeaturesTitle')}</span>
-                </div>
-                
-                <div style="color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
-                    ${t('helpFeaturesContent')}
-                </div>
-            </div>
-            
-            <!-- 技巧提示區 -->
-            <div class="compact-section" style="text-align: left; margin-top: 30px; padding: 0px;">
-                <div class="compact-section-title" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                    <span style="font-weight: 600; color: var(--text-color); font-size: 1.2em;">${t('helpTipsTitle')}</span>
-                </div>
-                
-                <div style="color: var(--text-color); line-height: 1.6; font-size: 0.9em;">
-                    ${t('helpTipsContent')}
-                </div>
-            </div>
-            
-            <div class="compact-modal-footer" style="margin-top: 25px;">
-                <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">${t('close')}</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // 點擊遮罩關閉
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-}
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // 點擊遮罩關閉
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+    }
 
 // 顯示聯絡回報功能
 function showContact() {

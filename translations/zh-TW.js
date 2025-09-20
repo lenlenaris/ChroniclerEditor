@@ -832,14 +832,14 @@ window.ChroniclerTranslations['zh-TW'] = {
     // ========================================
     // 18. 雲端同步功能（實驗性）
     // ========================================
-    cloudSync: '雲端同步（測試中）',
+    cloudSync: '雲端同步',
     accountStatus: '帳號狀態', 
     notConnectedToGoogle: '尚未連接 Google 帳號',
     connectToGoogle: '連接 Google 帳號',
     cloudOperations: '雲端操作',
     uploadBackup: '上傳備份至雲端',
     downloadBackup: '從雲端下載備份',
-    cloudSyncDescription: '手動同步備份檔案到 Google Drive，最多保留 5 個最新版本。',
+    cloudSyncDescription: '需手動操作：點擊按鈕才會備份到 Google Drive，不會自動同步。自動保留最新 5 個版本，舊檔案會被清理。',
     connectedToGoogle: '已連接到 Google',
     disconnectFromGoogle: '中斷連接',
     googleSignInSuccess: 'Google 登入成功',
@@ -888,13 +888,30 @@ window.ChroniclerTranslations['zh-TW'] = {
     // 19. 說明與聯絡
     // ========================================
     // 說明
-    helpTitle: '使用說明（施工中）',
-    helpUsageTitle: '重要必讀',
-    helpUsageContent: '目前為beta測試版，有資料丟失、匯出匯入失敗、欄位缺漏等風險，請另行備份內容以防遺失！<br><br>資料僅儲存在瀏覽器中，備份請點擊側邊欄底下的齒輪選單：<br>• 點選「匯出完整備份」保存整個網站資料。<br>• 在編輯頁面匯出單獨檔案。',
-    helpFeaturesTitle: '雙頁面同步編輯',
-    helpFeaturesContent: '• 同項目：進入編輯頁面後點擊右上角的「對比」選擇項目。<br>• 跨類別／跨項目同步編輯：點擊側邊欄的「雙屏編輯」按鈕。',
-    helpTipsTitle: '其他',
-    helpTipsContent: '• 齒輪選單中的「其他設定」可以隱藏「卿卿我我」類別。<br>• 世界書只有「自訂排序」模式。<br>• 沒有自動儲存功能，請愛用Crtl+S或側邊欄的儲存按鈕儲存進度。<br>• 手機端會嚴重跑板，請使用電腦瀏覽。<br>• 英文版全靠Gemini翻譯，可能會很怪。',
+    helpTitle: '使用說明',
+    helpContent: '<h3 style="color: var(--text-color); margin: 0 0 12px 0; font-size: 1.1em;">主要功能</h3>' +
+    '這是一個專為 SillyTavern 設計的角色卡編輯器，支援版本迭代管理，並提供雙頁同步編輯功能，可同時編輯 <strong>角色卡＋世界書</strong>／<strong>角色卡A＋角色卡B</strong>／<strong>角色卡A＋筆記本</strong> 等任意組合。<br><br>' +
+    '本工具支援匯出角色卡（可綁定世界書）至 SillyTavern，也可讀取 SillyTavern 格式的角色卡與世界書檔案，實現無縫的匯入匯出與編輯管理。<br><br>' +
+    '<h3 style="color: var(--text-color); margin: 20px 0 12px 0; font-size: 1.1em;">免責聲明與注意事項</h3>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">🚧 本工具目前為 Beta 測試版，使用時請注意：</h4>' +
+    '• <strong>請務必自行備份重要內容，本站不承擔任何資料遺失責任。</strong><br>' +
+    '• 如遇到問題歡迎回報，但請理解測試版本可能存在不穩定情況。<br>' +
+    '• 所有資料儲存於本地瀏覽器中，清除瀏覽器資料將導致內容遺失。<br>' +
+    '• 本工具採用手動儲存機制，無自動儲存功能，請記得使用 Ctrl+S 或點擊 💾 按鈕儲存。<br>' +
+    '• 介面主要針對桌面端設計，行動裝置可能出現效能或版面問題。<br><br>' +
+    '<h3 style="color: var(--text-color); margin: 20px 0 12px 0; font-size: 1.1em;">基礎操作說明</h3>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">資料備份方式</h4>' +
+    '• 完整備份：側邊欄 ⚙️ → 「雲端同步」或「匯出完整備份」<br>' +
+    '• 單項備份：於編輯頁面點擊「匯出」按鈕<br><br>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">雙頁面同步編輯</h4>' +
+    '• 相同項目比較：進入編輯頁面後點擊右上角「對比」按鈕選擇版本。<br>' +
+    '• 跨類別項目編輯：點擊側邊欄「雙屏編輯」按鈕進行設定。<br><br>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">標籤功能說明</h4>' +
+    '• 角色卡標籤與 SillyTavern 標籤保持同步，其他類型的標籤僅用於本站內的分類篩選，不與 SillyTavern 共通。<br><br>' +
+    '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">其他說明</h4>' +
+    '• 資料夾暫不支援自定義拖曳排序功能。<br>' +
+    '• 世界書預設為「自訂排序」模式，條目順序將記錄於 JSON 檔案中，匯入 SillyTavern 後會同步反映。<br>' +
+    '• 可於側邊欄底部齒輪選單的「其他設定」中啟用「卿卿我我」AI 平台格式的角色編輯功能。',
 
     //聯絡
     contactTitle: 'Feedback',
