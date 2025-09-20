@@ -437,13 +437,14 @@ class GoogleCloudSync {
             
             const data = JSON.parse(backupContent);
             
-            // 🎯 使用現有的匯入邏輯
-            const success = await this.restoreBackupData(data);
+            // 🎯 使用重構後的 ImportManager 邏輯
+            const success = await ImportManager.importFromDataObject(data);
             
             if (success) {
                 NotificationManager.success(t('backupRestoreSuccess'));
                 
                 setTimeout(() => {
+                    // 重新載入頁面以應用所有變更
                     window.location.reload();
                 }, 1500);
             }

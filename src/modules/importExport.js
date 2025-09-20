@@ -2322,7 +2322,7 @@ setTimeout(() => {
         return positionMap[legacyPosition] || 1;
     }
 
-    // ===== 完整資料匯入 =====
+    // ⭐⭐⭐ 替換這個函數 ⭐⭐⭐
     static async handleAllDataImport(file, fileType) {
         if (fileType !== 'json') {
             NotificationManager.error(t('fullBackupOnlySupportsJSON'));
@@ -2333,117 +2333,120 @@ setTimeout(() => {
             const textContent = await FileHandler.readFile(file, 'text');
             const data = JSON.parse(textContent);
             
-            if (data.characters && Array.isArray(data.characters)) {
-                const totalItems = data.characters.length + (data.customSections ? data.customSections.length : 0) + (data.worldBooks ? data.worldBooks.length : 0);
-                
-                // 計算要匯入的項目
-                const dataItems = [];
-                    if (data.characters?.length) dataItems.push(t('itemsCharacterCards', data.characters.length));
-                    if (data.customSections?.length) dataItems.push(t('itemsNotebooks', data.customSections.length));
-                    if (data.worldBooks?.length) dataItems.push(t('itemsWorldBooks', data.worldBooks.length));
-                    if (data.userPersonas?.length) dataItems.push(t('itemsUserPersonas', data.userPersonas.length));
-                    if (data.loveyDoveyCharacters?.length) dataItems.push(t('itemsLoveyDoveyCharacters', data.loveyDoveyCharacters.length));
+            // 呼叫核心處理函數
+            const success = await this.importFromDataObject(data);
 
-                    const settingsItems = [];
-                    if (data.settings?.customThemes) settingsItems.push(t('customThemes'));
-                    if (data.settings?.otherSettings) settingsItems.push(t('personalSettings'));
-                    if (data.settings?.sortPreference) settingsItems.push(t('sortPreferences'));
-
-                    const dataText = dataItems.length ? dataItems.join('、') : t('noItems');
-                    const settingsText = settingsItems.length ? settingsItems.join('、') : t('noItems');
-                    const confirmMessage = t('confirmFullBackupImport', dataText, settingsText);
-
-                const confirmImport = NotificationManager.confirm(confirmMessage);
-                
-               if (confirmImport) {
-                    
-            // 第一階段：匯入所有資料
-            characters = data.characters;
-            customSections = data.customSections || [];
-            worldBooks = data.worldBooks || [];
-            userPersonas = data.userPersonas || []; 
-            loveyDoveyCharacters = data.loveyDoveyCharacters || []; 
-            
-        // 第二階段：恢復所有設定
-        if (data.settings) {
-            // 恢復主題設定
-            if (data.settings.customThemes) {
-                localStorage.setItem('characterCreator_customThemes', data.settings.customThemes);
-                ThemeManager.loadThemes(); // 重新載入主題
-            }
-            if (data.settings.currentTheme) {
-                ThemeManager.switchTheme(data.settings.currentTheme);
-            }
-            if (data.settings.customColors) {
-                localStorage.setItem('characterCreatorCustomColors', data.settings.customColors);
+            // 如果核心函數成功執行，就重新載入頁面
+            if (success) {
+                NotificationManager.success(t('fullDataImportSuccess'));
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000); // 延遲一秒讓使用者看到成功訊息
             }
             
-            // 恢復其他設定
-            if (data.settings.otherSettings) {
-                localStorage.setItem('characterCreator_otherSettings', data.settings.otherSettings);
-                OtherSettings.loadSettings(); // 重新載入設定
-                
-                // 🔧 正確應用卿卿我我顯示設定
-                const settings = JSON.parse(data.settings.otherSettings);
-                OtherSettings.applyLoveyDoveyVisibility(settings.showLoveyDovey); // 傳入具體的布林值
-            }
-            
-            // 恢復排序和偏好設定
-            if (data.settings.sortPreference) {
-                localStorage.setItem('characterCreator-sortPreference', data.settings.sortPreference);
-            }
-            if (data.settings.selectedTags) {
-                localStorage.setItem('characterCreator-selectedTags', data.settings.selectedTags);
-            }
-        }
-
-        // 恢復資料夾結構
-        if (data.folders) {
-            console.log('檢測到資料夾資訊，開始恢復資料夾結構...');
-            this.restoreAllFolders(data.folders);
-        } else {
-            console.log('此備份不包含資料夾資訊（可能是舊版備份）');
-        }
-        
-        // 第三階段：重置狀態變數
-        currentCharacterId = characters[0]?.id || null;
-        currentVersionId = characters[0]?.versions[0]?.id || null;
-        currentCustomSectionId = customSections[0]?.id || null;
-        currentCustomVersionId = customSections[0]?.versions[0]?.id || null;
-        currentWorldBookId = worldBooks[0]?.id || null;
-        currentWorldBookVersionId = worldBooks[0]?.versions[0]?.id || null;
-        currentUserPersonaId = userPersonas[0]?.id || null; 
-        currentUserPersonaVersionId = userPersonas[0]?.versions[0]?.id || null;
-        currentLoveyDoveyId = loveyDoveyCharacters[0]?.id || null;
-        currentLoveyDoveyVersionId = loveyDoveyCharacters[0]?.versions[0]?.id || null;
-        currentMode = 'character';
-        compareVersions = [];
-        
-            // 🔧 暫時禁用自動儲存通知，避免與匯入成功通知重疊
-        const originalShowSaveNotification = window.showSaveNotification;
-        window.showSaveNotification = false;
-
-        renderAll();
-        saveData();
-
-        // 🔧 恢復自動儲存通知功能
-        setTimeout(() => {
-            window.showSaveNotification = originalShowSaveNotification;
-        }, 100);
-
-        NotificationManager.success(t('fullDataImportSuccess'));
-        return true;
-        }
-                return false;
-            } else {
-                NotificationManager.error(t('invalidBackupFile'));
-                return false;
-            }
+            return success;
             
         } catch (error) {
-            throw new Error(t('backupParseError', error.message));
+            NotificationManager.error(t('backupParseError', error.message));
+            return false;
         }
     }
+
+    // ⭐⭐⭐ 同時也替換這個函數，讓它更專注於資料處理 ⭐⭐⭐
+    // 核心功能：從一個JS物件恢復所有資料
+    static async importFromDataObject(data) {
+        if (!data || !data.characters || !Array.isArray(data.characters)) {
+            NotificationManager.error(t('invalidBackupFile'));
+            return false;
+        }
+
+        try {
+            // 計算要匯入的項目
+            const dataItems = [];
+            if (data.characters?.length) dataItems.push(t('itemsCharacterCards', data.characters.length));
+            if (data.customSections?.length) dataItems.push(t('itemsNotebooks', data.customSections.length));
+            if (data.worldBooks?.length) dataItems.push(t('itemsWorldBooks', data.worldBooks.length));
+            if (data.userPersonas?.length) dataItems.push(t('itemsUserPersonas', data.userPersonas.length));
+            if (data.loveyDoveyCharacters?.length) dataItems.push(t('itemsLoveyDoveyCharacters', data.loveyDoveyCharacters.length));
+
+            const settingsItems = [];
+            if (data.settings?.customThemes) settingsItems.push(t('customThemes'));
+            if (data.settings?.otherSettings) settingsItems.push(t('personalSettings'));
+            if (data.settings?.sortPreference) settingsItems.push(t('sortPreferences'));
+
+            const dataText = dataItems.length ? dataItems.join('、') : t('noItems');
+            const settingsText = settingsItems.length ? settingsItems.join('、') : t('noItems');
+            const confirmMessage = t('confirmFullBackupImport', dataText, settingsText);
+
+            const confirmImport = await NotificationManager.confirm(confirmMessage);
+            
+            if (confirmImport) {
+                // 第一階段：匯入所有資料
+                characters = data.characters;
+                customSections = data.customSections || [];
+                worldBooks = data.worldBooks || [];
+                userPersonas = data.userPersonas || []; 
+                loveyDoveyCharacters = data.loveyDoveyCharacters || []; 
+                
+                // 第二階段：恢復所有設定
+                if (data.settings) {
+                    if (data.settings.customThemes) {
+                        localStorage.setItem('characterCreator_customThemes', data.settings.customThemes);
+                        ThemeManager.loadThemes();
+                    }
+                    if (data.settings.currentTheme) {
+                        ThemeManager.switchTheme(data.settings.currentTheme);
+                    }
+                    if (data.settings.customColors) {
+                        localStorage.setItem('characterCreatorCustomColors', data.settings.customColors);
+                    }
+                    if (data.settings.otherSettings) {
+                        localStorage.setItem('characterCreator_otherSettings', data.settings.otherSettings);
+                        OtherSettings.loadSettings();
+                        const settings = JSON.parse(data.settings.otherSettings);
+                        OtherSettings.applyLoveyDoveyVisibility(settings.showLoveyDovey);
+                    }
+                    if (data.settings.sortPreference) {
+                        localStorage.setItem('characterCreator-sortPreference', data.settings.sortPreference);
+                    }
+                    if (data.settings.selectedTags) {
+                        localStorage.setItem('characterCreator-selectedTags', data.settings.selectedTags);
+                    }
+                }
+
+                // 恢復資料夾結構
+                if (data.folders) {
+                    this.restoreAllFolders(data.folders);
+                }
+                
+                // 第三階段：重置狀態變數 (這部分是為了確保切換正常，重載後會重新初始化)
+                currentCharacterId = characters[0]?.id || null;
+                currentVersionId = characters[0]?.versions[0]?.id || null;
+                currentCustomSectionId = customSections[0]?.id || null;
+                currentCustomVersionId = customSections[0]?.versions[0]?.id || null;
+                currentWorldBookId = worldBooks[0]?.id || null;
+                currentWorldBookVersionId = worldBooks[0]?.versions[0]?.id || null;
+                currentUserPersonaId = userPersonas[0]?.id || null; 
+                currentUserPersonaVersionId = userPersonas[0]?.versions[0]?.id || null;
+                currentLoveyDoveyId = loveyDoveyCharacters[0]?.id || null;
+                currentLoveyDoveyVersionId = loveyDoveyCharacters[0]?.versions[0]?.id || null;
+                currentMode = 'character';
+                compareVersions = [];
+                
+                await saveDataSilent(); // 在背景靜默保存資料
+                
+                // 不在這裡顯示成功訊息，交給呼叫者處理
+                return true; // 代表成功
+            }
+            return false; // 代表使用者取消
+        } catch (error) {
+            console.error('從物件匯入資料失敗:', error);
+            NotificationManager.error(t('importFailed', error.message));
+            return false;
+        }
+    }
+
+
 
     // ===== 工具方法 =====
     // 切換到世界書
