@@ -992,14 +992,14 @@ details summary::marker {
     border: 2px dashed var(--primary-color);
     border-radius: 8px;
     transform: scale(0.95);
-    transition: all 0.15s ease; /* 🔧 減少到 150ms */
+    transition: all 0.15s ease; 
 }
 
 .sortable-chosen {
     transform: scale(1.02);
     box-shadow: 0 8px 25px rgba(0,0,0,0.2);
     z-index: 1000;
-    transition: all 0.15s ease; /* 🔧 減少到 150ms */
+    transition: all 0.15s ease;
 }
 
 .sortable-drag {
@@ -1010,7 +1010,7 @@ details summary::marker {
 
 /* 基礎項目樣式 - 更快的過渡 */
 .home-card {
-    transition: all 0.15s ease; /* 🔧 減少到 150ms */
+    transition: all 0.15s ease;
     cursor: grab;
 }
 
@@ -1096,7 +1096,7 @@ details summary::marker {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap; /* 允許換行 */
+    flex-wrap: wrap; 
 }
 
 /* 🎯 標籤統計項目 - 基礎樣式 */
@@ -1116,7 +1116,7 @@ details summary::marker {
 .theme-controls-container {
     display: flex;
     flex-direction: row;
-    align-items: flex-start; /* 改為頂部對齊，避免垂直重疊 */
+    align-items: flex-start;
     gap: 12px;
     padding: 0;
     flex-wrap: wrap;
@@ -1126,8 +1126,8 @@ details summary::marker {
     display: flex;
     max-width: 200px;
     flex-shrink: 0;
-    min-height: 32px; /* 給定最小高度 */
-    align-items: center; /* 內部垂直居中 */
+    min-height: 32px;
+    align-items: center; 
 }
 
 .theme-selector {
@@ -1143,13 +1143,13 @@ details summary::marker {
     justify-content: flex-start;
     flex: 1;
     min-width: 200px;
-    min-height: 32px; /* 與選擇器保持一致的高度 */
+    min-height: 32px;
 }
 
 /* 🎯 按鈕基礎樣式 */
 .theme-buttons-row .overview-btn {
-    flex-shrink: 0; /* 防止按鈕被壓縮 */
-    white-space: nowrap; /* 防止按鈕內文字換行 */
+    flex-shrink: 0;
+    white-space: nowrap; 
 }
 
 .theme-color {

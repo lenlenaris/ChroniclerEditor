@@ -192,7 +192,6 @@ async function loadData() {
 
         // 恢復所有類型的自定義【項目】排序
         try {
-            console.log('正在應用儲存的自定義項目排序...');
             ['character', 'userpersona', 'loveydovey', 'worldbook', 'custom'].forEach(type => {
                 DragSortManager.applySavedOrder(type);
             });

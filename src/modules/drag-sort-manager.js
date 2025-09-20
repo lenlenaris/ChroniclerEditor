@@ -575,19 +575,14 @@ static applyNewOrder(type, newOrder) {
 
 // 🎯 應用保存的排序（在數據載入後調用）
 static applySavedOrder(type) {
-    console.log(`[applySavedOrder] 正在嘗試為 ${type} 套用儲存的排序...`);
     const savedOrder = this.loadCustomOrder(type);
     
     if (savedOrder && savedOrder.length > 0) {
-        console.log(`[applySavedOrder] 找到 ${type} 的儲存順序:`, savedOrder);
-        
         let targetArray;
         switch (type) {
             case 'character':
                 targetArray = characters;
-                console.log(`[applySavedOrder] 套用前 characters 順序 (前5項):`, characters.slice(0, 5).map(c => c.id));
                 this.reorderArray(characters, savedOrder);
-                console.log(`[applySavedOrder] 套用後 characters 順序 (前5項):`, characters.slice(0, 5).map(c => c.id));
                 break;
             case 'userpersona':
                 targetArray = userPersonas;
@@ -606,15 +601,12 @@ static applySavedOrder(type) {
                 this.reorderArray(loveyDoveyCharacters, savedOrder);
                 break;
         }
-    } else {
-        console.log(`[applySavedOrder] 未找到 ${type} 的儲存順序。`);
     }
 }
 
 // 清除自定義排序
 static clearCustomOrder(type) {
     const key = `characterCreator-customOrder-${type}`;
-    console.warn(`%c[clearCustomOrder] 正在清除 ${type} 的自定義排序！`, 'color: #dc3545;', { key: key });
     localStorage.removeItem(key);
 }
 
@@ -635,11 +627,8 @@ static clearCustomOrder(type) {
         this.sortableInstances.clear();
     }
 
-    // 🚀 初始化所有拖曳排序功能
     static initializeAll() {
-        // 先銷毀所有現有實例
-        this.destroyAll();
-        
+        this.destroyAll();      
         // 延遲啟用拖曳功能，確保 DOM 已渲染
         setTimeout(() => {
             // 首頁角色卡拖曳
@@ -651,8 +640,6 @@ static clearCustomOrder(type) {
                     mode: 'grid',
                     onReorder: (newOrder, oldIndex, newIndex) => {
                         
-                        
-                        // 🚀 只重新渲染首頁，側邊欄已在 handleReorder 中同步
                         OverviewManager.renderCharacters();
                     }
                 });
@@ -666,7 +653,6 @@ static clearCustomOrder(type) {
                     type: 'character',
                     mode: 'list',
                     onReorder: () => {
-                        // 🚀 只重新渲染首頁，側邊欄已在 handleReorder 中同步
                         OverviewManager.renderCharacters();
                     }
                 });
@@ -977,7 +963,6 @@ static autoInitializeAdditionalInfoDragSort() {
     static initializeDragImport() {
         // 🚫 手機版完全禁用拖曳匯入功能
         if (this.isMobileDevice()) {
-            console.log('🚫 手機版：跳過拖曳匯入功能初始化');
             return;
         }
         let dragCounter = 0;

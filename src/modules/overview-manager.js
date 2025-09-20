@@ -13,11 +13,9 @@ static initialize() {
     const savedSort = localStorage.getItem('characterCreator-sortPreference');
     if (savedSort) {
         this.currentSort = savedSort;
-        console.log(`[OverviewManager.initialize] 從 localStorage 恢復排序設定為: "${this.currentSort}"`);
     } else {
         // 如果沒有儲存的設定，就用預設值
         this.currentSort = 'created-desc'; 
-        console.log(`[OverviewManager.initialize] 未找到儲存的排序設定，使用預設值: "${this.currentSort}"`);
     }
     
     const savedTags = localStorage.getItem('characterCreator-selectedTags');
