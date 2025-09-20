@@ -1019,11 +1019,11 @@ function showCloudSync() {
                 
                 <div style="display: flex; gap: 12px;">
                     <button id="upload-backup-btn" class="overview-btn hover-primary" style="flex: 1;" onclick="uploadBackupToCloud()" disabled>
-                        ${IconManager.upload({width: 16, height: 16})} ${t('uploadBackup')}
+                        ${IconManager.download({width: 16, height: 16})} ${t('uploadBackup')}
                     </button>
                     
                     <button id="download-backup-btn" class="overview-btn hover-primary" style="flex: 1;" onclick="downloadBackupFromCloud()" disabled>
-                        ${IconManager.download({width: 16, height: 16})} ${t('downloadBackup')}
+                        ${IconManager.import({width: 16, height: 16})} ${t('downloadBackup')}
                     </button>
                 </div>
                 

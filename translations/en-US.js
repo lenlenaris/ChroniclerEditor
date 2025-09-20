@@ -878,6 +878,8 @@ window.ChroniclerTranslations['en-US'] = {
     connectedToGoogleDrive: 'Connected to Google Drive',
     canPerformCloudOperations: 'You can perform cloud backup and restore operations',
     disconnect: 'Disconnect',
+    processing: 'Processing...',
+    restoringBackup: 'Restoring Backup...',
 
     // ========================================
     // 19. Contact & Feedback

@@ -1,3 +1,45 @@
+// ===== (元素)鎖定器 (提供載入中狀態) =====
+class ButtonLocker {
+    static lockedElements = new Map();
+
+    static loadingSpinner = `
+        <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="animation: spin 1s linear infinite; margin-right: 8px;">
+            <path d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" opacity=".25" fill="currentColor"/>
+            <path d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z" class="spinner-path" fill="currentColor"/>
+        </svg>
+    `;
+
+    static lock(element) {
+        if (!element || this.lockedElements.has(element)) return;
+
+        const originalContent = element.innerHTML;
+        this.lockedElements.set(element, originalContent);
+
+        if (element.tagName === 'BUTTON') {
+            element.disabled = true;
+        }
+        element.style.pointerEvents = 'none'; // 禁用點擊事件
+        element.style.opacity = '0.7';
+
+        // 保持內容但顯示載入動畫
+        element.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; width: 100%;">${this.loadingSpinner} ${t('processing')}</div>`;
+    }
+
+    static unlock(element) {
+        if (!element || !this.lockedElements.has(element)) return;
+
+        const originalContent = this.lockedElements.get(element);
+        element.innerHTML = originalContent;
+        if (element.tagName === 'BUTTON') {
+            element.disabled = false;
+        }
+        element.style.pointerEvents = 'auto'; // 恢復點擊事件
+        element.style.opacity = '1';
+
+        this.lockedElements.delete(element);
+    }
+}
+
 // ===== Google 雲端同步管理器（使用新的 Google Identity Services）=====
 class GoogleCloudSync {
     constructor() {
@@ -192,53 +234,46 @@ class GoogleCloudSync {
 
     // 🚀 上傳備份
     async uploadBackup() {
+        const uploadButton = document.getElementById('upload-backup-btn');
+        ButtonLocker.lock(uploadButton); // 鎖定按鈕
+
         try {
             const token = await this.ensureValidToken();
-            
-            // 產生備份資料
             const backupData = this.createBackupData();
             const fileName = this.generateFileName();
-            
-            // 確保資料夾存在
             await this.ensureBackupFolder();
-            
-            // 上傳檔案
             const fileId = await this.uploadFile(fileName, backupData, token);
-            
-            // 清理舊備份
             await this.cleanupOldBackups();
-            
             NotificationManager.success(t('backupUploadSuccess'));
             return fileId;
-            
         } catch (error) {
             console.error('上傳失敗:', error);
             this.showError(t('uploadFailed') + ': ' + (error.message || t('unknownError')));
+        } finally {
+            ButtonLocker.unlock(uploadButton); // 無論成功或失敗都解鎖
         }
     }
 
     // 🔽 下載備份
     async downloadBackup() {
+        const downloadButton = document.getElementById('download-backup-btn');
+        ButtonLocker.lock(downloadButton); // 鎖定按鈕
+
         try {
             const token = await this.ensureValidToken();
-            
-            // 確保資料夾存在
             await this.ensureBackupFolder();
-            
-            // 列出備份檔案
             const files = await this.listBackupFiles(token);
             
             if (files.length === 0) {
                 NotificationManager.warning(t('backupNotFound'));
                 return;
             }
-            
-            // 顯示檔案選擇器
             this.showBackupSelector(files);
-            
         } catch (error) {
             console.error('列出備份失敗:', error);
             this.showError(t('backupListFailed') + ': ' + (error.message || t('unknownError')));
+        } finally {
+            ButtonLocker.unlock(downloadButton); // 無論成功或失敗都解鎖
         }
     }
 
@@ -432,7 +467,7 @@ class GoogleCloudSync {
         }
     }
 
-    // 顯示備份選擇器
+     // 顯示備份選擇器
     showBackupSelector(backupFiles) {
         const modal = document.createElement('div');
         modal.className = 'modal';
@@ -443,6 +478,8 @@ class GoogleCloudSync {
             const dateStr = date.toLocaleString();
             const sizeStr = file.size ? `${Math.round(file.size / 1024)}KB` : '';
             
+            // ⭐⭐⭐ 修改 onclick 事件 ⭐⭐⭐
+            // 將 this (DOM 元素本身) 傳遞給 restoreBackup
             return `
                 <div class="backup-file-item" style="
                     padding: 12px 16px; 
@@ -452,7 +489,7 @@ class GoogleCloudSync {
                     border-radius: 6px; 
                     cursor: pointer; 
                     transition: all 0.2s ease;
-                " onclick="googleCloudSync.restoreBackup('${file.id}'); this.closest('.modal').remove();"
+                " onclick="googleCloudSync.restoreBackup('${file.id}', this);" 
                    onmouseover="this.style.background='var(--bg-color)'" 
                    onmouseout="this.style.background='var(--surface-color)'">
                     
@@ -486,29 +523,33 @@ class GoogleCloudSync {
         document.body.appendChild(modal);
     }
 
-    // 恢復備份
-    async restoreBackup(fileId) {
+    async restoreBackup(fileId, element) { 
+        ButtonLocker.lock(element); // 鎖定被點擊的列表項目
+
         try {
             const token = await this.ensureValidToken();
             const backupContent = await this.downloadFile(fileId, token);
             
             const data = JSON.parse(backupContent);
             
-            // 🎯 使用重構後的 ImportManager 邏輯
+            // 關閉選擇器模態框
+            element.closest('.modal').remove();
+
             const success = await ImportManager.importFromDataObject(data);
             
             if (success) {
                 NotificationManager.success(t('backupRestoreSuccess'));
                 
                 setTimeout(() => {
-                    // 重新載入頁面以應用所有變更
                     window.location.reload();
                 }, 1500);
             }
+            // 如果使用者取消 (success === false)，則不需要做任何事
             
         } catch (error) {
             console.error('恢復備份失敗:', error);
             this.showError(t('restoreFailed') + ': ' + (error.message || t('unknownError')));
+            ButtonLocker.unlock(element); // 只有在發生嚴重錯誤時才需要手動解鎖
         }
     }
 
