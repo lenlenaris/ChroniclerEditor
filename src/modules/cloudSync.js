@@ -1,109 +1,107 @@
-// ===== Google 雲端同步管理器（僅使用 OAuth2.0）=====
+// ===== Google 雲端同步管理器（簡化版）=====
 class GoogleCloudSync {
     constructor() {
         this.isSignedIn = false;
-        this.gapi = null;
         this.currentUser = null;
         this.accessToken = null;
         
         // 🛡️ 只需要 Client ID（公開安全）
-        this.CLIENT_ID = '601592669531-36o2ec8fbb8b103sc9agio8239dm33ll.apps.googleusercontent.com'; // 🔧 記得替換
+        this.CLIENT_ID = '601592669531-36o2ec8fbb8b103sc9agio8239dm33ll.apps.googleusercontent.com';
         this.SCOPES = 'https://www.googleapis.com/auth/drive.file';
         this.FOLDER_NAME = 'ChroniclerBackups';
         this.folderId = null;
         this.maxBackups = 5;
     }
 
-    // 初始化 Google API
-async init() {
-    try {
-        await this.loadGoogleAPI();
-        
-        // 🎯 修正：同時載入 auth2 和 client
-        await new Promise((resolve, reject) => {
-            gapi.load('auth2:client', {
-                callback: resolve,
-                onerror: reject
-            });
-        });
-
-        // 🎯 修正：正確初始化 gapi.client
-        await gapi.client.init({
-            clientId: this.CLIENT_ID,
-            scope: this.SCOPES
-        });
-
-        const authInstance = gapi.auth2.getAuthInstance();
-        this.isSignedIn = authInstance.isSignedIn.get();
-        
-        if (this.isSignedIn) {
-            this.currentUser = authInstance.currentUser.get();
-            this.accessToken = this.currentUser.getAuthResponse().access_token;
+    // 🎯 簡化的初始化
+    async init() {
+        try {
+            // 載入 Google API
+            await this.loadGoogleAPI();
             
-            // 檢查 token 是否需要更新
-            await this.refreshTokenIfNeeded();
+            // 🔧 使用更簡單的載入方式
+            await new Promise((resolve, reject) => {
+                gapi.load('auth2', {
+                    callback: () => {
+                        gapi.auth2.init({
+                            client_id: this.CLIENT_ID
+                        }).then(() => {
+                            const authInstance = gapi.auth2.getAuthInstance();
+                            this.isSignedIn = authInstance.isSignedIn.get();
+                            
+                            if (this.isSignedIn) {
+                                this.currentUser = authInstance.currentUser.get();
+                                this.accessToken = this.currentUser.getAuthResponse().access_token;
+                            }
+                            
+                            this.updateAuthStatus();
+                            resolve();
+                        }).catch(reject);
+                    },
+                    onerror: reject
+                });
+            });
+            
+        } catch (error) {
+            console.error('Google API 初始化失敗:', error);
+            this.showError('Google API 初始化失敗，請稍後再試');
         }
-
-        this.updateAuthStatus();
-        
-    } catch (error) {
-        console.error('Google API 初始化失敗:', error);
-        this.showError(t('googleApiInitFailed'));
     }
-}
 
     // 載入 Google API 腳本
-    loadGoogleAPI() {
+    async loadGoogleAPI() {
+        if (window.gapi) return;
+        
         return new Promise((resolve, reject) => {
-            if (window.gapi) {
-                resolve();
-                return;
-            }
-
             const script = document.createElement('script');
             script.src = 'https://apis.google.com/js/api.js';
             script.onload = resolve;
-            script.onerror = reject;
+            script.onerror = () => reject(new Error('Google API 腳本載入失敗'));
             document.head.appendChild(script);
         });
     }
 
-    // 登入 Google
+    // 🎯 簡化的登入流程
     async signIn() {
         try {
+            if (!window.gapi || !gapi.auth2) {
+                throw new Error('Google API 未就緒');
+            }
+
             const authInstance = gapi.auth2.getAuthInstance();
             
-            // 🎯 修正：使用正確的 scope 請求權限
+            // 🔧 使用 signIn 並請求特定權限
             const user = await authInstance.signIn({
-                scope: this.SCOPES
+                scope: this.SCOPES,
+                prompt: 'consent' // 強制顯示同意畫面
             });
             
             this.currentUser = user;
             this.isSignedIn = true;
             this.accessToken = user.getAuthResponse().access_token;
             
-            // 檢查是否有 Drive 權限
-            if (!user.hasGrantedScopes(this.SCOPES)) {
-                throw new Error('Drive permission not granted');
+            // 檢查權限
+            const hasScopes = user.hasGrantedScopes(this.SCOPES);
+            if (!hasScopes) {
+                throw new Error('未獲得 Drive 存取權限');
             }
             
-            // 建立備份資料夾
-            await this.ensureBackupFolder();
-            
             this.updateAuthStatus();
-            NotificationManager.success(t('googleSignInSuccess'));
+            NotificationManager.success('Google 登入成功！');
             
         } catch (error) {
             console.error('Google 登入失敗:', error);
-            this.showError(t('googleSignInFailed'));
+            this.showError('登入失敗：' + (error.error || error.message || '未知錯誤'));
         }
     }
 
-    // 登出 Google
+    // 登出
     async signOut() {
         try {
-            const authInstance = gapi.auth2.getAuthInstance();
-            await authInstance.signOut();
+            if (gapi.auth2) {
+                const authInstance = gapi.auth2.getAuthInstance();
+                await authInstance.signOut();
+            }
             
             this.currentUser = null;
             this.isSignedIn = false;
@@ -111,156 +109,120 @@ async init() {
             this.folderId = null;
             
             this.updateAuthStatus();
-            NotificationManager.success(t('googleSignOutSuccess'));
+            NotificationManager.success('已登出 Google 帳號');
             
         } catch (error) {
-            console.error('Google 登出失敗:', error);
-            this.showError(t('googleSignOutFailed'));
+            console.error('登出失敗:', error);
+            this.showError('登出失敗');
         }
     }
 
-    // 檢查並更新 token
-    async refreshTokenIfNeeded() {
-        if (!this.currentUser) return;
-        
-        const authResponse = this.currentUser.getAuthResponse();
-        const expiresAt = authResponse.expires_at;
-        const now = Date.now();
-        
-        // 如果 token 在 5 分鐘內過期，就更新
-        if (expiresAt - now < 5 * 60 * 1000) {
-            try {
+    // 檢查並刷新 token
+    async ensureValidToken() {
+        if (!this.currentUser) {
+            throw new Error('未登入');
+        }
+
+        try {
+            // 檢查 token 是否即將過期
+            const authResponse = this.currentUser.getAuthResponse();
+            const expiresAt = authResponse.expires_at;
+            const now = Date.now();
+            
+            // 如果 5 分鐘內過期，重新載入
+            if (expiresAt - now < 5 * 60 * 1000) {
                 const newAuthResponse = await this.currentUser.reloadAuthResponse();
                 this.accessToken = newAuthResponse.access_token;
-            } catch (error) {
-                console.error('Token 更新失敗:', error);
-                // Token 更新失敗，要求重新登入
-                await this.signOut();
-                throw new Error(t('pleaseSignInAgain'));
-            }
-        }
-    }
-
-    // 確保備份資料夾存在
-    async ensureBackupFolder() {
-        if (this.folderId) return this.folderId;
-        
-        try {
-            // 搜尋是否已有備份資料夾
-            const searchResponse = await fetch(
-                `https://www.googleapis.com/drive/v3/files?q=name='${this.FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${this.accessToken}`
-                    }
-                }
-            );
-            
-            const searchResult = await searchResponse.json();
-            
-            if (searchResult.files && searchResult.files.length > 0) {
-                this.folderId = searchResult.files[0].id;
-                return this.folderId;
             }
             
-            // 建立新資料夾
-            const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: this.FOLDER_NAME,
-                    mimeType: 'application/vnd.google-apps.folder'
-                })
-            });
-            
-            const folder = await createResponse.json();
-            this.folderId = folder.id;
-            return this.folderId;
+            return this.accessToken;
             
         } catch (error) {
-            console.error('建立備份資料夾失敗:', error);
-            throw error;
+            console.error('Token 更新失敗:', error);
+            // 要求重新登入
+            await this.signOut();
+            throw new Error('請重新登入');
         }
     }
 
-    // 上傳備份到雲端
+    // 🚀 上傳備份
     async uploadBackup() {
         try {
-            await this.refreshTokenIfNeeded();
-            await this.ensureBackupFolder();
+            const token = await this.ensureValidToken();
             
             // 產生備份資料
             const backupData = this.createBackupData();
             const fileName = this.generateFileName();
             
+            // 確保資料夾存在
+            await this.ensureBackupFolder();
+            
             // 上傳檔案
-            const fileId = await this.uploadFile(fileName, backupData);
+            const fileId = await this.uploadFile(fileName, backupData, token);
             
             // 清理舊備份
             await this.cleanupOldBackups();
             
-            NotificationManager.success(t('uploadBackupSuccess'));
+            NotificationManager.success('備份上傳成功！');
             return fileId;
             
         } catch (error) {
-            console.error('上傳備份失敗:', error);
-            this.showError(t('uploadBackupFailed'));
-            throw error;
+            console.error('上傳失敗:', error);
+            this.showError('上傳失敗：' + (error.message || '未知錯誤'));
         }
     }
 
-    // 下載備份從雲端
+    // 🔽 下載備份
     async downloadBackup() {
         try {
-            await this.refreshTokenIfNeeded();
-            await this.ensureBackupFolder();
+            const token = await this.ensureValidToken();
             
             // 列出備份檔案
-            const backupFiles = await this.listBackupFiles();
+            const files = await this.listBackupFiles(token);
             
-            if (backupFiles.length === 0) {
-                NotificationManager.warning(t('noBackupFilesFound'));
+            if (files.length === 0) {
+                NotificationManager.warning('未找到備份檔案');
                 return;
             }
             
-            // 顯示備份檔案選擇器
-            this.showBackupSelector(backupFiles);
+            // 顯示檔案選擇器
+            this.showBackupSelector(files);
             
         } catch (error) {
-            console.error('下載備份失敗:', error);
-            this.showError(t('downloadBackupFailed'));
-            throw error;
+            console.error('列出備份失敗:', error);
+            this.showError('無法獲取備份列表：' + (error.message || '未知錯誤'));
         }
     }
 
-    // 產生備份資料
+    // 🎯 使用現有的匯出功能產生備份
     createBackupData() {
-        // 🎯 復用現有的匯出功能
-        const folders = ExportManager.collectAllFolderData();
-        
-        const exportData = {
-            characters: characters,
-            customSections: customSections,
-            worldBooks: worldBooks,
-            userPersonas: userPersonas,
-            loveyDoveyCharacters: loveyDoveyCharacters,
-            folders: folders,
-            settings: {
-                customThemes: localStorage.getItem('characterCreator_customThemes'),
-                currentTheme: ThemeManager.currentThemeId,
-                customColors: localStorage.getItem('characterCreatorCustomColors'),
-                otherSettings: localStorage.getItem('characterCreator_otherSettings'),
-                sortPreference: localStorage.getItem('characterCreator-sortPreference'),
-                selectedTags: localStorage.getItem('characterCreator-selectedTags')
-            },
-            exportDate: new Date().toISOString(),
-            version: '2.1.0'
-        };
-        
-        return JSON.stringify(exportData, null, 2);
+        try {
+            const folders = ExportManager.collectAllFolderData();
+            
+            const exportData = {
+                characters: characters,
+                customSections: customSections,
+                worldBooks: worldBooks,
+                userPersonas: userPersonas,
+                loveyDoveyCharacters: loveyDoveyCharacters,
+                folders: folders,
+                settings: {
+                    customThemes: localStorage.getItem('characterCreator_customThemes'),
+                    currentTheme: ThemeManager.currentThemeId,
+                    customColors: localStorage.getItem('characterCreatorCustomColors'),
+                    otherSettings: localStorage.getItem('characterCreator_otherSettings'),
+                    sortPreference: localStorage.getItem('characterCreator-sortPreference'),
+                    selectedTags: localStorage.getItem('characterCreator-selectedTags')
+                },
+                exportDate: new Date().toISOString(),
+                version: '2.1.0'
+            };
+            
+            return JSON.stringify(exportData, null, 2);
+        } catch (error) {
+            console.error('備份資料產生失敗:', error);
+            throw new Error('無法產生備份資料');
+        }
     }
 
     // 產生檔案名稱
@@ -275,8 +237,63 @@ async init() {
         return `chronicler_backup_${dateStr}_${timeStr}.json`;
     }
 
-    // 上傳檔案到 Drive
-    async uploadFile(fileName, content) {
+    // 🔧 使用 fetch API 直接呼叫 Drive API
+    async ensureBackupFolder() {
+        if (this.folderId) return this.folderId;
+        
+        try {
+            const token = await this.ensureValidToken();
+            
+            // 搜尋現有資料夾
+            const searchResponse = await fetch(
+                `https://www.googleapis.com/drive/v3/files?q=name='${this.FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            
+            if (!searchResponse.ok) {
+                throw new Error(`搜尋資料夾失敗: ${searchResponse.status}`);
+            }
+            
+            const searchResult = await searchResponse.json();
+            
+            if (searchResult.files && searchResult.files.length > 0) {
+                this.folderId = searchResult.files[0].id;
+                return this.folderId;
+            }
+            
+            // 建立新資料夾
+            const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: this.FOLDER_NAME,
+                    mimeType: 'application/vnd.google-apps.folder'
+                })
+            });
+            
+            if (!createResponse.ok) {
+                throw new Error(`建立資料夾失敗: ${createResponse.status}`);
+            }
+            
+            const folder = await createResponse.json();
+            this.folderId = folder.id;
+            return this.folderId;
+            
+        } catch (error) {
+            console.error('確保備份資料夾失敗:', error);
+            throw error;
+        }
+    }
+
+    // 上傳檔案
+    async uploadFile(fileName, content, token) {
         const metadata = {
             name: fileName,
             parents: [this.folderId]
@@ -289,61 +306,74 @@ async init() {
         const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${this.accessToken}`
+                'Authorization': `Bearer ${token}`
             },
             body: form
         });
+
+        if (!response.ok) {
+            throw new Error(`檔案上傳失敗: ${response.status}`);
+        }
 
         const result = await response.json();
         return result.id;
     }
 
     // 列出備份檔案
-    async listBackupFiles() {
+    async listBackupFiles(token) {
         const response = await fetch(
             `https://www.googleapis.com/drive/v3/files?q=parents in '${this.folderId}' and name contains 'chronicler_backup' and trashed=false&orderBy=createdTime desc&fields=files(id,name,createdTime,size)`,
             {
                 headers: {
-                    'Authorization': `Bearer ${this.accessToken}`
+                    'Authorization': `Bearer ${token}`
                 }
             }
         );
+
+        if (!response.ok) {
+            throw new Error(`列出檔案失敗: ${response.status}`);
+        }
 
         const result = await response.json();
         return result.files || [];
     }
 
-    // 下載檔案內容
-    async downloadFile(fileId) {
+    // 下載檔案
+    async downloadFile(fileId, token) {
         const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
             headers: {
-                'Authorization': `Bearer ${this.accessToken}`
+                'Authorization': `Bearer ${token}`
             }
         });
+
+        if (!response.ok) {
+            throw new Error(`檔案下載失敗: ${response.status}`);
+        }
 
         return response.text();
     }
 
     // 刪除檔案
-    async deleteFile(fileId) {
+    async deleteFile(fileId, token) {
         await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${this.accessToken}`
+                'Authorization': `Bearer ${token}`
             }
         });
     }
 
-    // 清理舊備份（保留最新 5 個）
+    // 清理舊備份
     async cleanupOldBackups() {
         try {
-            const backupFiles = await this.listBackupFiles();
+            const token = await this.ensureValidToken();
+            const files = await this.listBackupFiles(token);
             
-            if (backupFiles.length > this.maxBackups) {
-                const filesToDelete = backupFiles.slice(this.maxBackups);
+            if (files.length > this.maxBackups) {
+                const filesToDelete = files.slice(this.maxBackups);
                 
                 for (const file of filesToDelete) {
-                    await this.deleteFile(file.id);
+                    await this.deleteFile(file.id, token);
                 }
             }
         } catch (error) {
@@ -351,7 +381,7 @@ async init() {
         }
     }
 
-    // 顯示備份檔案選擇器
+    // 顯示備份選擇器（保持不變）
     showBackupSelector(backupFiles) {
         const modal = document.createElement('div');
         modal.className = 'modal';
@@ -388,7 +418,7 @@ async init() {
         modal.innerHTML = `
             <div class="compact-modal-content" style="max-width: 500px;">
                 <div class="compact-modal-header">
-                    <h3 class="compact-modal-title">${t('selectBackupFile')}</h3>
+                    <h3 class="compact-modal-title">選擇要恢復的備份檔案</h3>
                     <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
                 </div>
                 
@@ -397,7 +427,7 @@ async init() {
                 </div>
                 
                 <div class="compact-modal-footer">
-                    <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">${t('cancel')}</button>
+                    <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">取消</button>
                 </div>
             </div>
         `;
@@ -408,18 +438,17 @@ async init() {
     // 恢復備份
     async restoreBackup(fileId) {
         try {
-            const backupContent = await this.downloadFile(fileId);
+            const token = await this.ensureValidToken();
+            const backupContent = await this.downloadFile(fileId, token);
             
-            // 🎯 復用現有的匯入功能
             const data = JSON.parse(backupContent);
             
-            // 使用 ImportManager 的邏輯
+            // 🎯 使用現有的匯入邏輯
             const success = await this.restoreBackupData(data);
             
             if (success) {
-                NotificationManager.success(t('restoreBackupSuccess'));
+                NotificationManager.success('備份恢復成功！頁面將重新載入...');
                 
-                // 重新載入頁面以確保狀態正確
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
@@ -427,14 +456,13 @@ async init() {
             
         } catch (error) {
             console.error('恢復備份失敗:', error);
-            this.showError(t('restoreBackupFailed'));
+            this.showError('恢復失敗：' + (error.message || '未知錯誤'));
         }
     }
 
-    // 恢復備份資料
+    // 恢復備份資料（保持不變）
     async restoreBackupData(data) {
         try {
-            // 🎯 復用 ImportManager 的邏輯
             characters = data.characters || [];
             customSections = data.customSections || [];
             worldBooks = data.worldBooks || [];
@@ -514,7 +542,7 @@ async init() {
             statusElement.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="color: var(--success-color); font-weight: 500;">
-                        ${IconManager.check({width: 16, height: 16})} ${t('connectedToGoogle')}
+                        ✅ 已連接到 Google
                     </div>
                 </div>
                 <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 4px;">
@@ -522,7 +550,7 @@ async init() {
                 </div>
             `;
 
-            authButton.textContent = t('disconnectFromGoogle');
+            authButton.textContent = '中斷連接';
             authButton.onclick = () => this.signOut();
             
             if (uploadButton) uploadButton.disabled = false;
@@ -531,11 +559,11 @@ async init() {
         } else {
             statusElement.innerHTML = `
                 <div style="color: var(--text-muted); font-size: 0.9em;">
-                    ${t('notConnectedToGoogle')}
+                    尚未連接 Google 帳號
                 </div>
             `;
 
-            authButton.textContent = t('connectToGoogle');
+            authButton.textContent = '連接 Google 帳號';
             authButton.onclick = () => this.signIn();
             
             if (uploadButton) uploadButton.disabled = true;
@@ -545,7 +573,11 @@ async init() {
 
     // 顯示錯誤訊息
     showError(message) {
-        NotificationManager.error(message);
+        if (typeof NotificationManager !== 'undefined') {
+            NotificationManager.error(message);
+        } else {
+            alert(message);
+        }
     }
 }
 
@@ -566,7 +598,7 @@ function downloadBackupFromCloud() {
 }
 
 function checkGoogleAuthStatus() {
-    if (!googleCloudSync.gapi) {
+    if (!googleCloudSync.currentUser) {
         googleCloudSync.init();
     } else {
         googleCloudSync.updateAuthStatus();
