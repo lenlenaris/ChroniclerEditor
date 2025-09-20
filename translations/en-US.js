@@ -830,7 +830,7 @@ window.ChroniclerTranslations['en-US'] = {
     // ========================================
     // 18. Cloud Sync
     // ========================================
-    cloudSync: 'Cloud Sync',
+    cloudSync: 'Cloud Sync (Testing)',
     accountStatus: 'Account Status',
     notConnectedToGoogle: 'Not connected to Google account', 
     connectToGoogle: 'Connect to Google',

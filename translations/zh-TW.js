@@ -832,7 +832,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     // ========================================
     // 18. 雲端同步功能（實驗性）
     // ========================================
-    cloudSync: '雲端同步',
+    cloudSync: '雲端同步（測試中）',
     accountStatus: '帳號狀態', 
     notConnectedToGoogle: '尚未連接 Google 帳號',
     connectToGoogle: '連接 Google 帳號',
