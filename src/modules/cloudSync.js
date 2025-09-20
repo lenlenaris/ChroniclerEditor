@@ -2,7 +2,7 @@
 class GoogleCloudSync {
     constructor() {
         this.isSignedIn = false;
-        this.currentUser = null;
+        this.currentUser = null; // 這個屬性在新版中較少使用，但保留以防萬一
         this.accessToken = null;
         
         // 🛡️ 只需要 Client ID（公開安全）
@@ -11,10 +11,10 @@ class GoogleCloudSync {
         this.FOLDER_NAME = 'ChroniclerBackups';
         this.folderId = null;
         this.maxBackups = 5;
-        this.tokenClient = null;
+        this.tokenClient = null; // 新增：用來儲存 GIS 的 token client
     }
 
-    // 🎯 使用新的 Google Identity Services
+    // 🎯 使用新的 Google Identity Services 初始化
     async init() {
         try {
             // 載入新的 Google Identity Services
@@ -24,47 +24,56 @@ class GoogleCloudSync {
             this.tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: this.CLIENT_ID,
                 scope: this.SCOPES,
-                callback: (response) => {
-                    if (response.error) {
-                        console.error('OAuth 錯誤:', response);
-                        this.showError('授權失敗：' + response.error);
+                callback: (tokenResponse) => {
+                    if (tokenResponse.error) {
+                        console.error(t('oauthError'), tokenResponse);
+                        this.showError(t('authFailed') + ': ' + tokenResponse.error);
                         return;
                     }
                     
-                    this.accessToken = response.access_token;
+                    this.accessToken = tokenResponse.access_token;
                     this.isSignedIn = true;
                     this.updateAuthStatus();
-                    NotificationManager.success('Google 登入成功！');
-                }
+                    NotificationManager.success(t('googleLoginSuccess'));
+                },
             });
             
             this.updateAuthStatus();
             
         } catch (error) {
             console.error('Google Identity Services 初始化失敗:', error);
-            this.showError('Google 服務初始化失敗，請稍後再試');
+            this.showError(t('googleServicesInitFailed'));
         }
     }
 
     // 載入新的 Google Identity Services
     async loadGoogleIdentityServices() {
-        if (window.google?.accounts) return;
-        
+        // 如果已經載入，就直接返回
+        if (window.google?.accounts?.oauth2) {
+            return;
+        }
+
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = 'https://accounts.google.com/gsi/client';
+            script.async = true;
+            script.defer = true;
             script.onload = () => {
-                // 等待 Google Identity Services 完全載入
-                const checkGSI = () => {
-                    if (window.google?.accounts?.oauth2) {
-                        resolve();
-                    } else {
-                        setTimeout(checkGSI, 100);
-                    }
-                };
-                checkGSI();
+                // GIS 載入後，window.google 物件會存在
+                if (window.google?.accounts?.oauth2) {
+                    resolve();
+                } else {
+                    // 有時候網路延遲，需要稍微等待
+                    setTimeout(() => {
+                        if (window.google?.accounts?.oauth2) {
+                            resolve();
+                        } else {
+                            reject(new Error('Google Identity Services object not found after script load.'));
+                        }
+                    }, 500);
+                }
             };
-            script.onerror = () => reject(new Error('Google Identity Services 載入失敗'));
+            script.onerror = () => reject(new Error('Google Identity Services script failed to load.'));
             document.head.appendChild(script);
         });
     }
@@ -73,7 +82,11 @@ class GoogleCloudSync {
     async signIn() {
         try {
             if (!this.tokenClient) {
-                throw new Error('Google Identity Services 未就緒');
+                // 如果 client 還沒準備好，可以嘗試重新初始化
+                await this.init();
+                if (!this.tokenClient) {
+                     throw new Error('Google Identity Services 未就緒');
+                }
             }
 
             // 請求授權 token
@@ -81,7 +94,7 @@ class GoogleCloudSync {
             
         } catch (error) {
             console.error('Google 登入失敗:', error);
-            this.showError('登入失敗：' + (error.message || '未知錯誤'));
+            this.showError(t('loginFailed') + ': ' + (error.message || t('unknownError')));
         }
     }
 
@@ -101,19 +114,22 @@ class GoogleCloudSync {
             this.folderId = null;
             
             this.updateAuthStatus();
-            NotificationManager.success('已登出 Google 帳號');
+            NotificationManager.success(t('googleLogoutSuccess'));
             
         } catch (error) {
             console.error('登出失敗:', error);
-            this.showError('登出失敗');
+            this.showError(t('logoutFailed'));
         }
     }
 
     // 檢查 token 有效性
     async ensureValidToken() {
         if (!this.accessToken) {
-            throw new Error('未登入，請先連接 Google 帳號');
+            throw new Error(t('notLoggedInGoogle'));
         }
+        // 注意：這裡沒有處理 token 過期的問題，因為 GIS 的 token 通常是一小時。
+        // 對於我們這種手動操作的備份/恢復，使用者不太可能掛著一小時不動。
+        // 如果未來有自動同步需求，才需要加上 token 刷新邏輯。
         return this.accessToken;
     }
 
@@ -135,12 +151,12 @@ class GoogleCloudSync {
             // 清理舊備份
             await this.cleanupOldBackups();
             
-            NotificationManager.success('備份上傳成功！');
+            NotificationManager.success(t('backupUploadSuccess'));
             return fileId;
             
         } catch (error) {
             console.error('上傳失敗:', error);
-            this.showError('上傳失敗：' + (error.message || '未知錯誤'));
+            this.showError(t('uploadFailed') + ': ' + (error.message || t('unknownError')));
         }
     }
 
@@ -156,7 +172,7 @@ class GoogleCloudSync {
             const files = await this.listBackupFiles(token);
             
             if (files.length === 0) {
-                NotificationManager.warning('未找到備份檔案');
+                NotificationManager.warning(t('backupNotFound'));
                 return;
             }
             
@@ -165,7 +181,7 @@ class GoogleCloudSync {
             
         } catch (error) {
             console.error('列出備份失敗:', error);
-            this.showError('無法獲取備份列表：' + (error.message || '未知錯誤'));
+            this.showError(t('backupListFailed') + ': ' + (error.message || t('unknownError')));
         }
     }
 
@@ -196,7 +212,7 @@ class GoogleCloudSync {
             return JSON.stringify(exportData, null, 2);
         } catch (error) {
             console.error('備份資料產生失敗:', error);
-            throw new Error('無法產生備份資料');
+            throw new Error(t('backupGenerationFailed'));
         }
     }
 
@@ -230,7 +246,7 @@ class GoogleCloudSync {
             );
             
             if (!searchResponse.ok) {
-                throw new Error(`搜尋資料夾失敗: ${searchResponse.status}`);
+                throw new Error(`${t('searchFolderFailed')}: ${searchResponse.status}`);
             }
             
             const searchResult = await searchResponse.json();
@@ -254,7 +270,7 @@ class GoogleCloudSync {
             });
             
             if (!createResponse.ok) {
-                throw new Error(`建立資料夾失敗: ${createResponse.status}`);
+                throw new Error(`${t('createFolderFailed')}: ${createResponse.status}`);
             }
             
             const folder = await createResponse.json();
@@ -287,7 +303,7 @@ class GoogleCloudSync {
         });
 
         if (!response.ok) {
-            throw new Error(`檔案上傳失敗: ${response.status}`);
+            throw new Error(`${t('fileUploadFailed')}: ${response.status}`);
         }
 
         const result = await response.json();
@@ -306,7 +322,7 @@ class GoogleCloudSync {
         );
 
         if (!response.ok) {
-            throw new Error(`列出檔案失敗: ${response.status}`);
+            throw new Error(`${t('fileListFailed')}: ${response.status}`);
         }
 
         const result = await response.json();
@@ -322,7 +338,7 @@ class GoogleCloudSync {
         });
 
         if (!response.ok) {
-            throw new Error(`檔案下載失敗: ${response.status}`);
+            throw new Error(`${t('fileDownloadFailed')}: ${response.status}`);
         }
 
         return response.text();
@@ -330,12 +346,16 @@ class GoogleCloudSync {
 
     // 刪除檔案
     async deleteFile(fileId, token) {
-        await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+        const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
+        // 刪除操作不檢查 response.ok，因為即使失敗也不應中斷清理流程
+        if (!response.ok) {
+            console.warn(`刪除檔案 ${fileId} 失敗: ${response.status}`);
+        }
     }
 
     // 清理舊備份
@@ -347,9 +367,8 @@ class GoogleCloudSync {
             if (files.length > this.maxBackups) {
                 const filesToDelete = files.slice(this.maxBackups);
                 
-                for (const file of filesToDelete) {
-                    await this.deleteFile(file.id, token);
-                }
+                // 使用 Promise.all 來並行刪除，提升效率
+                await Promise.all(filesToDelete.map(file => this.deleteFile(file.id, token)));
             }
         } catch (error) {
             console.warn('清理舊備份失敗:', error);
@@ -393,7 +412,7 @@ class GoogleCloudSync {
         modal.innerHTML = `
             <div class="compact-modal-content" style="max-width: 500px;">
                 <div class="compact-modal-header">
-                    <h3 class="compact-modal-title">選擇要恢復的備份檔案</h3>
+                    <h3 class="compact-modal-title">${t('selectBackupFile')}</h3>
                     <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
                 </div>
                 
@@ -402,7 +421,7 @@ class GoogleCloudSync {
                 </div>
                 
                 <div class="compact-modal-footer">
-                    <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">取消</button>
+                    <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">${t('cancel')}</button>
                 </div>
             </div>
         `;
@@ -422,7 +441,7 @@ class GoogleCloudSync {
             const success = await this.restoreBackupData(data);
             
             if (success) {
-                NotificationManager.success('備份恢復成功！頁面將重新載入...');
+                NotificationManager.success(t('backupRestoreSuccess'));
                 
                 setTimeout(() => {
                     window.location.reload();
@@ -431,7 +450,7 @@ class GoogleCloudSync {
             
         } catch (error) {
             console.error('恢復備份失敗:', error);
-            this.showError('恢復失敗：' + (error.message || '未知錯誤'));
+            this.showError(t('restoreFailed') + ': ' + (error.message || t('unknownError')));
         }
     }
 
@@ -513,15 +532,15 @@ class GoogleCloudSync {
             statusElement.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="color: var(--success-color); font-weight: 500;">
-                        ✅ 已連接到 Google Drive
+                        ✅ ${t('connectedToGoogleDrive')}
                     </div>
                 </div>
                 <div style="font-size: 0.85em; color: var(--text-muted); margin-top: 4px;">
-                    可以進行雲端備份和恢復操作
+                    ${t('canPerformCloudOperations')}
                 </div>
             `;
 
-            authButton.textContent = '中斷連接';
+            authButton.textContent = t('disconnect');
             authButton.onclick = () => this.signOut();
             
             if (uploadButton) uploadButton.disabled = false;
@@ -530,11 +549,11 @@ class GoogleCloudSync {
         } else {
             statusElement.innerHTML = `
                 <div style="color: var(--text-muted); font-size: 0.9em;">
-                    尚未連接 Google 帳號
+                    ${t('notConnectedToGoogle')}
                 </div>
             `;
 
-            authButton.textContent = '連接 Google 帳號';
+            authButton.textContent = t('connectToGoogle');
             authButton.onclick = () => this.signIn();
             
             if (uploadButton) uploadButton.disabled = true;
