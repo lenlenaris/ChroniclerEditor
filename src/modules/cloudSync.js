@@ -15,37 +15,42 @@ class GoogleCloudSync {
     }
 
     // 初始化 Google API
-    async init() {
-        try {
-            await this.loadGoogleAPI();
-            
-            // 初始化 OAuth2
-            await new Promise((resolve) => {
-                gapi.load('auth2', () => {
-                    gapi.auth2.init({
-                        client_id: this.CLIENT_ID,
-                    }).then(resolve);
-                });
+async init() {
+    try {
+        await this.loadGoogleAPI();
+        
+        // 🎯 修正：同時載入 auth2 和 client
+        await new Promise((resolve, reject) => {
+            gapi.load('auth2:client', {
+                callback: resolve,
+                onerror: reject
             });
+        });
 
-            const authInstance = gapi.auth2.getAuthInstance();
-            this.isSignedIn = authInstance.isSignedIn.get();
-            
-            if (this.isSignedIn) {
-                this.currentUser = authInstance.currentUser.get();
-                this.accessToken = this.currentUser.getAuthResponse().access_token;
-                
-                // 檢查 token 是否需要更新
-                await this.refreshTokenIfNeeded();
-            }
+        // 🎯 修正：正確初始化 gapi.client
+        await gapi.client.init({
+            clientId: this.CLIENT_ID,
+            scope: this.SCOPES
+        });
 
-            this.updateAuthStatus();
+        const authInstance = gapi.auth2.getAuthInstance();
+        this.isSignedIn = authInstance.isSignedIn.get();
+        
+        if (this.isSignedIn) {
+            this.currentUser = authInstance.currentUser.get();
+            this.accessToken = this.currentUser.getAuthResponse().access_token;
             
-        } catch (error) {
-            console.error('Google API 初始化失敗:', error);
-            this.showError(t('googleApiInitFailed'));
+            // 檢查 token 是否需要更新
+            await this.refreshTokenIfNeeded();
         }
+
+        this.updateAuthStatus();
+        
+    } catch (error) {
+        console.error('Google API 初始化失敗:', error);
+        this.showError(t('googleApiInitFailed'));
     }
+}
 
     // 載入 Google API 腳本
     loadGoogleAPI() {
@@ -67,11 +72,20 @@ class GoogleCloudSync {
     async signIn() {
         try {
             const authInstance = gapi.auth2.getAuthInstance();
-            const user = await authInstance.signIn();
+            
+            // 🎯 修正：使用正確的 scope 請求權限
+            const user = await authInstance.signIn({
+                scope: this.SCOPES
+            });
             
             this.currentUser = user;
             this.isSignedIn = true;
             this.accessToken = user.getAuthResponse().access_token;
+            
+            // 檢查是否有 Drive 權限
+            if (!user.hasGrantedScopes(this.SCOPES)) {
+                throw new Error('Drive permission not granted');
+            }
             
             // 建立備份資料夾
             await this.ensureBackupFolder();

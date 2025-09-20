@@ -239,7 +239,6 @@ async function loadData() {
         message: error?.message,
         code: error?.code,
         userAgent: navigator.userAgent,
-        // ðŸš« ç§»é™¤ awaitï¼Œç›´æŽ¥é¡¯ç¤ºç€è¦½å™¨ä¿¡æ¯
         isLikelyPrivateMode: this.isLikelyPrivateMode()
     });
     console.error('é™ç´šåˆ° localStorage');
