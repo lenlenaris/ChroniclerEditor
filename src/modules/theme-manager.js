@@ -108,6 +108,29 @@ static createBuiltinThemes() {
         },
         builtin: true
     });
+
+    // 綠蘋果主題
+    this.themes.set('greenapple', {
+        name: 'Green Apple',
+        colors: {
+            primary: '#747d2b',
+            secondary: '#d6d0bd',
+            accent: '#747d2b',
+            bg: '#d6d0bd',
+            surface: '#e6ddd1',
+            textColor: '#585628',
+            textMuted: '#948210',
+            borderColor: '#a4a156',
+            headerBg: '#d6d0bd',
+            sidebarBg: '#cbc6b4',
+            mainContentBg: '#e1d7c6',
+            contentBg: '#e6ddd1',
+            successColor: '#587159',
+            warningColor: '#a15726',
+            dangerColor: '#b75b5d'
+        },
+        builtin: true
+    });
     
     this.currentThemeId = 'default';
     this.saveThemes();
@@ -265,7 +288,27 @@ static getCurrentColors() {
                 warningColor: '#167eb7',
                 dangerColor: '#c07272'
             };
-        }
+        } else if (themeId === 'greenapple') {
+            // 綠蘋果主題
+            this.themes.get('greenapple').colors = {
+                primary: '#747d2b',
+                secondary: '#d6d0bd',
+                accent: '#747d2b',
+                bg: '#d6d0bd',
+                surface: '#e6ddd1',
+                textColor: '#585628',
+                textMuted: '#948210',
+                borderColor: '#a4a156',
+                headerBg: '#d6d0bd',
+                sidebarBg: '#cbc6b4',
+                mainContentBg: '#e1d7c6',
+                contentBg: '#e6ddd1',
+                successColor: '#587159',
+                warningColor: '#a15726',
+                dangerColor: '#b75b5d'
+            };
+        } 
+        
     }
     
     // 儲存當前主題的修改 - 修正邏輯

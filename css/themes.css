@@ -78,3 +78,22 @@
     --warning-color: #167eb7;
     --danger-color: #c07272;
 }
+
+/* 綠蘋果 */
+.theme-greenapple {
+    --primary-color: #747d2b;
+    --secondary-color: #d6d0bd;
+    --accent-color: #747d2b;
+    --bg-color: #d6d0bd;
+    --surface-color: #e6ddd1;
+    --text-color: #585628;
+    --text-muted: #948210;
+    --border-color: #a4a156;
+    --header-bg: #d6d0bd;
+    --sidebar-bg: #cbc6b4;
+    --main-content-bg: #e1d7c6;
+    --content-bg: #e6ddd1;
+    --success-color: #587159;
+    --warning-color: #a15726;
+    --danger-color: #b75b5d;
+}
