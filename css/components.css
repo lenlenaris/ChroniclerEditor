@@ -579,3 +579,21 @@ select.compact-input {
     display: flex;
     gap: 8px;
 }
+
+/* 匯出視窗 */
+.export24 {
+    margin-bottom: 24px;
+}
+
+.format-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.format-section {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 12px;
+}

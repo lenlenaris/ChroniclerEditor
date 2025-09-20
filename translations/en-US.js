@@ -42,7 +42,6 @@ window.ChroniclerTranslations['en-US'] = {
     newNotebook: 'New Notebook',
     addCustomField: 'New Notebook', // Kept as is, assuming it performs the same action as newNotebook
     searchContent: 'Search',
-    tagManagement: 'Manage Tags',
     dualScreenEdit: 'Dual Screen',
 
     // Control Bar
@@ -174,14 +173,14 @@ window.ChroniclerTranslations['en-US'] = {
     createOrImport: 'Click to Create<br>or<br>Drag & Drop to Import',
     
     // Character Field Placeholders
-    creatorPlaceholder: 'Creator\'s name (optional)...',
-    versionPlaceholder: 'Version name or number (e.g., v1.2)...',
-    notesPlaceholder: 'Add any notes for yourself here (optional)...',
-    tagsPlaceholder: 'Enter tags, separated by commas...',
+    creatorPlaceholder: 'Botmaker\'s name / Contact info (optional)',
+    versionPlaceholder: 'Version name or number (e.g., v1.2)',
+    notesPlaceholder: 'Describe the character, give use tips, or list the chat models it works best with...',
+    tagsPlaceholder: 'Write a comma-separated list of tags...',
     descPlaceholder: 'Describe the character\'s appearance, backstory, setting, etc...',
     personalityPlaceholder: 'Describe the character\'s traits, speech patterns, behaviors, etc...',
     scenarioPlaceholder: 'Describe the context, environment, or situation the character is in...',
-    dialoguePlaceholder: '{{user}}: Hello!\n{{char}}: Hi there! It\'s a pleasure to meet you.',
+    dialoguePlaceholder: 'Examples of how the character speaks and interacts...',
     firstMsgPlaceholder: 'The very first message the character will send...',
     
     // ========================================
@@ -471,7 +470,7 @@ window.ChroniclerTranslations['en-US'] = {
     selectExportFormat: 'Select Export Format',
     
     // Filename Settings
-    filenameSettings: 'Filename Settings', 
+    filenameSettings: 'Filename Setting', 
     includeVersionInFilename: 'Include version name in filename',
     batchExportNote: 'When batch exporting, the version name will be automatically included in filenames.',
 
@@ -741,7 +740,7 @@ window.ChroniclerTranslations['en-US'] = {
     // ========================================
     // 15. Tag Management  
     // ========================================
-    tagManagement: 'Manage Tags',
+    tagManagement: 'Tag List',
     searchTagsPlaceholder: 'Search tags...',
     noTagsFound: 'No tags have been created yet.',
     tagList: 'Tag List',

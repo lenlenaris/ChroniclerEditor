@@ -405,7 +405,7 @@ static collectAllFolderData() {
                 
                 <div style="flex: 1; overflow-y: auto; padding: 0px;">
                     <!-- 版本選擇 -->
-                    <div style="margin-bottom: 24px;">
+                    <div class="export24">
                         <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; margin-bottom: 12px;">
                             ${IconManager.edit({width: 14, height: 14})}
                             <h4 style="font-size: 0.95em; font-weight: 600; color: var(--text-color); margin: 0;">${t('selectVersionsToExport')}</h4>
@@ -431,8 +431,8 @@ static collectAllFolderData() {
                 ${this.generateFormatOptions(type)}
                     
                     <!-- 檔名設定 -->
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <div class="export24">
+                        <div class="format-header">
                             ${IconManager.settings({width: 14, height: 14})}
                             <h4 style="font-size: 0.95em; font-weight: 600; color: var(--text-color); margin: 0;">${t('filenameSettings')}</h4>
                         </div>
@@ -467,13 +467,13 @@ static collectAllFolderData() {
         if (type === 'character') {
             // 角色卡支援 JSON + PNG + Markdown
 return `
-    <div style="margin-bottom: 24px;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+    <div class="export24">
+        <div class="format-header">
             ${IconManager.file({width: 14, height: 14})}
             <h4 style="font-size: 0.95em; font-weight: 600; color: var(--text-color); margin: 0;">${t('selectExportFormat')}</h4>
         </div>
         
-        <div style="display: flex; gap: 8px;">
+        <div class="format-section">
             <label id="format-json" class="version-checkbox selected" style="flex: 1;">
                 <input type="radio" name="export-format" value="json" checked onchange="ExportManager.updateFormatSelection(this)" style="margin: 0;">
                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9em;">
@@ -503,13 +503,13 @@ return `
         } else if (type === 'worldbook') {
            // 世界書支援 JSON + Markdown
 return `
-    <div style="margin-bottom: 24px;">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+    <div class="export24">
+        <div class="format-header">
             ${IconManager.file({width: 14, height: 14})}
             <h4 style="font-size: 0.95em; font-weight: 600; color: var(--text-color); margin: 0;">${t('selectExportFormat')}</h4>
         </div>
         
-        <div style="display: flex; gap: 12px;">
+        <div class="format-section">
             <label id="format-json" class="version-checkbox selected" style="flex: 1;">
                 <input type="radio" name="export-format" value="json" checked onchange="ExportManager.updateFormatSelection(this)" style="margin: 0;">
                 <div style="display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9em;">
@@ -531,13 +531,13 @@ return `
         } else if (type === 'custom') {
         // 筆記支援 TXT + Markdown
         return `
-            <div style="margin-bottom: 24px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <div class="export24">
+                <div class="format-header">
                     ${IconManager.file({width: 14, height: 14})}
                     <h4 style="font-size: 0.95em; font-weight: 600; color: var(--text-color); margin: 0;">${t('selectExportFormat')}</h4>
                 </div>
                 
-                <div style="display: flex; gap: 12px;">
+                <div class="format-section">
                     <label id="format-txt" class="version-checkbox selected" style="flex: 1;">
                         <input type="radio" name="export-format" value="txt" checked onchange="ExportManager.updateFormatSelection(this)" style="margin: 0;">
                         <div style="display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9em;">
@@ -559,13 +559,13 @@ return `
     } else if (type === 'userpersona') {
         // 玩家角色支援 TXT + Markdown
         return `
-            <div style="margin-bottom: 24px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <div class="export24">
+                <div class="format-header">
                     ${IconManager.file({width: 14, height: 14})}
                     <h4 style="font-size: 0.95em; font-weight: 600; color: var(--text-color); margin: 0;">${t('selectExportFormat')}</h4>
                 </div>
                 
-                <div style="display: flex; gap: 12px;">
+                <div class="format-section">
                     <label id="format-txt" class="version-checkbox selected" style="flex: 1;">
                         <input type="radio" name="export-format" value="txt" checked onchange="ExportManager.updateFormatSelection(this)" style="margin: 0;">
                         <div style="display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9em;">
@@ -587,13 +587,13 @@ return `
     } else if (type === 'loveydovey') {
     // 卿卿我我角色支援 TXT + Markdown
     return `
-        <div style="margin-bottom: 24px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+        <div class="export24">
+            <div class="format-header">
                 ${IconManager.file({width: 14, height: 14})}
                 <h4 style="font-size: 0.95em; font-weight: 600; color: var(--text-color); margin: 0;">${t('selectExportFormat')}</h4>
             </div>
             
-            <div style="display: flex; gap: 12px;">
+            <div class="format-section">
                 <label id="format-txt" class="version-checkbox selected" style="flex: 1;">
                     <input type="radio" name="export-format" value="txt" checked onchange="ExportManager.updateFormatSelection(this)" style="margin: 0;">
                     <div style="display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9em;">

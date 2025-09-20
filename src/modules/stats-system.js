@@ -546,7 +546,7 @@ function isLoveyDoveyField(textareaId) {
     // 方法3：原有的文字格式檢查（作為後備）
     const statsElement = document.querySelector(`[data-target="${textareaId}"]`);
     if (statsElement) {
-        return statsElement.textContent.match(/^\d+\s*\/\s*\d+\s*字$/);
+        return statsElement.textContent.match(/^\d+\s*\/\s*\d+\s*chars$/);
     }
     
     return false;

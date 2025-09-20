@@ -242,12 +242,12 @@ class ImageCropper {
     static renderQualityOptions(ratioInfo) {
         return `
             <div style="margin-bottom: 24px;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <div class="format-header">
                     ${IconManager.settings ? IconManager.settings({width: 14, height: 14}) : '⚙️'}
                     <h4 style="font-size: 0.95em; font-weight: 600; color: var(--text-color); margin: 0;">${t('outputQuality')}</h4>
                 </div>
                 
-                <div style="display: flex; gap: 12px;">
+                <div class="format-section">
                     <label id="quality-standard" class="version-checkbox selected" style="flex: 1;">
                         <input type="radio" name="crop-quality" value="standard" checked onchange="ImageCropper.updateQualitySelection(this)" style="margin: 0;">
                         <div style="display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9em;">

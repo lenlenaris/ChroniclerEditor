@@ -1246,8 +1246,7 @@ static detectLoveyDoveyField(originalTextarea) {
     
     if (countElement) {
         const countText = countElement.textContent;
-        // 🔧 支援兩種格式：「0 / 500 字」和「0/500」
-        let match = countText.match(/\/\s*(\d+)\s*字/);  // "0 / 500 字" 格式
+        let match = countText.match(/\/\s*(\d+)\s*字/);
         if (match) {
             maxLength = parseInt(match[1]);
         } else {
@@ -1266,9 +1265,9 @@ static detectLoveyDoveyField(originalTextarea) {
         if (countElement) {
             const countText = countElement.textContent;
             // 嘗試兩種格式
-            let match = countText.match(/\/\s*(\d+)\s*字/);  // "/ 500 字" 格式
+            let match = countText.match(/\/\s*(\d+)\s*字/);
             if (!match) {
-                match = countText.match(/(\d+)\/(\d+)/);      // "0/500" 格式
+                match = countText.match(/(\d+)\/(\d+)/); 
                 if (match) {
                     maxLength = parseInt(match[2]);
                 }
