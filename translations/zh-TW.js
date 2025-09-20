@@ -829,7 +829,36 @@ window.ChroniclerTranslations['zh-TW'] = {
     secretMark: ' [秘密]',
     modifiedSuffix: '_已修改',
 
+    // ========================================
+    // 18. 雲端同步功能（實驗性）
+    // ========================================
+    cloudSync: '雲端同步',
+    accountStatus: '帳號狀態', 
+    notConnectedToGoogle: '尚未連接 Google 帳號',
+    connectToGoogle: '連接 Google 帳號',
+    cloudOperations: '雲端操作',
+    uploadBackup: '上傳備份',
+    downloadBackup: '下載備份',
+    cloudSyncDescription: '手動同步備份檔案到 Google Drive，最多保留 5 個最新版本。',
+    connectedToGoogle: '已連接到 Google',
+    disconnectFromGoogle: '中斷連接',
+    googleSignInSuccess: 'Google 登入成功',
+    googleSignInFailed: 'Google 登入失敗',
+    googleSignOutSuccess: 'Google 登出成功', 
+    googleSignOutFailed: 'Google 登出失敗',
+    googleApiInitFailed: 'Google API 初始化失敗',
+    uploadBackupSuccess: '備份上傳成功',
+    uploadBackupFailed: '備份上傳失敗',
+    downloadBackupFailed: '備份下載失敗',
+    restoreBackupSuccess: '備份恢復成功',
+    restoreBackupFailed: '備份恢復失敗',
+    selectBackupFile: '選擇要恢復的備份檔案',
+    noBackupFilesFound: '未找到備份檔案',
+    pleaseSignInAgain: '請重新登入 Google 帳號',
 
+    // ========================================
+    // 19. 說明與聯絡
+    // ========================================
     // 說明
     helpTitle: '使用說明（施工中）',
     helpUsageTitle: '重要必讀',

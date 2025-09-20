@@ -719,6 +719,12 @@ function handleMenuAction(event) {
                 case 'exportAllData': exportAllData(); break;
                 case 'importAllData': importAllData(); break;
                 case 'showClearDataConfirm': showClearDataConfirm(); break;
+                case 'showCloudSync': 
+                    showCloudSync(); 
+                    break;
+                case 'showCloudSyncOnMobile': 
+                    openModalOnMobile(() => showCloudSync()); 
+                    break;
                 
                 // 🔧 新增：手機版專用的模態框處理
                 case 'showColorPickerOnMobile': 
@@ -801,6 +807,13 @@ function generateFunctionMenu() {
                 ${IconManager.globe()} ${t('languageEnglish')}
             </div>
             
+            <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
+
+            <!-- 雲端同步 -->
+            <div class="function-option" data-action="showCloudSync" style="padding: 8px 12px; cursor: pointer; font-size: 0.85em; display: flex; align-items: center; gap: 8px; transition: background 0.2s ease;" onmouseover="this.style.background='var(--bg-color)'" onmouseout="this.style.background='transparent'">
+                ${IconManager.cloud()} ${t('cloudSync')}
+            </div>
+
             <div style="height: 1px; background: var(--border-color); margin: 6px 0;"></div>
             
             <!-- 資料管理 -->
@@ -955,6 +968,80 @@ function showContact() {
     `;
     
     document.body.appendChild(modal);
+    
+    // 點擊遮罩關閉
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+
+// 雲端同步功能
+function showCloudSync() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    
+    modal.innerHTML = `
+        <div class="compact-modal-content" style="max-width: 500px; padding: 25px;">
+            <div class="compact-modal-header" style="justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                    ${IconManager.cloud({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('cloudSync')}</h3>
+                </div>
+                <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
+            </div>
+        
+            <!-- Google 帳號狀態 -->
+            <div class="compact-section" style="margin-top: 24px; padding: 0px;">
+                <div class="compact-section-title" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                    ${IconManager.user({width: 14, height: 14})}
+                    ${t('accountStatus')}
+                </div>
+                
+                <div id="google-account-status" style="padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-color); margin-bottom: 16px;">
+                    <div style="color: var(--text-muted); font-size: 0.9em;">${t('notConnectedToGoogle')}</div>
+                </div>
+                
+                <button id="google-auth-btn" class="overview-btn btn-primary" style="width: 100%; margin-bottom: 16px;" onclick="handleGoogleAuth()">
+                    ${t('connectToGoogle')}
+                </button>
+            </div>
+            
+            <!-- 雲端操作 -->
+            <div class="compact-section" style="margin-top: 24px; padding: 0px;">
+                <div class="compact-section-title" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                    ${IconManager.cloud({width: 14, height: 14})}
+                    ${t('cloudOperations')}
+                </div>
+                
+                <div style="display: flex; gap: 12px;">
+                    <button id="upload-backup-btn" class="overview-btn hover-primary" style="flex: 1;" onclick="uploadBackupToCloud()" disabled>
+                        ${IconManager.upload({width: 16, height: 16})} ${t('uploadBackup')}
+                    </button>
+                    
+                    <button id="download-backup-btn" class="overview-btn hover-primary" style="flex: 1;" onclick="downloadBackupFromCloud()" disabled>
+                        ${IconManager.download({width: 16, height: 16})} ${t('downloadBackup')}
+                    </button>
+                </div>
+                
+                <div style="font-size: 0.8em; color: var(--text-muted); margin-top: 8px; text-align: left;">
+                    ${t('cloudSyncDescription')}
+                </div>
+            </div>
+            
+            <div class="compact-modal-footer">
+                <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">${t('close')}</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 檢查登入狀態
+    checkGoogleAuthStatus();
     
     // 點擊遮罩關閉
     modal.addEventListener('click', (e) => {

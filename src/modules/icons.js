@@ -147,6 +147,52 @@ class IconManager {
         </svg>`;
     }
 
+    // 雲端圖示
+    static cloud(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            strokeWidth = 2,
+            className = '',
+            style = ''
+        } = options;
+        
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+        </svg>`;
+    }
+
+    // 鑰匙圖示
+    static key(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            strokeWidth = 2,
+            className = '',
+            style = ''
+        } = options;
+        
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <circle cx="8" cy="8" r="6"/>
+            <path d="M18.09 10.37A6 6 0 1 1 10.37 18.09L12 19.5l1.5-1.5 1.5 1.5 1.5-1.5 1.5 1.5L21 16l-2.91-5.63z"/>
+        </svg>`;
+    }
+
+    // 檢查圖示（如果還沒有）
+    static check(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            strokeWidth = 2,
+            className = '',
+            style = ''
+        } = options;
+        
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <polyline points="20,6 9,17 4,12"/>
+        </svg>`;
+    }
+
     // 首頁圖示
     static home(options = {}) {
         const {

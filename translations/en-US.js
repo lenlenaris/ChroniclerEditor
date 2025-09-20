@@ -827,8 +827,36 @@ window.ChroniclerTranslations['en-US'] = {
     secretMark: ' [Secret]',
     modifiedSuffix: ' (modified)',
 
+    // ========================================
+    // 18. Cloud Sync
+    // ========================================
+    cloudSync: 'Cloud Sync',
+    accountStatus: 'Account Status',
+    notConnectedToGoogle: 'Not connected to Google account', 
+    connectToGoogle: 'Connect to Google',
+    cloudOperations: 'Cloud Operations',
+    uploadBackup: 'Upload Backup',
+    downloadBackup: 'Download Backup',
+    cloudSyncDescription: 'Manually sync backup files to Google Drive, keep up to 5 latest versions',
+    connectedToGoogle: 'Connected to Google',
+    disconnectFromGoogle: 'Disconnect',
+    googleSignInSuccess: 'Google sign in successful',
+    googleSignInFailed: 'Google sign in failed',
+    googleSignOutSuccess: 'Google sign out successful',
+    googleSignOutFailed: 'Google sign out failed',
+    googleApiInitFailed: 'Google API initialization failed',
+    uploadBackupSuccess: 'Backup uploaded successfully',
+    uploadBackupFailed: 'Failed to upload backup',
+    downloadBackupFailed: 'Failed to download backup',
+    restoreBackupSuccess: 'Backup restored successfully',
+    restoreBackupFailed: 'Failed to restore backup',
+    selectBackupFile: 'Select backup file to restore',
+    noBackupFilesFound: 'No backup files found',
+    pleaseSignInAgain: 'Please sign in to Google again',
 
-    //聯絡
+    // ========================================
+    // 19. Contact & Feedback
+    // ========================================
     contactTitle: 'Feedback',
     contactMethodsContent: 'Found a bug or have suggestions? Please report via:<br><br>📋 <a href="https://github.com/lenlenaris/ChroniclerEditor/issues" target="_blank" style="color: var(--accent-color);">GitHub Issues</a><br>🍭 <a href="https://marshmallow-qa.com/wofpdrozz47jwkz?t=bTwcNR&utm_medium=url_text&utm_source=promotion" target="_blank" style="color: var(--accent-color);">Marshmallow</a><br><br><small style="color: var(--text-muted-color); opacity: 0.7;">Created by @lenlenaris with AI assistance (YES I LOVE Claude)</small>'
 
