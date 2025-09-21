@@ -1989,7 +1989,10 @@ function toggleItemVersions(type, itemId) {
                 versionsList.classList.add('expanded');
                 
                 setTimeout(() => {
-                    DragSortManager.enableVersionDragSort(type, itemId);
+                    // 🚫 手機版不啟用版本拖曳
+                    if (window.innerWidth > 768) {
+                        DragSortManager.enableVersionDragSort(type, itemId);
+                    }
                 }, 50);
             }
         }, 100);
@@ -2009,13 +2012,14 @@ function toggleItemVersions(type, itemId) {
         const containerSelector = `#${type}-versions-${itemId}`;
         DragSortManager.destroySortable(containerSelector);
     } else {
-        // ✨ 新增：展開前先摺疊其他角色
         collapseAllOtherItemVersions(type, itemId);
-        
         versionsList.classList.add('expanded');
         
         setTimeout(() => {
-            DragSortManager.enableVersionDragSort(type, itemId);
+            // 🚫 手機版不啟用版本拖曳
+            if (window.innerWidth > 768) {
+                DragSortManager.enableVersionDragSort(type, itemId);
+            }
         }, 50);
     }
 }
@@ -2246,9 +2250,8 @@ requestAnimationFrame(() => {
     
     // 🎯 智能渲染：只在必要時重新渲染側邊欄
     const needFullSidebarRender = (
-        wasHomePage ||                    // 從首頁切換過來
-        previousType !== type             // 切換了類型
-        // 🗑️ 移除 !previousItemId 條件
+        wasHomePage || 
+        previousType !== type  
     );
     
     if (needFullSidebarRender) {
@@ -2272,18 +2275,16 @@ updateAllPageStats();
 }
 
 function updateSidebarSelectionOnly(oldItemId, newItemId, newVersionId, type) {
-    // 移除所有 active 狀態
+
     document.querySelectorAll('.character-header.active, .version-item.active').forEach(el => {
         el.classList.remove('active');
     });
     
-    // ✅ 修改：設置新的 item active 狀態
     const newItemElement = document.querySelector(`[data-action="toggleItemVersions"][data-type="${type}"][data-item-id="${newItemId}"]`);
     if (newItemElement) {
         newItemElement.classList.add('active');
     }
     
-    // ✅ 修改：設置新的 version active 狀態
     if (newVersionId) {
         const newVersionElement = document.querySelector(`[data-action="selectSidebarItem"][data-type="${type}"][data-item-id="${newItemId}"][data-version-id="${newVersionId}"]`);
         if (newVersionElement) {
@@ -2291,12 +2292,10 @@ function updateSidebarSelectionOnly(oldItemId, newItemId, newVersionId, type) {
         }
     }
     
-    // 確保新選中項目的版本列表是展開的
     const versionsList = document.getElementById(`${type}-versions-${newItemId}`);
     if (versionsList && !versionsList.classList.contains('expanded')) {
         versionsList.classList.add('expanded');
-        
-        // 啟用版本拖曳排序
+
         setTimeout(() => {
             if (typeof DragSortManager !== 'undefined') {
                 DragSortManager.enableVersionDragSort(type, newItemId);
