@@ -234,7 +234,6 @@ textarea[id^="characterQuote-"] {
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: var(--font-lg);
-    max-width: 150px;
 }
 
 .version-checkbox:hover {

@@ -179,7 +179,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     descPlaceholder: '角色定義主要欄位',
     personalityPlaceholder: '角色性格的簡要描述',
     scenarioPlaceholder: '互動情形與聊天背景',
-    dialoguePlaceholder: '{{user}}: 你好！\n{{char}}: 你好呀！很高興見到你～',
+    dialoguePlaceholder: '聊天對話範例，每個範例一行並以<START>開頭',
     firstMsgPlaceholder: '聊天開始時角色的第一則訊息',
     
     // ========================================
