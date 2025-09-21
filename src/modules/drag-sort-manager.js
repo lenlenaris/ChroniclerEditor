@@ -230,6 +230,11 @@ static applyVersionOrder(type, itemId, orderedVersionIds) {
 
 
 static enableVersionDragSort(type, itemId) {
+    // 🚫 手機版禁用版本拖曳排序
+    if (this.isMobileDevice()) {
+        console.log(`🚫 手機版：跳過 ${type}-versions-${itemId} 版本拖曳功能`);
+        return null;
+    }
     const containerSelector = `#${type}-versions-${itemId}`;
     const container = document.querySelector(containerSelector);
     
