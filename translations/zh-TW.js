@@ -886,6 +886,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     refreshingGoogleToken: '正在更新 Google 連線階段...',
     tokenRefreshFailed: '無法更新 Google 連線階段，請重新登入。',
     googleAuthSuccess: 'Google 驗證成功！',
+    googleSessionExpired: '您的 Google 連線階段已過期，請重新登入以繼續。',
 
     // ========================================
     // 19. 說明與聯絡

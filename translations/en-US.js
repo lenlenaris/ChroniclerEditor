@@ -884,6 +884,7 @@ window.ChroniclerTranslations['en-US'] = {
     refreshingGoogleToken: 'Refreshing Google session...',
     tokenRefreshFailed: 'Failed to refresh Google session. Please sign in again.',
     googleAuthSuccess: 'Google authentication successful!',
+    googleSessionExpired: 'Your Google session has expired. Please sign in again to continue.',
 
 
     helpTitle: 'User Guide',
