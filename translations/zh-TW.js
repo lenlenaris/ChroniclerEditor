@@ -883,6 +883,9 @@ window.ChroniclerTranslations['zh-TW'] = {
     processing: '處理中...',
     restoringBackup: '正在恢復備份，請稍候...',
     pleaseLoginFirst: '請先登入 Google 帳號',
+    refreshingGoogleToken: '正在更新 Google 連線階段...',
+    tokenRefreshFailed: '無法更新 Google 連線階段，請重新登入。',
+    googleAuthSuccess: 'Google 驗證成功！',
 
     // ========================================
     // 19. 說明與聯絡

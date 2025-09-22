@@ -881,6 +881,9 @@ window.ChroniclerTranslations['en-US'] = {
     processing: 'Processing...',
     restoringBackup: 'Restoring Backup...',
     pleaseLoginFirst: 'Please log in to Google first',
+    refreshingGoogleToken: 'Refreshing Google session...',
+    tokenRefreshFailed: 'Failed to refresh Google session. Please sign in again.',
+    googleAuthSuccess: 'Google authentication successful!',
 
 
     helpTitle: 'User Guide',

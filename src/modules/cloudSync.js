@@ -44,16 +44,16 @@ class ButtonLocker {
 class GoogleCloudSync {
     constructor() {
         this.isSignedIn = false;
-        this.currentUser = null; // 這個屬性在新版中較少使用，但保留以防萬一
+        this.currentUser = null;
         this.accessToken = null;
-        
-        // 🛡️ 只需要 Client ID（公開安全）
+        this.tokenExpiresAt = null;
+        this._tokenRefreshPromise = null;
         this.CLIENT_ID = '601592669531-36o2ec8fbb8b103sc9agio8239dm33ll.apps.googleusercontent.com';
         this.SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
         this.FOLDER_NAME = 'ChroniclerBackups';
         this.folderId = null;
         this.maxBackups = 5;
-        this.tokenClient = null; // 新增：用來儲存 GIS 的 token client
+        this.tokenClient = null;
     }
 
     async init() {
@@ -64,8 +64,8 @@ class GoogleCloudSync {
                 if (tokenData.expiresAt && Date.now() < tokenData.expiresAt) {
                     this.accessToken = tokenData.accessToken;
                     this.isSignedIn = true;
-                    // ⭐⭐⭐ 新增：從 localStorage 恢復使用者資訊 ⭐⭐⭐
                     this.currentUser = tokenData.userProfile || null;
+                    this.tokenExpiresAt = tokenData.expiresAt;
                 } else {
                     localStorage.removeItem('google_auth_token');
                 }
@@ -76,35 +76,11 @@ class GoogleCloudSync {
             this.tokenClient = google.accounts.oauth2.initTokenClient({
                 client_id: this.CLIENT_ID,
                 scope: this.SCOPES,
-                // ⭐⭐⭐ 修改 callback ⭐⭐⭐
-                callback: async (tokenResponse) => { // <-- 將 callback 變成 async 函數
-                    if (tokenResponse.error) {
-                        console.error(t('oauthError'), tokenResponse);
-                        this.showError(t('authFailed') + ': ' + tokenResponse.error);
-                        localStorage.removeItem('google_auth_token');
-                        this.isSignedIn = false;
-                        this.accessToken = null;
-                        this.currentUser = null; // 登入失敗也要清除使用者資訊
-                        this.updateAuthStatus();
-                        return;
+                callback: (tokenResponse) => {
+                    this._handleTokenResponse(tokenResponse);
+                    if (!tokenResponse.error) {
+                         NotificationManager.success(t('googleAuthSuccess'));
                     }
-                    
-                    this.accessToken = tokenResponse.access_token;
-                    this.isSignedIn = true;
-
-                    // ⭐⭐⭐ 新增：獲取使用者資訊 ⭐⭐⭐
-                    await this.fetchUserProfile(); 
-                    
-                    const expiresAt = Date.now() + (parseInt(tokenResponse.expires_in, 10) * 1000);
-                    const tokenData = {
-                        accessToken: this.accessToken,
-                        expiresAt: expiresAt,
-                        userProfile: this.currentUser // 將使用者資訊一起儲存
-                    };
-                    localStorage.setItem('google_auth_token', JSON.stringify(tokenData));
-                    
-                    this.updateAuthStatus();
-                    NotificationManager.success(t('googleLoginSuccess'));
                 },
             });
             
@@ -116,7 +92,47 @@ class GoogleCloudSync {
         }
     }
 
-    // ⭐⭐⭐ 添加這整個新函數 ⭐⭐⭐
+    async _handleTokenResponse(tokenResponse) {
+        if (tokenResponse.error) {
+            console.error(t('oauthError'), tokenResponse);
+            this.showError(t('authFailed') + ': ' + tokenResponse.error);
+            localStorage.removeItem('google_auth_token');
+            this.isSignedIn = false;
+            this.accessToken = null;
+            this.currentUser = null;
+            this.tokenExpiresAt = null;
+            this.updateAuthStatus();
+
+            // 如果有正在等待的續期請求，則讓它失敗
+            if (this._tokenRefreshPromise) {
+                this._tokenRefreshPromise.reject(new Error(tokenResponse.error));
+            }
+            return;
+        }
+        
+        this.accessToken = tokenResponse.access_token;
+        this.isSignedIn = true;
+
+        await this.fetchUserProfile(); 
+        
+        const expiresAt = Date.now() + (parseInt(tokenResponse.expires_in, 10) * 1000);
+        this.tokenExpiresAt = expiresAt; // 更新過期時間
+
+        const tokenData = {
+            accessToken: this.accessToken,
+            expiresAt: expiresAt,
+            userProfile: this.currentUser
+        };
+        localStorage.setItem('google_auth_token', JSON.stringify(tokenData));
+        
+        this.updateAuthStatus();
+        
+        // 如果有正在等待的續期請求，則告訴它已成功
+        if (this._tokenRefreshPromise) {
+            this._tokenRefreshPromise.resolve(this.accessToken);
+        }
+    }
+
     async fetchUserProfile() {
         try {
             if (!this.accessToken) return;
@@ -207,10 +223,11 @@ class GoogleCloudSync {
             
             localStorage.removeItem('google_auth_token');
             
-            this.currentUser = null; // 登出時清除使用者資訊
+            this.currentUser = null;
             this.isSignedIn = false;
             this.accessToken = null;
             this.folderId = null;
+            this.tokenExpiresAt = null;
             
             this.updateAuthStatus();
             NotificationManager.success(t('googleLogoutSuccess'));
@@ -221,14 +238,45 @@ class GoogleCloudSync {
         }
     }
 
-    // 檢查 token 有效性
     async ensureValidToken() {
+        // 檢查 1: 是否根本沒有 token
         if (!this.accessToken) {
             throw new Error(t('notLoggedInGoogle'));
         }
-        // 注意：這裡沒有處理 token 過期的問題，因為 GIS 的 token 通常是一小時。
-        // 對於我們這種手動操作的備份/恢復，使用者不太可能掛著一小時不動。
-        // 如果未來有自動同步需求，才需要加上 token 刷新邏輯。
+
+        // 檢查 2: token 是否已過期 (我們提早 5 分鐘)
+        const isExpired = Date.now() >= (this.tokenExpiresAt - 5 * 60 * 1000);
+
+        if (isExpired) {
+            // 如果正在續期中，就等待現有的續期完成
+            if (this._tokenRefreshPromise) {
+                return await this._tokenRefreshPromise.promise;
+            }
+
+            // 開始新的續期流程
+            NotificationManager.info(t('refreshingGoogleToken'));
+            
+            let resolver, rejecter;
+            const promise = new Promise((resolve, reject) => {
+                resolver = resolve;
+                rejecter = reject;
+            });
+            
+            this._tokenRefreshPromise = { promise, resolve: resolver, reject: rejecter };
+
+            try {
+                // 發起無感知 token 請求
+                this.tokenClient.requestAccessToken({ prompt: 'none' });
+                return await promise;
+            } catch (error) {
+                console.error('Token 續期失敗:', error);
+                this._tokenRefreshPromise = null; // 清理
+                throw new Error(t('tokenRefreshFailed'));
+            } finally {
+                this._tokenRefreshPromise = null; // 無論成功失敗都清理
+            }
+        }
+        
         return this.accessToken;
     }
 
