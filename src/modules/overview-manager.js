@@ -2594,6 +2594,21 @@ class ContextMenuManager {
     static copyItem(type, itemId) {
         this.removeMenu();
         ItemCRUD.copy(type, itemId);
+        
+        if (isListPage && (type === 'worldbook' || type === 'custom')) {
+            // 重置快取確保顯示最新數據
+            OverviewManager.invalidateCache();
+            // 重新渲染當前列表
+            OverviewManager.renderItems(type, `${type}-list`);
+            // 更新側邊欄統計
+            if (typeof renderSidebar === 'function') {
+                renderSidebar();
+            }
+            // 靜默保存數據
+            if (typeof saveDataSilent === 'function') {
+                saveDataSilent();
+            }
+        }
     }
 
     // 刪除項目
