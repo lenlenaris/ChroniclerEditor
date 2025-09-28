@@ -491,6 +491,13 @@ window.ChroniclerTranslations['zh-TW'] = {
     promptsCount: '提示詞',
     expandAll: '展開全部',
     collapseAll: '摺疊全部',
+    previewMode: '預覽模式',
+    exitPreview: '退出預覽',
+    promptPreview: '提示詞預覽',
+    refresh: '重新整理',
+    noDataAvailable: '無可用數據',
+    noEnabledPrompts: '沒有啟用的提示詞',
+    source: '來源',
 
 
 

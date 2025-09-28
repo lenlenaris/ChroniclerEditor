@@ -871,3 +871,85 @@
 .preset-entry-disabled {
     opacity: 0.6;
 }*/
+
+
+/* ===== 預覽模式樣式 ===== */
+
+/* 預覽模式容器 */
+.preset-preview-mode {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+}
+
+/* 預覽面板 */
+.preset-preview-panel {
+    flex: 1;
+    background: var(--content-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* 編輯面板（預覽模式下） */
+.preset-edit-panel {
+    flex: 1;
+}
+
+/* 預覽內容 */
+.preset-preview-content {
+    font-family: 'Courier New', Monaco, monospace;
+    font-size: 0.9em;
+    line-height: 1.6;
+    color: var(--text-color);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* 來源標記樣式 */
+.preset-preview-source {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.85em;
+    margin: 8px 0;
+    padding: 4px 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    border-left: 3px solid var(--accent-color);
+}
+
+/* 預覽頂部控制列 */
+.preset-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.preset-preview-title {
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin: 0;
+}
+
+/* 手機版響應式 */
+@media (max-width: 768px) {
+    .preset-preview-mode {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .preset-preview-panel {
+        max-height: 40vh;
+        order: 1;
+    }
+    
+    .preset-edit-panel {
+        order: 2;
+    }
+}

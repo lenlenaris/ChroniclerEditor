@@ -3,16 +3,20 @@ class PresetRenderer {
 static renderPresetVersionContent(preset, version) {
     const content = `
 <div class="preset-header">
-    <div class="preset-controls-bar" style="display: flex; gap: 10px; justify-content: flex-start; align-items: center;">
-        <button class="version-panel-btn hover-primary" onclick="PresetRenderer.expandAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
-            ${IconManager.expandAll({width: 14, height: 14})}
-            <span>${t('expandAll')}</span>
-        </button>
-        <button class="version-panel-btn hover-primary" onclick="PresetRenderer.collapseAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
-            ${IconManager.collapseAll({width: 14, height: 14})}
-            <span>${t('collapseAll')}</span>
-        </button>
-    </div>
+<div class="preset-controls-bar" style="display: flex; gap: 10px; justify-content: flex-start; align-items: center;">
+    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewMode('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
+        ${IconManager.eye({width: 14, height: 14})}
+        <span id="preview-btn-text-${version.id}">${t('previewMode')}</span>
+    </button>
+    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.expandAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
+        ${IconManager.expandAll({width: 14, height: 14})}
+        <span>${t('expandAll')}</span>
+    </button>
+    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.collapseAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
+        ${IconManager.collapseAll({width: 14, height: 14})}
+        <span>${t('collapseAll')}</span>
+    </button>
+</div>
 </div>
             
             <!-- 只顯示可編輯條目列表 (character_id: 100001) -->
@@ -622,6 +626,215 @@ static collapseAllPrompts(versionId) {
             toggleBtn.innerHTML = '<span class="arrow-icon arrow-right"></span>';
         }
     });
+}
+
+// 切換預覽模式
+static togglePreviewMode(versionId) {
+    const container = document.querySelector(`#editable-prompts-list-${versionId}`).closest('.preset-prompts-container');
+    const isPreviewMode = container.classList.contains('preview-mode');
+    
+    if (isPreviewMode) {
+        // 退出預覽模式
+        this.exitPreviewMode(versionId);
+    } else {
+        // 進入預覽模式
+        this.enterPreviewMode(versionId);
+    }
+}
+
+// 進入預覽模式
+static enterPreviewMode(versionId) {
+    const container = document.querySelector(`#editable-prompts-list-${versionId}`).closest('.preset-prompts-container');
+    const editContainer = document.querySelector(`#editable-prompts-list-${versionId}`);
+    
+    // 標記為預覽模式
+    container.classList.add('preview-mode');
+    
+    // 生成預覽內容
+    const previewContent = this.generatePreviewContent(versionId);
+    
+    // 創建預覽模式布局
+    container.innerHTML = `
+        <div class="preset-preview-mode">
+            <div class="preset-preview-panel">
+                <div class="preset-preview-header">
+                    <h4 class="preset-preview-title">${t('promptPreview')}</h4>
+                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.refreshPreview('${versionId}')" style="display: flex; align-items: center; gap: 4px;">
+                        ${IconManager.refresh({width: 12, height: 12})}
+                        <span>${t('refresh')}</span>
+                    </button>
+                </div>
+                <div class="preset-preview-content" id="preview-content-${versionId}">
+                    ${previewContent}
+                </div>
+            </div>
+            <div class="preset-edit-panel">
+                ${editContainer.outerHTML}
+            </div>
+        </div>
+    `;
+    
+    // 更新按鈕文字
+    const btnText = document.getElementById(`preview-btn-text-${versionId}`);
+    if (btnText) {
+        btnText.textContent = t('exitPreview');
+    }
+    
+    // 重新初始化編輯面板的功能
+    setTimeout(() => {
+        this.enablePromptsDragSort(this.getCurrentPresetId(), versionId, 100001);
+    }, 100);
+}
+
+// 退出預覽模式
+static exitPreviewMode(versionId) {
+    const container = document.querySelector(`.preset-prompts-container.preview-mode`);
+    if (!container) return;
+    
+    // 移除預覽模式標記
+    container.classList.remove('preview-mode');
+    
+    // 恢復原來的編輯布局
+    const editPanel = container.querySelector('.preset-edit-panel');
+    if (editPanel) {
+        const editContainer = editPanel.querySelector(`#editable-prompts-list-${versionId}`);
+        if (editContainer) {
+            container.innerHTML = editContainer.outerHTML;
+        }
+    }
+    
+    // 更新按鈕文字
+    const btnText = document.getElementById(`preview-btn-text-${versionId}`);
+    if (btnText) {
+        btnText.textContent = t('previewMode');
+    }
+    
+    // 重新初始化拖曳功能
+    setTimeout(() => {
+        this.enablePromptsDragSort(this.getCurrentPresetId(), versionId, 100001);
+    }, 100);
+}
+
+// 輔助方法：獲取當前 preset ID
+static getCurrentPresetId() {
+    // 這裡需要根據你的現有邏輯來獲取當前的 preset ID
+    // 暫時返回一個佔位符，你可能需要調整這個邏輯
+    return window.currentPresetId || 'current';
+}
+
+// 生成預覽內容
+static generatePreviewContent(versionId) {
+    // 獲取當前的 preset 和 version 數據
+    const presetData = this.getCurrentPresetData(versionId);
+    if (!presetData) {
+        return `<div class="preset-preview-source">${t('noDataAvailable')}</div>`;
+    }
+    
+    const { preset, version } = presetData;
+    
+    // 找到可編輯條目的配置 (character_id: 100001)
+    const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
+    if (!orderConfig || !orderConfig.order) {
+        return `<div class="preset-preview-source">${t('noPromptsConfigured')}</div>`;
+    }
+    
+    // 按順序處理每個條目
+    const contentParts = [];
+    
+    orderConfig.order.forEach(orderItem => {
+        // 只處理啟用的條目
+        if (!orderItem.enabled) return;
+        
+        const prompt = version.prompts?.find(p => p.identifier === orderItem.identifier);
+        if (!prompt) return;
+        
+        const isMarker = prompt.marker === true;
+        
+        if (isMarker) {
+            // Marker 條目顯示來源標記
+            contentParts.push(`<div class="preset-preview-source">*${t('source')}：${prompt.name}*</div>`);
+    } else {
+        // 一般條目顯示內容
+        if (prompt.content && prompt.content.trim()) {
+            // HTML 轉義，讓 XML 標籤能正確顯示
+            const escapedContent = this.escapeHtml(prompt.content.trim());
+            contentParts.push(escapedContent);
+        }
+    }
+    });
+    
+    if (contentParts.length === 0) {
+        return `<div class="preset-preview-source">${t('noEnabledPrompts')}</div>`;
+    }
+    
+    // 將所有內容用雙換行連接（形成段落分隔）
+    return contentParts.join('\n\n');
+}
+
+// 獲取當前 preset 數據的輔助方法
+static getCurrentPresetData(versionId) {
+    // 方法1: 從 DOM 中的 data 屬性獲取
+    const promptsContainer = document.querySelector(`[data-version-id="${versionId}"].prompts-entries-container`);
+    if (promptsContainer) {
+        const presetId = promptsContainer.dataset.presetId;
+        const foundVersionId = promptsContainer.dataset.versionId;
+        
+        // 從全局變數中找到對應的數據
+        if (typeof presets !== 'undefined' && presets.length > 0) {
+            const preset = presets.find(p => p.id === presetId);
+            if (preset) {
+                const version = preset.versions.find(v => v.id === foundVersionId);
+                if (version) {
+                    return { preset, version };
+                }
+            }
+        }
+    }
+    
+    // 方法2: 如果方法1失敗，嘗試從所有 presets 中搜尋
+    if (typeof presets !== 'undefined' && presets.length > 0) {
+        for (const preset of presets) {
+            const version = preset.versions.find(v => v.id === versionId);
+            if (version) {
+                return { preset, version };
+            }
+        }
+    }
+    
+    // 方法3: 檢查全局變數（可能的命名方式）
+    const globalVars = ['presets', 'currentPresets', 'presetData'];
+    for (const varName of globalVars) {
+        if (typeof window[varName] !== 'undefined') {
+            const data = window[varName];
+            if (Array.isArray(data)) {
+                for (const preset of data) {
+                    const version = preset.versions?.find(v => v.id === versionId);
+                    if (version) {
+                        return { preset, version };
+                    }
+                }
+            }
+        }
+    }
+    
+    console.warn('無法找到 preset 數據，versionId:', versionId);
+    return null;
+}
+
+// 重新整理預覽內容
+static refreshPreview(versionId) {
+    const previewContent = document.getElementById(`preview-content-${versionId}`);
+    if (!previewContent) return;
+    
+    const newContent = this.generatePreviewContent(versionId);
+    previewContent.innerHTML = newContent;
+}
+
+// HTML 轉義方法
+static escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 }

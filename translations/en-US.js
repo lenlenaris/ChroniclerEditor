@@ -490,6 +490,13 @@ window.ChroniclerTranslations['en-US'] = {
     promptsCount: 'prompts',
     expandAll: 'Expand All',
     collapseAll: 'Collapse All',
+    previewMode: 'Preview Mode',
+    exitPreview: 'Exit Preview',
+    promptPreview: 'Prompt Preview',
+    refresh: 'Refresh',
+    noDataAvailable: 'No data available',
+    noEnabledPrompts: 'No enabled prompts',
+    source: 'Source',
 
     
     // ========================================
