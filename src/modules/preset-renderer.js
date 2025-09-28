@@ -3,14 +3,8 @@ class PresetRenderer {
 static renderPresetVersionContent(preset, version) {
     const content = `
         <div class="preset-version-content">
-            <!-- 分頁標籤 -->
-            <div class="preset-tabs">
-                <button class="preset-tab active" data-tab="system" onclick="PresetRenderer.switchTab('system', '${preset.id}', '${version.id}')">
-                    ${t('systemPrompts')}
-                </button>
-                <button class="preset-tab" data-tab="editable" onclick="PresetRenderer.switchTab('editable', '${preset.id}', '${version.id}')">
-                    ${t('editablePrompts')}
-                </button>
+            <div class="preset-header">
+                <h3 class="section-title">${t('editablePrompts')}</h3>
             </div>
             
             <!-- 匯入匯出按鈕 -->
@@ -31,25 +25,20 @@ static renderPresetVersionContent(preset, version) {
                 </button>
             </div>
             
-            <!-- 條目列表容器 -->
+            <!-- 只顯示可編輯條目列表 (character_id: 100001) -->
             <div class="preset-prompts-container">
-                <!-- 系統條目列表 (character_id: 100000) -->
-                <div id="system-prompts-list-${version.id}" class="prompts-list active">
-                    ${this.renderPromptsList(preset, version, 100000)}
-                </div>
-                
-                <!-- 可編輯條目列表 (character_id: 100001) -->
-                <div id="editable-prompts-list-${version.id}" class="prompts-list" style="display: none;">
+                <div id="editable-prompts-list-${version.id}" class="prompts-list">
                     ${this.renderPromptsList(preset, version, 100001)}
                 </div>
             </div>
         </div>
     `;
     
-    // 初始化拖拽排序
+    // 只初始化可編輯條目的拖拽排序
     setTimeout(() => {
-        this.initializeDragSort(preset.id, version.id);
-    }, 50);
+        this.enablePromptsDragSort(preset.id, version.id, 100001);
+        console.log(`🎯 已初始化 preset ${preset.id} version ${version.id} 的可編輯條目拖拽排序`);
+    }, 200);
     
     return content;
 }
@@ -176,30 +165,6 @@ static renderPromptsList(preset, version, characterId) {
         `;
     }
     
-// 切換分頁
-static switchTab(tabType, presetId, versionId) {
-    // 切換分頁按鈕樣式
-    document.querySelectorAll('.preset-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelector(`[data-tab="${tabType}"]`).classList.add('active');
-    
-    // 切換列表顯示
-    document.querySelectorAll('.prompts-list').forEach(list => {
-        list.style.display = 'none';
-    });
-    
-    const targetList = document.getElementById(`${tabType}-prompts-list-${versionId}`);
-    if (targetList) {
-        targetList.style.display = 'block';
-        
-        // 重新初始化對應分頁的拖拽
-        const characterId = tabType === 'system' ? 100000 : 100001;
-        setTimeout(() => {
-            this.enablePromptsDragSort(presetId, versionId, characterId);
-        }, 50);
-    }
-}
     
     // 展開/收合條目內容
     static togglePromptContent(identifier) {
@@ -579,28 +544,19 @@ static restorePromptCollapseStates(states) {
     });
 }
 
-// 自動初始化拖拽排序（在頁面渲染後調用）
+// 自動初始化拖拽排序（只針對可編輯條目）
 static initializeDragSort(presetId, versionId) {
-    // 延遲初始化，確保 DOM 已渲染
     setTimeout(() => {
-        // 為兩個分頁都啟用拖拽
-        this.enablePromptsDragSort(presetId, versionId, 100000); // 系統條目
-        this.enablePromptsDragSort(presetId, versionId, 100001); // 可編輯條目
-        
+        // 只為可編輯條目啟用拖拽
+        this.enablePromptsDragSort(presetId, versionId, 100001);
         console.log(`🎯 已初始化 preset ${presetId} version ${versionId} 的拖拽排序`);
-    }, 200); // 增加延遲時間，確保 DOM 完全載入
+    }, 200);
 }
 
-// 銷毀拖拽實例（切換分頁或離開頁面時調用）
+// 銷毀拖拽實例（只需要處理可編輯條目）
 static destroyDragSort(versionId) {
-    const selectors = [
-        `[data-character-id="100000"]`,
-        `[data-character-id="100001"]`
-    ];
-    
-    selectors.forEach(selector => {
-        DragSortManager.destroySortable(selector);
-    });
+    const selector = `[data-character-id="100001"]`;
+    DragSortManager.destroySortable(selector);
 }
 
 // 重新排序提示詞
@@ -673,15 +629,6 @@ static restorePromptCollapseStates(states) {
             });
         }
     });
-}
-
-// 自動初始化拖拽排序（在頁面渲染後調用）
-static initializeDragSort(presetId, versionId) {
-    setTimeout(() => {
-        // 為兩個分頁都啟用拖拽
-        this.enablePromptsDragSort(presetId, versionId, 100000); // 系統條目
-        this.enablePromptsDragSort(presetId, versionId, 100001); // 可編輯條目
-    }, 100);
 }
 
 // 保存預設

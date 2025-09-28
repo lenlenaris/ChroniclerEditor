@@ -205,6 +205,8 @@ async function loadData() {
         customSections = customSections || [];
         worldBooks = worldBooks || [];
         loveyDoveyCharacters = loveyDoveyCharacters || [];
+        userPersonas = userPersonas || [];
+        presets = presets || [];
     }
 
     TokenCacheManager.init();
@@ -216,7 +218,7 @@ async function loadData() {
     constructor() {
         this.db = null;
         this.dbName = 'CharacterCreatorDB';
-        this.version = 7;
+        this.version = 8;
         this.isSupported = 'indexedDB' in window;
     }
 
