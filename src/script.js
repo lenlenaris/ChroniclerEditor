@@ -3319,7 +3319,7 @@ function expandSidebarSection(targetType) {
 }
 
 function collapseAllSidebarSections() {
-    const sections = ['characters', 'loveydovey', 'userpersona', 'worldbook', 'custom'];
+    const sections = ['characters', 'loveydovey', 'userpersona', 'worldbook', 'custom', 'preset'];
     
     sections.forEach(sectionId => {
         const sectionContent = document.getElementById(`${sectionId}-content`);
@@ -3465,7 +3465,8 @@ function expandCurrentItemVersions() {
     { mode: 'loveydovey', id: currentLoveyDoveyId, sectionId: 'loveydovey' },
     { mode: 'userpersona', id: currentUserPersonaId, sectionId: 'userpersona' },
     { mode: 'custom', id: currentCustomSectionId, sectionId: 'custom' },
-    { mode: 'worldbook', id: currentWorldBookId, sectionId: 'worldbook' }
+    { mode: 'worldbook', id: currentWorldBookId, sectionId: 'worldbook' },
+    { mode: 'preset', id: currentPresetId, sectionId: 'preset' }
 ];
     
     expansions.forEach(({ mode, id, sectionId }) => {
@@ -3518,6 +3519,9 @@ function toggleCompareMode() {
         } else if (currentMode === 'custom') {
             currentItem = customSections.find(s => s.id === currentCustomSectionId);
             versionsArray = currentItem?.versions || [];
+        } else if (currentMode === 'preset') {
+            currentItem = presets.find(p => p.id === currentPresetId);
+            versionsArray = currentItem?.versions || [];
         }
         
         if (currentItem && versionsArray.length > 1) {
@@ -3561,11 +3565,20 @@ function showVersionSelector() {
     if (currentMode === 'character') {
         currentItem = characters.find(c => c.id === currentCharacterId);
         versionsArray = currentItem?.versions || [];
+    } else if (currentMode === 'userpersona') {
+        currentItem = userPersonas.find(up => up.id === currentUserPersonaId);
+        versionsArray = currentItem?.versions || [];
+    } else if (currentMode === 'loveydovey') {
+        currentItem = loveyDoveyCharacters.find(ld => ld.id === currentLoveyDoveyId);
+        versionsArray = currentItem?.versions || [];
     } else if (currentMode === 'worldbook') {
         currentItem = worldBooks.find(wb => wb.id === currentWorldBookId);
         versionsArray = currentItem?.versions || [];
     } else if (currentMode === 'custom') {
         currentItem = customSections.find(s => s.id === currentCustomSectionId);
+        versionsArray = currentItem?.versions || [];
+    } else if (currentMode === 'preset') {
+        currentItem = presets.find(p => p.id === currentPresetId);
         versionsArray = currentItem?.versions || [];
     }
     

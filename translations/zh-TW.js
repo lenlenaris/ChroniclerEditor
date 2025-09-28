@@ -488,6 +488,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     position: '位置',
     markerContentNotEditable: '此提示內容由其他地方提取，無法編輯。',
     source: '來源',
+    promptsCount: '提示詞',
 
 
 

@@ -20,6 +20,9 @@ static renderPresetVersionContent(preset, version) {
     setTimeout(() => {
         this.enablePromptsDragSort(preset.id, version.id, 100001);
         console.log(`🎯 已初始化 preset ${preset.id} version ${version.id} 的可編輯條目拖拽排序`);
+
+        updateAllPageStats();
+        updateVersionStats('preset', preset.id, version.id);
     }, 200);
     
     return content;
@@ -169,11 +172,17 @@ static renderPromptsList(preset, version, characterId) {
 <!-- 內容區域 -->
 <div class="field-group">
     ${canEditContent ? `
-        <label class="field-label">${t('promptContent')}</label>
-        <textarea class="field-input" 
+        <label class="field-label wb-detail-label-flex">
+            <span>
+                ${t('promptContent')}
+                <span class="field-stats wb-detail-stats" data-target="preset-content-${presetId}-${versionId}-${prompt.identifier}">${prompt.content ? prompt.content.length : 0} ${t('chars')} / ${prompt.content ? countTokens(prompt.content) : 0} ${t('tokens')}</span>
+            </span>
+        </label>
+        <textarea class="field-input scrollable" 
+            id="preset-content-${presetId}-${versionId}-${prompt.identifier}"
             placeholder="${t('promptContentPlaceholder')}"
             style="min-height: 120px;"
-            oninput="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'content', this.value)">${prompt.content || ''}</textarea>
+            oninput="updateFieldStats('preset-content-${presetId}-${versionId}-${prompt.identifier}'); PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'content', this.value)">${prompt.content || ''}</textarea>
     ` : `
         <div style="padding: 15px; background: var(--bg-secondary); border-radius: 6px; color: var(--text-muted); font-style: italic; font-size: 0.9em;">
             ${t('markerContentNotEditable')}${t('source')}：${prompt.identifier}
@@ -271,6 +280,20 @@ static updatePromptField(presetId, versionId, identifier, field, value) {
         
         TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
         markAsChanged();
+
+        if (field === 'content') {
+            // 立即更新欄位統計
+            const textareaId = `preset-content-${presetId}-${versionId}-${identifier}`;
+            setTimeout(() => {
+                updateFieldStats(textareaId);
+            }, 50);
+            
+            // 更新版本統計
+            setTimeout(() => {
+                updateVersionStats('preset', presetId, versionId);
+                updateAllPageStats();
+            }, 250);
+        }
     }
 }
 

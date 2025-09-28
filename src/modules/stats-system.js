@@ -242,7 +242,6 @@ static forceCleanCache() {
     
 }
 
-// ===== æ ¸å¿ƒçµ±è¨ˆç®¡ç†å™¨ =====
 class StatsManager {
     static calculateTextStats(text) {
         if (!text) return { chars: 0, tokens: 0 };
@@ -256,8 +255,6 @@ class StatsManager {
     static calculateVersionStats(version, type) {
         const versionId = version.id || `${type}_${Date.now()}`;
         const lastUpdated = version.updatedAt;
-        
-        // æª¢æŸ¥æŒä¹…åŒ–ç·©å­˜
         const cached = TokenCacheManager.get(versionId, lastUpdated);
         if (cached) {
             return cached;
@@ -295,14 +292,12 @@ class StatsManager {
                     version.dislikes
                 ].filter(Boolean);
                 
-                // æ·»åŠ é™„åŠ è³‡è¨Šå…§å®¹
                 if (version.additionalInfo && Array.isArray(version.additionalInfo)) {
                     version.additionalInfo.forEach(info => {
                         if (info.content) textParts.push(info.content);
                     });
                 }
-                
-                // æ·»åŠ å‰µä½œè€…äº‹ä»¶å…§å®¹
+
                 if (version.creatorEvents && Array.isArray(version.creatorEvents)) {
                     version.creatorEvents.forEach(event => {
                         if (event.content) textParts.push(event.content);
@@ -329,6 +324,16 @@ class StatsManager {
                     const entryCount = version.entries.length;
                     allText = version.entries.map(entry => entry.content || '').filter(Boolean).join('');
                     extraInfo = `${entryCount} ${t('entriesCount')} / `;
+                }
+                break;
+
+            case 'preset':
+                if (version.prompts && Array.isArray(version.prompts)) {
+                    // 只統計有內容且非標記類型的提示詞
+                    const editablePrompts = version.prompts.filter(p => p.content && !p.marker);
+                    const promptCount = editablePrompts.length;
+                    allText = editablePrompts.map(prompt => prompt.content).join('');
+                    extraInfo = `${promptCount} ${t('promptsCount')} / `;
                 }
                 break;
         }
@@ -467,7 +472,8 @@ function updateSidebarStats() {
         { type: 'custom', items: customSections },
         { type: 'worldbook', items: worldBooks },
         { type: 'userpersona', items: userPersonas },
-        { type: 'loveydovey', items: loveyDoveyCharacters }
+        { type: 'loveydovey', items: loveyDoveyCharacters },
+        { type: 'preset', items: presets }
     ];
     
     allTypes.forEach(({ type, items }) => {
@@ -639,12 +645,10 @@ function getCachedStatsForSidebar(version, itemType) {
     return realStats;
 }
 
-// ðŸ“Š å¿«é€Ÿçµ±è¨ˆé ä¼°ï¼ˆé¿å…é¡¯ç¤º0ï¼‰
 function getQuickStatsEstimate(version, itemType) {
     let allText = '';
     let extraInfo = '';
     
-    // å¿«é€Ÿæ”¶é›†æ–‡æœ¬ï¼ˆä¸é€²è¡Œtokenè¨ˆç®—ï¼‰
     switch (itemType) {
         case 'character':
             allText = [
@@ -671,7 +675,6 @@ function getQuickStatsEstimate(version, itemType) {
             }
             break;
         case 'loveydovey':
-            // å¿«é€Ÿæ”¶é›†å¿™å¿™æˆ‘æˆ‘çš„æ–‡æœ¬
             const textParts = [
                 version.characterName,
                 version.publicDescription,
@@ -680,10 +683,21 @@ function getQuickStatsEstimate(version, itemType) {
             ].filter(Boolean);
             allText = textParts.join('');
             break;
+        case 'preset':
+            if (version.prompts && Array.isArray(version.prompts)) {
+                const promptCount = version.prompts.filter(p => p.content && !p.marker).length;
+                const textParts = version.prompts
+                    .filter(p => p.content && !p.marker)
+                    .map(prompt => prompt.content)
+                    .filter(Boolean);
+                allText = textParts.join('');
+                extraInfo = `${promptCount} ${t('promptsCount')} / `;
+            }
+            break;
     }
     
     const chars = allText.length;
-    const estimatedTokens = Math.ceil(chars * 0.75); // å¿«é€Ÿé ä¼°tokenæ•¸
+    const estimatedTokens = Math.ceil(chars * 0.75);
     
     return {
         chars,
