@@ -866,3 +866,8 @@
 .prompts-list {
     width: 100%;
 }
+
+/* 禁用狀態的條目樣式 */
+.preset-entry-disabled {
+    opacity: 0.6;
+}

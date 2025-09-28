@@ -467,6 +467,23 @@ window.ChroniclerTranslations['en-US'] = {
     savePreset: 'Save Preset',
     saveSuccess: 'Save successful!',
     saveError: 'Save failed',
+    presetOnlySupportsJSON: 'Preset only supports JSON format',
+    invalidPresetFile: 'Invalid preset file format',
+    presetParseError: 'Preset file parse error: {0}',
+    presetAlreadyExists: 'Preset "{0}" already exists',
+    addAsNewPresetVersion: 'Add as new version',
+    createAsNewPreset: 'Create as new preset',
+    presetImportSuccess: 'Successfully imported preset "{0}"',
+    presetRenamedImportSuccess: 'Successfully imported preset as "{0}"',
+    importedFromPreset: 'Imported from {0}',
+    versionAddedToPreset: 'Version "{0}" added to preset "{1}"',
+    preset: 'Preset',
+    markdownFormatComingSoon: 'Markdown format coming soon',
+    comingSoon: 'Coming Soon',
+    relativePosition: 'Relative Position',
+    chatPromptManagement: 'Chat Prompt Management', 
+    depth: 'Depth',
+    order: 'Order',
 
     
     // ========================================

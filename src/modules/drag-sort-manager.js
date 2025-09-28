@@ -1030,6 +1030,9 @@ let subtitle = '支援 JSON 和 PNG 格式';
 if (isListPage && listPageType === 'worldbook') {
     title = '拖放檔案即可匯入世界書';
     subtitle = '支援 JSON 格式';
+} else if (isListPage && listPageType === 'preset') {
+    title = '拖放檔案即可匯入預設';
+    subtitle = '支援 JSON 格式';
 }
 
 overlay.innerHTML = `
@@ -1074,6 +1077,8 @@ async function handleFileImport(file) {
             importType = 'worldbook';
         } else if (isListPage && listPageType === 'custom') {
             importType = 'custom'; // 為筆記本預留
+        } else if (isListPage && listPageType === 'preset') {
+            importType = 'preset';
         }
         
         await ImportManager.handleImport(file, importType);
@@ -1084,8 +1089,8 @@ async function handleFileImport(file) {
 }
 
         const handleDragEnter = (e) => {
-            //  支援首頁和世界書列表頁面（筆記列表暫不支援匯入）
-if (!isHomePage && !(isListPage && listPageType === 'worldbook')) return;
+//  支援首頁、世界書列表頁面和預設列表頁面
+if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType === 'preset'))) return;
             
             
             
@@ -1109,8 +1114,8 @@ if (!isHomePage && !(isListPage && listPageType === 'worldbook')) return;
         };
 
         const handleDragOver = (e) => {
-            //  支援首頁和世界書列表頁面（筆記列表暫不支援匯入）
-if (!isHomePage && !(isListPage && listPageType === 'worldbook')) return;
+//  支援首頁、世界書列表頁面和預設列表頁面
+if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType === 'preset'))) return;
             
             // 🔧 修復：只檢查 types
             if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
@@ -1122,8 +1127,8 @@ if (!isHomePage && !(isListPage && listPageType === 'worldbook')) return;
         };
 
         const handleDragLeave = (e) => {
-            //  支援首頁和世界書列表頁面（筆記列表暫不支援匯入）
-if (!isHomePage && !(isListPage && listPageType === 'worldbook')) return;
+//  支援首頁、世界書列表頁面和預設列表頁面
+if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType === 'preset'))) return;
             
             // 🔧 修復：只檢查 types
             if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
@@ -1142,9 +1147,8 @@ if (!isHomePage && !(isListPage && listPageType === 'worldbook')) return;
 
         const handleDrop = async (e) => {
             
-            //  支援首頁和世界書/筆記列表頁面
-if (!isHomePage && !(isListPage && (listPageType === 'worldbook'))) {
-    
+//  支援首頁、世界書/預設列表頁面
+if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType === 'preset'))) {
     return;
 }
             
@@ -1186,7 +1190,8 @@ if (!isHomePage && !(isListPage && (listPageType === 'worldbook'))) {
                                             if (successCount > 0) {
                                                 //  根據當前頁面類型顯示對應訊息
 const itemType = (isListPage && listPageType === 'worldbook') ? '世界書' : 
-                 (isListPage && listPageType === 'custom') ? '筆記' : '角色';
+                 (isListPage && listPageType === 'custom') ? '筆記' : 
+                 (isListPage && listPageType === 'preset') ? '預設' : '角色';
 NotificationManager.success(`成功匯入 ${successCount} 個${itemType}！${errorCount > 0 ? ` ${errorCount} 個檔案匯入失敗。` : ''}`);
                                             }
                                             return;

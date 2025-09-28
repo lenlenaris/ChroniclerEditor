@@ -612,6 +612,34 @@ return `
             </div>
         </div>
     `;
+} else if (type === 'preset') {
+    // 預設支援 JSON + Markdown（施工中）
+    return `
+        <div class="export24">
+            <div class="format-header">
+                ${IconManager.file({width: 14, height: 14})}
+                <h4 style="font-size: 0.95em; font-weight: 600; color: var(--text-color); margin: 0;">${t('selectExportFormat')}</h4>
+            </div>
+            
+            <div class="format-section">
+                <label id="format-json" class="version-checkbox selected" style="flex: 1;">
+                    <input type="radio" name="export-format" value="json" checked onchange="ExportManager.updateFormatSelection(this)" style="margin: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9em;">
+                        ${IconManager.file({width: 16, height: 16})}
+                        JSON (SillyTavern)
+                    </div>
+                </label>
+                
+                <label id="format-md" class="version-checkbox" style="flex: 1; opacity: 0.5;">
+                    <input type="radio" name="export-format" value="markdown" disabled style="margin: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9em;">
+                        ${IconManager.file({width: 16, height: 16})}
+                        Markdown (${t('comingSoon')})
+                    </div>
+                </label>
+            </div>
+        </div>
+    `;
         }
     }
 
@@ -900,6 +928,14 @@ return `
             } else if (format === 'markdown') {
                 const content = this.createLoveyDoveyMarkdownContent(item, version);
                 this.downloadWithCustomFilename(content, filename, 'text/markdown; charset=utf-8');
+            }
+        } else if (type === 'preset') {
+            if (format === 'json') {
+                const presetData = this.createPresetData(item, version);
+                this.downloadWithCustomFilename(presetData, filename, 'application/json');
+            } else if (format === 'markdown') {
+                // 未來實現 Markdown 格式
+                NotificationManager.warning(t('markdownFormatComingSoon'));
             }
         }
     }
@@ -1652,6 +1688,63 @@ static createWorldBookMarkdownContent(worldBook, version) {
         return positionMap[position] || 'after_char';
     }
 
+static createPresetData(preset, version) {
+    // 建立完整的 SillyTavern 預設格式
+    const exportData = {
+        // 核心陣列
+        prompts: version.prompts || [],
+        prompt_order: version.prompt_order || [],
+        
+        // 基本參數
+        temperature: version.temperature || 1,
+        frequency_penalty: version.frequency_penalty || 0,
+        presence_penalty: version.presence_penalty || 0,
+        top_p: version.top_p || 1,
+        top_k: version.top_k || 0,
+        top_a: version.top_a || 0,
+        min_p: version.min_p || 0,
+        repetition_penalty: version.repetition_penalty || 1,
+        
+        // OpenAI 設定
+        openai_max_context: version.openai_max_context || 100000,
+        openai_max_tokens: version.openai_max_tokens || 4000,
+        wrap_in_quotes: version.wrap_in_quotes || false,
+        names_behavior: version.names_behavior || 0,
+        
+        // 格式設定
+        wi_format: version.wi_format || "{0}",
+        scenario_format: version.scenario_format || "{{scenario}}",
+        personality_format: version.personality_format || "{{personality}}",
+        
+        // 提示詞模板
+        send_if_empty: version.send_if_empty || "",
+        impersonation_prompt: version.impersonation_prompt || "",
+        new_chat_prompt: version.new_chat_prompt || "",
+        new_group_chat_prompt: version.new_group_chat_prompt || "",
+        new_example_chat_prompt: version.new_example_chat_prompt || "",
+        continue_nudge_prompt: version.continue_nudge_prompt || "",
+        group_nudge_prompt: version.group_nudge_prompt || "",
+        
+        // 其他設定
+        bias_preset_selected: version.bias_preset_selected || "Default (none)",
+        max_context_unlocked: version.max_context_unlocked !== false,
+        stream_openai: version.stream_openai !== false,
+        
+        // 進階設定
+        assistant_prefill: version.assistant_prefill || "",
+        claude_use_sysprompt: version.claude_use_sysprompt || false,
+        squash_system_messages: version.squash_system_messages || false,
+        show_thoughts: version.show_thoughts || false,
+        reasoning_effort: version.reasoning_effort || "medium",
+        enable_web_search: version.enable_web_search || false,
+        
+        // 擴展
+        extensions: version.extensions || {}
+    };
+    
+    return exportData;
+}
+
     // --- 工具方法 ---
     // 檢查是否為單版本編輯模式
     static checkSingleEditMode(type, itemId) {
@@ -1703,6 +1796,7 @@ static createWorldBookMarkdownContent(worldBook, version) {
             case 'loveydovey': return t('loveydovey');
             case 'worldbook': return t('worldBook');
             case 'custom': return t('customFields');
+            case 'preset': return t('preset');
             default: return t('item');
         }
     }
@@ -1755,6 +1849,8 @@ class ImportManager {
                 return await this.handleWorldBookImport(file, fileType);
             } else if (targetType === 'all') {
                 return await this.handleAllDataImport(file, fileType);
+            } else if (targetType === 'preset') {
+                return await this.handlePresetImport(file, fileType);
             }
         } catch (error) {
             NotificationManager.error(t('importFailed', error.message));
@@ -2446,7 +2542,257 @@ setTimeout(() => {
         }
     }
 
+    // ===== 預設匯入 =====
+    static async handlePresetImport(file, fileType) {
+    if (fileType !== 'json') {
+        NotificationManager.error(t('presetOnlySupportsJSON'));
+        return false;
+    }
+    
+    try {
+        const textContent = await FileHandler.readFile(file, 'text');
+        const data = JSON.parse(textContent);
+        
+        // 檢查是否為 SillyTavern 預設格式
+        if (data.prompts && Array.isArray(data.prompts) && data.prompt_order && Array.isArray(data.prompt_order)) {
+            this.importSillyTavernPreset(data, file.name);
+            updateMobileBreadcrumb();
+            return true;
+        } else {
+            NotificationManager.error(t('invalidPresetFile'));
+            return false;
+        }
+        
+    } catch (error) {
+        throw new Error(t('presetParseError', error.message));
+    }
+}
 
+static importSillyTavernPreset(data, filename) {
+    const presetName = filename.replace('.json', '') || 'Imported Preset';
+    
+    // 檢查是否已存在同名預設
+    const existingPreset = presets.find(p => p.name === presetName);
+    
+    if (existingPreset) {
+        // 詢問用戶要如何處理
+        const choice = NotificationManager.confirmWithOptions(
+            t('presetAlreadyExists', presetName),
+            t('addAsNewPresetVersion'),
+            t('createAsNewPreset')
+        );
+        
+        if (choice) {
+            // 新增為現有預設的新版本
+            this.addPresetVersionToExisting(existingPreset, data, presetName);
+        } else {
+            // 創建新預設（重命名）
+            this.createNewPresetFromImport(data, presetName, true);
+        }
+    } else {
+        // 直接創建新預設
+        this.createNewPresetFromImport(data, presetName, false);
+    }
+}
+
+// 在 ImportManager 類中新增此方法
+static createNewPresetFromImport(data, presetName, isRenamed) {
+    // 找到一個不重複的預設名稱
+    let finalPresetName = presetName;
+    if (isRenamed) {
+        const existingNames = presets.map(p => p.name);
+        let counter = 1;
+        while (existingNames.includes(finalPresetName)) {
+            finalPresetName = `${presetName} (${counter})`;
+            counter++;
+        }
+    }
+    
+    const preset = {
+        id: generateId(),
+        name: finalPresetName,
+        versions: [{
+            id: generateId(),
+            name: t('importedVersion'),
+            // 完整保留原始資料結構
+            prompts: data.prompts || [],
+            prompt_order: data.prompt_order || [],
+            
+            // 基本參數
+            temperature: data.temperature || 1,
+            frequency_penalty: data.frequency_penalty || 0,
+            presence_penalty: data.presence_penalty || 0,
+            top_p: data.top_p || 1,
+            top_k: data.top_k || 0,
+            top_a: data.top_a || 0,
+            min_p: data.min_p || 0,
+            repetition_penalty: data.repetition_penalty || 1,
+            
+            // OpenAI 設定
+            openai_max_context: data.openai_max_context || 100000,
+            openai_max_tokens: data.openai_max_tokens || 4000,
+            wrap_in_quotes: data.wrap_in_quotes || false,
+            names_behavior: data.names_behavior || 0,
+            
+            // 格式設定
+            wi_format: data.wi_format || "{0}",
+            scenario_format: data.scenario_format || "{{scenario}}",
+            personality_format: data.personality_format || "{{personality}}",
+            
+            // 提示詞模板
+            send_if_empty: data.send_if_empty || "",
+            impersonation_prompt: data.impersonation_prompt || "",
+            new_chat_prompt: data.new_chat_prompt || "",
+            new_group_chat_prompt: data.new_group_chat_prompt || "",
+            new_example_chat_prompt: data.new_example_chat_prompt || "",
+            continue_nudge_prompt: data.continue_nudge_prompt || "",
+            group_nudge_prompt: data.group_nudge_prompt || "",
+            
+            // 其他設定
+            bias_preset_selected: data.bias_preset_selected || "Default (none)",
+            max_context_unlocked: data.max_context_unlocked !== false,
+            stream_openai: data.stream_openai !== false,
+            
+            // 進階設定
+            assistant_prefill: data.assistant_prefill || "",
+            claude_use_sysprompt: data.claude_use_sysprompt || false,
+            squash_system_messages: data.squash_system_messages || false,
+            show_thoughts: data.show_thoughts || false,
+            reasoning_effort: data.reasoning_effort || "medium",
+            enable_web_search: data.enable_web_search || false,
+            
+            // 擴展
+            extensions: data.extensions || {},
+            
+            createdAt: TimestampManager.createTimestamp(),
+            updatedAt: TimestampManager.createTimestamp()
+        }]
+    };
+    
+    presets.push(preset);
+    
+    // 切換到新預設
+    currentMode = 'preset';
+    currentPresetId = preset.id;
+    currentPresetVersionId = preset.versions[0].id;
+    viewMode = 'single';
+    compareVersions = [];
+    isHomePage = false;
+    isListPage = false;
+    
+    setTimeout(() => {
+        renderAll();
+        markAsChanged();
+        
+        setTimeout(() => {
+            currentMode = 'preset';
+            currentPresetId = preset.id;
+            currentPresetVersionId = preset.versions[0].id;
+            expandCurrentItemVersions();
+        }, 100);
+    }, 50);
+    
+    const message = !isRenamed ? 
+        t('presetImportSuccess', finalPresetName) : 
+        t('presetRenamedImportSuccess', finalPresetName);
+    NotificationManager.success(message);
+}
+
+// 在 ImportManager 類中新增此方法
+static addPresetVersionToExisting(existingPreset, data, presetName) {
+    const versionName = t('importedFromPreset', presetName);
+    
+    // 檢查版本名稱是否重複
+    const existingVersionNames = existingPreset.versions.map(v => v.name);
+    let finalVersionName = versionName;
+    let counter = 1;
+    while (existingVersionNames.includes(finalVersionName)) {
+        finalVersionName = `${versionName} (${counter})`;
+        counter++;
+    }
+    
+    const newVersion = {
+        id: generateId(),
+        name: finalVersionName,
+        // 與 createNewPresetFromImport 相同的資料結構
+        prompts: data.prompts || [],
+        prompt_order: data.prompt_order || [],
+        
+        // 基本參數
+        temperature: data.temperature || 1,
+        frequency_penalty: data.frequency_penalty || 0,
+        presence_penalty: data.presence_penalty || 0,
+        top_p: data.top_p || 1,
+        top_k: data.top_k || 0,
+        top_a: data.top_a || 0,
+        min_p: data.min_p || 0,
+        repetition_penalty: data.repetition_penalty || 1,
+        
+        // OpenAI 設定
+        openai_max_context: data.openai_max_context || 100000,
+        openai_max_tokens: data.openai_max_tokens || 4000,
+        wrap_in_quotes: data.wrap_in_quotes || false,
+        names_behavior: data.names_behavior || 0,
+        
+        // 格式設定
+        wi_format: data.wi_format || "{0}",
+        scenario_format: data.scenario_format || "{{scenario}}",
+        personality_format: data.personality_format || "{{personality}}",
+        
+        // 提示詞模板
+        send_if_empty: data.send_if_empty || "",
+        impersonation_prompt: data.impersonation_prompt || "",
+        new_chat_prompt: data.new_chat_prompt || "",
+        new_group_chat_prompt: data.new_group_chat_prompt || "",
+        new_example_chat_prompt: data.new_example_chat_prompt || "",
+        continue_nudge_prompt: data.continue_nudge_prompt || "",
+        group_nudge_prompt: data.group_nudge_prompt || "",
+        
+        // 其他設定
+        bias_preset_selected: data.bias_preset_selected || "Default (none)",
+        max_context_unlocked: data.max_context_unlocked !== false,
+        stream_openai: data.stream_openai !== false,
+        
+        // 進階設定
+        assistant_prefill: data.assistant_prefill || "",
+        claude_use_sysprompt: data.claude_use_sysprompt || false,
+        squash_system_messages: data.squash_system_messages || false,
+        show_thoughts: data.show_thoughts || false,
+        reasoning_effort: data.reasoning_effort || "medium",
+        enable_web_search: data.enable_web_search || false,
+        
+        // 擴展
+        extensions: data.extensions || {},
+        
+        createdAt: TimestampManager.createTimestamp(),
+        updatedAt: TimestampManager.createTimestamp()
+    };
+    
+    existingPreset.versions.push(newVersion);
+    
+    // 切換到該預設和新版本
+    currentMode = 'preset';
+    currentPresetId = existingPreset.id;
+    currentPresetVersionId = newVersion.id;
+    viewMode = 'single';
+    compareVersions = [];
+    isHomePage = false;
+    isListPage = false;
+    
+    setTimeout(() => {
+        renderAll();
+        markAsChanged();
+        
+        setTimeout(() => {
+            currentMode = 'preset';
+            currentPresetId = existingPreset.id;
+            currentPresetVersionId = newVersion.id;
+            expandCurrentItemVersions();
+        }, 100);
+    }, 50);
+    
+    NotificationManager.success(t('versionAddedToPreset', finalVersionName, existingPreset.name));
+}
 
     // ===== 工具方法 =====
     // 切換到世界書
@@ -2814,4 +3160,21 @@ setTimeout(() => {
         ImportManager.switchToWorldBook(worldBookId, versionId);
     }
 
+    // 匯入預設
+    function importPreset() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = function(event) {
+            handlePresetImport(event);
+        };
+        input.click();
+    }
+
+    function handlePresetImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        ImportManager.handleImport(file, 'preset');
+        event.target.value = '';
+    }
 

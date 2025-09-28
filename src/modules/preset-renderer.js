@@ -7,24 +7,6 @@ static renderPresetVersionContent(preset, version) {
                 <h3 class="section-title">${t('editablePrompts')}</h3>
             </div>
             
-            <!-- 匯入匯出按鈕 -->
-            <div class="preset-controls">
-                <button class="loveydovey-add-btn" onclick="PresetRenderer.importJSON('${preset.id}', '${version.id}')">
-                    ${IconManager.import({width: 16, height: 16})}
-                    ${t('importPreset')}
-                </button>
-                <button class="loveydovey-add-btn" onclick="PresetRenderer.exportJSON('${preset.id}', '${version.id}')">
-                    ${IconManager.download({width: 16, height: 16})}
-                    ${t('exportPreset')}
-                </button>
-                
-                <!-- 保存按鈕 -->
-                <button class="loveydovey-add-btn" onclick="PresetRenderer.savePreset('${preset.id}', '${version.id}')">
-                    ${IconManager.save({width: 16, height: 16})}
-                    ${t('savePreset')}
-                </button>
-            </div>
-            
             <!-- 只顯示可編輯條目列表 (character_id: 100001) -->
             <div class="preset-prompts-container">
                 <div id="editable-prompts-list-${version.id}" class="prompts-list">
@@ -66,17 +48,7 @@ static renderPromptsList(preset, version, characterId) {
     }
     
     return `
-        <!-- 表格標題 -->
-        ${UIUtils.createTableHeader([
-            { width: '24px', title: '' },
-            { width: '40px', title: '' },
-            { width: '1fr', title: t('promptName') },
-            { width: '100px', title: t('role'), style: 'text-align: center;' },
-            { width: '120px', title: t('type'), style: 'text-align: center;' },
-            { width: '80px', title: t('injection'), style: 'text-align: center;' },
-            { width: '40px', title: '' }
-        ])}
-        
+
         <!-- 條目列表容器 - 確保有正確的 data 屬性和類別 -->
         <div class="prompts-entries-container" data-character-id="${characterId}" data-preset-id="${preset.id}" data-version-id="${version.id}">
             ${orderedPrompts.map(prompt => this.renderPromptEntry(preset.id, version.id, prompt, characterId)).join('')}
@@ -90,65 +62,77 @@ static renderPromptsList(preset, version, characterId) {
         const canEditContent = !isMarker;
         
         return `
-            <div class="entry-panel sortable-item preset-entry-panel" data-prompt-identifier="${prompt.identifier}">
-                <!-- 條目標題列 -->
-                <div class="entry-header preset-entry-header">
-                    <!-- 拖拽控制 -->
-                    <div class="drag-handle custom-field-drag-handle">
-                        ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
-                    </div>
-                    
-                    <!-- 開關 -->
-                    <label class="wb-toggle-wrapper">
-                        <input type="checkbox" ${prompt.enabled ? 'checked' : ''} 
-                            onchange="PresetRenderer.togglePromptEnabled('${presetId}', '${versionId}', '${prompt.identifier}', ${characterId}, this.checked)"
-                            class="wb-toggle-hidden-input">
-                        <div class="toggle-switch wb-toggle-switch ${prompt.enabled ? 'wb-toggle-switch-enabled' : 'wb-toggle-switch-disabled'}">
-                            <div class="wb-toggle-circle ${prompt.enabled ? 'wb-toggle-circle-enabled' : 'wb-toggle-circle-disabled'}"></div>
-                        </div>
-                    </label>
-                    
-                    <!-- 名稱 -->
-                    <div class="preset-prompt-name">
-                        <input type="text" class="field-input compact-input" 
-                            placeholder="${t('promptName')}"
-                            value="${prompt.name || ''}"
-                            onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'name', this.value)">
-                    </div>
-                    
-                    <!-- 角色類型 -->
-                    <div class="preset-prompt-role">
-                        <select class="field-input compact-input" 
-                            ${!canEditContent ? 'disabled' : ''}
-                            onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'role', this.value)">
-                            <option value="">${t('noRole')}</option>
-                            <option value="system" ${prompt.role === 'system' ? 'selected' : ''}>${t('system')}</option>
-                            <option value="user" ${prompt.role === 'user' ? 'selected' : ''}>${t('user')}</option>
-                            <option value="assistant" ${prompt.role === 'assistant' ? 'selected' : ''}>${t('assistant')}</option>
-                        </select>
-                    </div>
-                    
-                    <!-- 類型標示 -->
-                    <div class="preset-prompt-type">
-                        <span class="tag-base tag-sm ${isMarker ? 'tag-marker' : 'tag-editable'}">
-                            ${isMarker ? t('marker') : t('editable')}
-                        </span>
-                    </div>
-                    
-                    <!-- 注入位置 -->
-                    <div class="preset-prompt-injection">
-                        <input type="number" class="field-input compact-input" 
-                            value="${prompt.injection_position || 0}" 
-                            min="0" max="999"
-                            ${!canEditContent ? 'disabled' : ''}
-                            onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'injection_position', parseInt(this.value))">
-                    </div>
-                    
-                    <!-- 展開按鈕 -->
-                    <button class="entry-toggle-btn wb-toggle-btn" onclick="PresetRenderer.togglePromptContent('${prompt.identifier}')">
-                        <span class="arrow-icon arrow-right"></span>
-                    </button>
-                </div>
+            <div class="entry-panel sortable-item preset-entry-panel ${!prompt.enabled ? 'preset-entry-disabled' : ''}" data-prompt-identifier="${prompt.identifier}">
+               <!-- 條目標題列 -->
+<div class="entry-header preset-entry-header">
+    <!-- 拖曳控制 -->
+    <div class="drag-handle custom-field-drag-handle">
+        ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+    </div>
+    
+    <!-- 展開按鈕 - 移到拖曳柄右邊 -->
+    <button class="entry-toggle-btn wb-toggle-btn" onclick="PresetRenderer.togglePromptContent('${prompt.identifier}')">
+        <span class="arrow-icon arrow-right"></span>
+    </button>
+    
+    <!-- 開關 -->
+    <label class="wb-toggle-wrapper">
+        <input type="checkbox" ${prompt.enabled ? 'checked' : ''} 
+            onchange="PresetRenderer.togglePromptEnabled('${presetId}', '${versionId}', '${prompt.identifier}', ${characterId}, this.checked)"
+            class="wb-toggle-hidden-input">
+        <div class="toggle-switch wb-toggle-switch ${prompt.enabled ? 'wb-toggle-switch-enabled' : 'wb-toggle-switch-disabled'}">
+            <div class="wb-toggle-circle ${prompt.enabled ? 'wb-toggle-circle-enabled' : 'wb-toggle-circle-disabled'}"></div>
+        </div>
+    </label>
+    
+    <!-- 名稱 -->
+    <div class="preset-prompt-name">
+        <input type="text" class="field-input compact-input" 
+            placeholder="${t('promptName')}"
+            value="${prompt.name || ''}"
+            onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'name', this.value)">
+    </div>
+    
+<!-- 角色類型 -->
+<div class="preset-prompt-role">
+    <select class="field-input compact-input" 
+        onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'role', this.value)">
+        <option value="system" ${prompt.role === 'system' ? 'selected' : ''}>${t('system')}</option>
+        <option value="user" ${prompt.role === 'user' ? 'selected' : ''}>${t('user')}</option>
+        <option value="assistant" ${prompt.role === 'assistant' ? 'selected' : ''}>${t('assistant')}</option>
+    </select>
+</div>
+    
+<!-- 位置類型 -->
+<div class="preset-prompt-position">
+    <select class="field-input compact-input" 
+        onchange="PresetRenderer.updatePromptPosition('${presetId}', '${versionId}', '${prompt.identifier}', parseInt(this.value))"
+        id="position-select-${prompt.identifier}">
+        <option value="0" ${(prompt.injection_position || 0) === 0 ? 'selected' : ''}>${t('relativePosition')}</option>
+        <option value="1" ${prompt.injection_position === 1 ? 'selected' : ''}>${t('chatPromptManagement')}</option>
+    </select>
+</div>
+
+<!-- 深度（僅在絕對位置時顯示） -->
+<div class="preset-prompt-depth" id="depth-field-${prompt.identifier}" 
+    style="${prompt.injection_position === 1 ? '' : 'display: none;'}">
+    <input type="number" class="field-input compact-input" 
+        value="${prompt.injection_depth || 4}" 
+        min="0" max="999"
+        placeholder="${t('depth')}"
+        onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'injection_depth', parseInt(this.value))">
+</div>
+
+<!-- 順序（僅在絕對位置時顯示） -->
+<div class="preset-prompt-order" id="order-field-${prompt.identifier}"
+    style="${prompt.injection_position === 1 ? '' : 'display: none;'}">
+    <input type="number" class="field-input compact-input" 
+        value="${prompt.injection_order || 100}" 
+        min="1" max="999"
+        placeholder="${t('order')}"
+        onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'injection_order', parseInt(this.value))">
+</div>
+</div>
                 
                 <!-- 條目內容區域 -->
                 <div class="entry-content preset-entry-content" id="prompt-content-${prompt.identifier}" style="display: none;">
@@ -215,6 +199,16 @@ static togglePromptEnabled(presetId, versionId, identifier, characterId, enabled
                 toggleCircle.classList.add('wb-toggle-circle-disabled');
             }
             
+            // 【新增】更新條目面板的 disabled 樣式
+            const entryPanel = event.target.closest('.preset-entry-panel');
+            if (entryPanel) {
+                if (enabled) {
+                    entryPanel.classList.remove('preset-entry-disabled');
+                } else {
+                    entryPanel.classList.add('preset-entry-disabled');
+                }
+            }
+            
             TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
             markAsChanged();
         }
@@ -244,161 +238,25 @@ static updatePromptField(presetId, versionId, identifier, field, value) {
     }
 }
 
-// 匯入JSON
-static importJSON(presetId, versionId) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
+// 更新位置類型並控制欄位顯示
+static updatePromptPosition(presetId, versionId, identifier, position) {
+    // 更新 injection_position
+    this.updatePromptField(presetId, versionId, identifier, 'injection_position', position);
     
-    input.onchange = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        try {
-            const text = await file.text();
-            const importedData = JSON.parse(text);
-            
-            // 驗證必要欄位
-            if (!importedData.prompts || !Array.isArray(importedData.prompts)) {
-                throw new Error(t('invalidJSONFormat') + ': prompts ' + t('arrayRequired'));
-            }
-            
-            if (!importedData.prompt_order || !Array.isArray(importedData.prompt_order)) {
-                throw new Error(t('invalidJSONFormat') + ': prompt_order ' + t('arrayRequired'));
-            }
-            
-            // 檢查 identifier 衝突
-            const identifiers = importedData.prompts.map(p => p.identifier);
-            const duplicates = identifiers.filter((id, index) => identifiers.indexOf(id) !== index);
-            
-            if (duplicates.length > 0) {
-                throw new Error(t('duplicateIdentifiers') + ': ' + duplicates.join(', '));
-            }
-            
-            // 匯入成功，更新資料
-            const preset = presets.find(p => p.id === presetId);
-            if (preset) {
-                const version = preset.versions.find(v => v.id === versionId);
-                if (version) {
-                    // 保留其他欄位，只更新 prompts 和 prompt_order
-                    version.prompts = importedData.prompts;
-                    version.prompt_order = importedData.prompt_order;
-                    
-                    // 更新其他相關設定（如果存在）
-                    const fieldsToImport = [
-                        'temperature', 'frequency_penalty', 'presence_penalty', 'top_p', 'top_k',
-                        'openai_max_context', 'openai_max_tokens', 'wi_format', 'scenario_format',
-                        'personality_format', 'send_if_empty', 'impersonation_prompt'
-                    ];
-                    
-                    fieldsToImport.forEach(field => {
-                        if (importedData.hasOwnProperty(field)) {
-                            version[field] = importedData[field];
-                        }
-                    });
-                    
-                    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
-                    markAsChanged();
-                    
-                    // 重新渲染頁面
-                    renderAll();
-                    
-                    NotificationManager.success(t('importSuccess'));
-                }
-            }
-            
-        } catch (error) {
-            console.error('Import error:', error);
-            alert(t('importError') + ': ' + error.message);
+    // 控制深度和順序欄位的顯示/隱藏
+    const depthField = document.getElementById(`depth-field-${identifier}`);
+    const orderField = document.getElementById(`order-field-${identifier}`);
+    
+    if (depthField && orderField) {
+        if (position === 1) {
+            // 聊天中的提示詞管理：顯示深度和順序
+            depthField.style.display = '';
+            orderField.style.display = '';
+        } else {
+            // 相對位置：隱藏深度和順序
+            depthField.style.display = 'none';
+            orderField.style.display = 'none';
         }
-    };
-    
-    input.click();
-}
-
-// 匯出JSON
-static exportJSON(presetId, versionId) {
-    const preset = presets.find(p => p.id === presetId);
-    if (!preset) return;
-    
-    const version = preset.versions.find(v => v.id === versionId);
-    if (!version) return;
-    
-    try {
-        // 建立匯出物件，包含完整的 SillyTavern 格式
-        const exportData = {
-            // 核心陣列
-            prompts: version.prompts || [],
-            prompt_order: version.prompt_order || [],
-            
-            // 基本參數
-            temperature: version.temperature || 1,
-            frequency_penalty: version.frequency_penalty || 0,
-            presence_penalty: version.presence_penalty || 0,
-            top_p: version.top_p || 1,
-            top_k: version.top_k || 0,
-            top_a: version.top_a || 0,
-            min_p: version.min_p || 0,
-            repetition_penalty: version.repetition_penalty || 1,
-            
-            // OpenAI 設定
-            openai_max_context: version.openai_max_context || 100000,
-            openai_max_tokens: version.openai_max_tokens || 4000,
-            wrap_in_quotes: version.wrap_in_quotes || false,
-            names_behavior: version.names_behavior || 0,
-            
-            // 格式設定
-            wi_format: version.wi_format || "{0}",
-            scenario_format: version.scenario_format || "{{scenario}}",
-            personality_format: version.personality_format || "{{personality}}",
-            
-            // 提示詞模板
-            send_if_empty: version.send_if_empty || "",
-            impersonation_prompt: version.impersonation_prompt || "",
-            new_chat_prompt: version.new_chat_prompt || "",
-            new_group_chat_prompt: version.new_group_chat_prompt || "",
-            new_example_chat_prompt: version.new_example_chat_prompt || "",
-            continue_nudge_prompt: version.continue_nudge_prompt || "",
-            group_nudge_prompt: version.group_nudge_prompt || "",
-            
-            // 其他設定
-            bias_preset_selected: version.bias_preset_selected || "Default (none)",
-            max_context_unlocked: version.max_context_unlocked !== false,
-            stream_openai: version.stream_openai !== false,
-            
-            // 進階設定
-            assistant_prefill: version.assistant_prefill || "",
-            claude_use_sysprompt: version.claude_use_sysprompt || false,
-            squash_system_messages: version.squash_system_messages || false,
-            show_thoughts: version.show_thoughts || false,
-            reasoning_effort: version.reasoning_effort || "medium",
-            enable_web_search: version.enable_web_search || false,
-            
-            // 擴展
-            extensions: version.extensions || {}
-        };
-        
-        // 建立下載
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
-            type: 'application/json' 
-        });
-        
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${preset.name}_${version.name}.json`;
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        URL.revokeObjectURL(url);
-        
-        NotificationManager.success(t('exportSuccess'));
-        
-    } catch (error) {
-        console.error('Export error:', error);
-        alert(t('exportError') + ': ' + error.message);
     }
 }
 
@@ -629,18 +487,6 @@ static restorePromptCollapseStates(states) {
             });
         }
     });
-}
-
-// 保存預設
-static savePreset(presetId, versionId) {
-    try {
-        TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
-        saveData();
-        NotificationManager.success(t('saveSuccess'));
-    } catch (error) {
-        console.error('Save error:', error);
-        NotificationManager.error(t('saveError') + ': ' + error.message);
-    }
 }
 
 }
