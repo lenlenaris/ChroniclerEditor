@@ -52,6 +52,7 @@
     <script src="src/modules/ui-render.js"></script>
     <script src="src/modules/storage.js"></script>
     <script src="src/modules/lorebook.js"></script>
+    <script src="src/modules/preset-renderer.js"></script>
     <script src="src/modules/loveydovey-renderer.js"></script>
     <script src="src/modules/theme-manager.js"></script>
     <script src="src/modules/image.js"></script>
@@ -73,7 +74,7 @@
         <h1 class="sidebar-app-title" onclick="goToHomePage()">Chronicler Editor</h1>
     </div>
     <div class="sidebar-title-container">
-        <span class="sidebar-app-version">v 0.2.1 beta</span>
+        <span class="sidebar-app-version">v 0.2.2 beta</span>
     </div>
 </div>
 
@@ -221,6 +222,20 @@
                        </div>
                    </div>
                </div>
+
+    <!-- 預設區塊 -->
+<div class="sidebar-section">
+    <div class="sidebar-section-header" onclick="enterListPage('preset')" style="display: flex; align-items: center; gap: 12px;">
+        <span id="preset-icon">
+            <script>document.write(IconManager.settings({width: 14, height: 14, style: 'color: var(--text-muted); flex-shrink: 0; vertical-align: middle;'}))</script>
+        </span>
+        <span class="sidebar-section-title" style="margin-left: 0;">預設</span>
+    </div>
+    <div class="sidebar-section-content collapsed" id="preset-content">
+        <div id="presetContent">
+        </div>
+    </div>
+</div>
 
                <!-- 自定義欄位區塊 -->
 <div class="sidebar-section">

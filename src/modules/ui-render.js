@@ -583,6 +583,8 @@ static rerenderVersionPanel(itemType, itemId, versionId) {
                 return worldBookHTML;
                 case 'custom':
                     return this.renderCustomVersionContent(item, version);
+                case 'preset':
+                    return PresetRenderer.renderPresetVersionContent(item, version);
                 default:
                     return `<div>${t('unknownItemType')}</div>`;
             }
@@ -816,6 +818,8 @@ return basicFieldsHTML;
             `;
         }
 
+        
+
    // 渲染自定義欄位
 static renderCustomField(sectionId, versionId, field) {
     return `
@@ -849,8 +853,6 @@ static renderCustomField(sectionId, versionId, field) {
         </div>
     `;
 }
-
-
 
     static createToggleGroup(toggles, columns = 3) {
         return `
@@ -1166,6 +1168,11 @@ function renderSidebar() {
     if (loveyDoveySection) {
         const shouldShow = OtherSettings?.settings?.showLoveyDovey !== false;
         loveyDoveySection.style.display = shouldShow ? 'block' : 'none';
+    }
+
+    const presetContainer = document.getElementById('presetContent');
+    if (presetContainer) {
+        presetContainer.innerHTML = renderItemList('preset', presets, currentPresetId, currentPresetVersionId);
     }
     
     // 更新翻譯文字

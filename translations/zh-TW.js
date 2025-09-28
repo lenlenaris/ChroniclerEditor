@@ -431,6 +431,47 @@ window.ChroniclerTranslations['zh-TW'] = {
     eventContentPlaceholder: '詳細描述這個創作者事件的內容、背景、影響等...',
     
     // ========================================
+    // 預設
+    // ========================================
+    preset: '預設',
+    presets: '預設',
+    tooltipAddPreset: '新增預設',
+    tooltipImportPreset: '匯入預設',
+    clickToAddPreset: '點擊新增預設',
+    newPreset: '新預設',
+    defaultPresetName: '新預設',
+    systemPrompts: '系統提示詞',
+    editablePrompts: '可編輯提示詞',
+    importPreset: '匯入預設',
+    exportPreset: '匯出預設',
+    promptName: '提示詞名稱',
+    role: '角色',
+    type: '類型',
+    injection: '注入位置',
+    promptContent: '提示詞內容',
+    promptContentPlaceholder: '請輸入提示詞內容...',
+    noPromptsConfigured: '尚未配置任何提示詞',
+    noPromptsFound: '找不到提示詞',
+    noRole: '無角色',
+    system: '系統',
+    user: '用戶',
+    assistant: '助理',
+    marker: '標記',
+    editable: '可編輯',
+    invalidJSONFormat: 'JSON格式無效',
+    arrayRequired: '必須是陣列',
+    duplicateIdentifiers: '發現重複的識別碼',
+    importSuccess: '匯入成功！',
+    importError: '匯入失敗',
+    exportSuccess: '匯出成功！',
+    exportError: '匯出失敗',
+    savePreset: '保存預設',
+    saveSuccess: '保存成功！',
+    saveError: '保存失敗',
+
+
+
+    // ========================================
     // 8. 版本控制
     // ========================================
     // 檢視模式

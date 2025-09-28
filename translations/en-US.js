@@ -428,6 +428,46 @@ window.ChroniclerTranslations['en-US'] = {
     timeAndPlacePlaceholder: 'When and where the event takes place...',
     eventTitlePlaceholder: 'Title or name of the event...',
     eventContentPlaceholder: 'Describe the content, background, and impact of this event...',
+
+    // ========================================
+    // preset
+    // ========================================
+    preset: 'Preset',
+    presets: 'Presets', 
+    tooltipAddPreset: 'Add Preset',
+    tooltipImportPreset: 'Import Preset',
+    clickToAddPreset: 'Click to Add Preset',
+    newPreset: 'New Preset', 
+    defaultPresetName: 'New Preset',
+    systemPrompts: 'System Prompts',
+    editablePrompts: 'Editable Prompts',
+    importPreset: 'Import Preset',
+    exportPreset: 'Export Preset',
+    promptName: 'Prompt Name',
+    role: 'Role',
+    type: 'Type',
+    injection: 'Injection',
+    promptContent: 'Prompt Content',
+    promptContentPlaceholder: 'Enter prompt content...',
+    noPromptsConfigured: 'No prompts configured',
+    noPromptsFound: 'No prompts found',
+    noRole: 'No Role',
+    system: 'System',
+    user: 'User',
+    assistant: 'Assistant',
+    marker: 'Marker',
+    editable: 'Editable',
+    invalidJSONFormat: 'Invalid JSON format',
+    arrayRequired: 'must be an array',
+    duplicateIdentifiers: 'Duplicate identifiers found',
+    importSuccess: 'Import successful!',
+    importError: 'Import failed',
+    exportSuccess: 'Export successful!',
+    exportError: 'Export failed',
+    savePreset: 'Save Preset',
+    saveSuccess: 'Save successful!',
+    saveError: 'Save failed',
+
     
     // ========================================
     // 8. Version Control

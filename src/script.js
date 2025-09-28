@@ -8,6 +8,7 @@ let customSections = [];
 let worldBooks = [];
 let userPersonas = [];
 let loveyDoveyCharacters = [];
+let presets = [];
 
 
 // 狀態變數
@@ -20,6 +21,10 @@ let currentWorldBookId = null;
 let currentWorldBookVersionId = null;
 let currentUserPersonaId = null;
 let currentUserPersonaVersionId = null;
+let currentLoveyDoveyId = null;
+let currentLoveyDoveyVersionId = null;
+let currentPresetId = null;
+let currentPresetVersionId = null;
 let currentMode = 'character';
 let viewMode = 'single';
 let compareVersions = [];
@@ -38,10 +43,6 @@ let selectedItems = [];
 let currentPage = 1;
 let itemsPerPage = 100;
 let searchText = '';
-
-// 卿卿我我當前項目ID
-let currentLoveyDoveyId = null;
-let currentLoveyDoveyVersionId = null;
 
 // 雙屏編輯狀態變數
 let crossTypeCompareMode = false;
@@ -210,6 +211,7 @@ class ItemManager {
             case 'worldbook': return currentWorldBookId;
             case 'userpersona': return currentUserPersonaId;
             case 'loveydovey': return currentLoveyDoveyId;
+            case 'preset': return currentPresetId;
             default: return null;
         }
     }
@@ -226,6 +228,7 @@ class ItemManager {
             case 'worldbook': return currentWorldBookVersionId;
             case 'userpersona': return currentUserPersonaVersionId;
             case 'loveydovey': return currentLoveyDoveyVersionId;
+            case 'preset': return currentPresetVersionId;
             default: return null;
         }
     }
@@ -247,6 +250,7 @@ class ItemManager {
             case 'worldbook': return worldBooks;
             case 'userpersona': return userPersonas;
             case 'loveydovey': return loveyDoveyCharacters;
+            case 'preset': return presets;
             default: return [];
         }
     }
@@ -281,6 +285,10 @@ class ItemManager {
                 currentLoveyDoveyId = itemId;
                 if (versionId) currentLoveyDoveyVersionId = versionId;
                 break;
+            case 'preset':
+                currentPresetId = itemId;
+                if (versionId) currentPresetVersionId = versionId;
+                break;
         }
     }
 }
@@ -293,6 +301,7 @@ class DataOperations {
             case 'worldbook': return worldBooks;
             case 'userpersona': return userPersonas;
             case 'loveydovey': return loveyDoveyCharacters;
+            case 'preset': return presets;
             default: return [];
         }
     }
@@ -423,6 +432,176 @@ class DataOperations {
                         updatedAt: TimestampManager.createTimestamp()
                     }]
                 };
+
+            case 'preset':
+                return {
+                    ...baseStructure,
+                    name: `${t('defaultPresetName')} ${index + 1}`,
+                    type: 'openai',
+                    isFavorite: false,
+                    createdAt: TimestampManager.createTimestamp(),
+                    updatedAt: TimestampManager.createTimestamp(),
+                    versions: [{
+                        ...baseStructure.versions[0],
+                        
+                        // 🔥 直接使用完整的SillyTavern JSON結構
+                        temperature: 1,
+                        frequency_penalty: 0,
+                        presence_penalty: 0,
+                        top_p: 1,
+                        top_k: 0,
+                        top_a: 0,
+                        min_p: 0,
+                        repetition_penalty: 1,
+                        openai_max_context: 100000,
+                        openai_max_tokens: 4000,
+                        wrap_in_quotes: false,
+                        names_behavior: 0,
+                        
+                        send_if_empty: "",
+                        impersonation_prompt: "[Write your next reply from the point of view of {{user}}, using the chat history so far as a guideline for the writing style of {{user}}. Write 1 reply only in internet RP style. Don't write as {{char}} or system. Don't describe actions of {{char}}.]",
+                        new_chat_prompt: "[Start a new Chat]",
+                        new_group_chat_prompt: "[Start a new group chat. Group members: {{group}}]",
+                        new_example_chat_prompt: "[Example Chat]",
+                        continue_nudge_prompt: "[Continue your last message without repeating its original content.]",
+                        group_nudge_prompt: "[Write the next reply only as {{char}}.]",
+                        
+                        wi_format: "{0}",
+                        scenario_format: "{{scenario}}",
+                        personality_format: "{{personality}}",
+                        bias_preset_selected: "Default (none)",
+                        max_context_unlocked: true,
+                        stream_openai: true,
+                        
+                        // 🔑 核心：SillyTavern 的 prompts 和 prompt_order 結構
+                        prompts: [
+                            {
+                                name: "Main Prompt",
+                                system_prompt: true,
+                                role: "system",
+                                content: "Write {{char}}'s next reply in a fictional chat between {{char}} and {{user}}.",
+                                identifier: "main"
+                            },
+                            {
+                                name: "Auxiliary Prompt",
+                                system_prompt: true,
+                                role: "system",
+                                content: "",
+                                identifier: "nsfw"
+                            },
+                            {
+                                identifier: "dialogueExamples",
+                                name: "Chat Examples",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                name: "Post-History Instructions",
+                                system_prompt: true,
+                                role: "system",
+                                content: "",
+                                identifier: "jailbreak"
+                            },
+                            {
+                                identifier: "chatHistory",
+                                name: "Chat History",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "worldInfoAfter",
+                                name: "World Info (after)",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "worldInfoBefore",
+                                name: "World Info (before)",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "enhanceDefinitions",
+                                role: "system",
+                                name: "Enhance Definitions",
+                                content: "If you have more knowledge of {{char}}, add to the character's lore and personality to enhance them but keep the Character Sheet's definitions absolute.",
+                                system_prompt: true,
+                                marker: false
+                            },
+                            {
+                                identifier: "charDescription",
+                                name: "Char Description",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "charPersonality",
+                                name: "Char Personality",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "scenario",
+                                name: "Scenario",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "personaDescription",
+                                name: "Persona Description",
+                                system_prompt: true,
+                                marker: true
+                            }
+                        ],
+                        
+                        prompt_order: [
+                            {
+                                character_id: 100000,
+                                order: [
+                                    { identifier: "main", enabled: true },
+                                    { identifier: "worldInfoBefore", enabled: true },
+                                    { identifier: "charDescription", enabled: true },
+                                    { identifier: "charPersonality", enabled: true },
+                                    { identifier: "scenario", enabled: true },
+                                    { identifier: "enhanceDefinitions", enabled: false },
+                                    { identifier: "nsfw", enabled: true },
+                                    { identifier: "worldInfoAfter", enabled: true },
+                                    { identifier: "dialogueExamples", enabled: true },
+                                    { identifier: "chatHistory", enabled: true },
+                                    { identifier: "jailbreak", enabled: true }
+                                ]
+                            },
+                            {
+                                character_id: 100001,
+                                order: [
+                                    { identifier: "main", enabled: true },
+                                    { identifier: "worldInfoBefore", enabled: true },
+                                    { identifier: "personaDescription", enabled: true },
+                                    { identifier: "charDescription", enabled: true },
+                                    { identifier: "charPersonality", enabled: true },
+                                    { identifier: "scenario", enabled: true },
+                                    { identifier: "enhanceDefinitions", enabled: false },
+                                    { identifier: "nsfw", enabled: true },
+                                    { identifier: "worldInfoAfter", enabled: true },
+                                    { identifier: "dialogueExamples", enabled: true },
+                                    { identifier: "chatHistory", enabled: true },
+                                    { identifier: "jailbreak", enabled: true }
+                                ]
+                            }
+                        ],
+                        
+                        assistant_prefill: "",
+                        claude_use_sysprompt: false,
+                        squash_system_messages: false,
+                        show_thoughts: false,
+                        reasoning_effort: "medium",
+                        enable_web_search: false,
+                        extensions: {},
+                        
+                        createdAt: TimestampManager.createTimestamp(),
+                        updatedAt: TimestampManager.createTimestamp()
+                    }]
+                };
         }
     }
 
@@ -514,6 +693,176 @@ class DataOperations {
                     createdAt: TimestampManager.createTimestamp(),
                     updatedAt: TimestampManager.createTimestamp()
                 };
+
+            case 'preset':
+                return {
+                    ...baseStructure,
+                    name: `${t('defaultPresetName')} ${index + 1}`,
+                    type: 'openai',
+                    isFavorite: false,
+                    createdAt: TimestampManager.createTimestamp(),
+                    updatedAt: TimestampManager.createTimestamp(),
+                    versions: [{
+                        ...baseStructure.versions[0],
+                        
+                        // 🔥 直接使用完整的SillyTavern JSON結構
+                        temperature: 1,
+                        frequency_penalty: 0,
+                        presence_penalty: 0,
+                        top_p: 1,
+                        top_k: 0,
+                        top_a: 0,
+                        min_p: 0,
+                        repetition_penalty: 1,
+                        openai_max_context: 100000,
+                        openai_max_tokens: 4000,
+                        wrap_in_quotes: false,
+                        names_behavior: 0,
+                        
+                        send_if_empty: "",
+                        impersonation_prompt: "[Write your next reply from the point of view of {{user}}, using the chat history so far as a guideline for the writing style of {{user}}. Write 1 reply only in internet RP style. Don't write as {{char}} or system. Don't describe actions of {{char}}.]",
+                        new_chat_prompt: "[Start a new Chat]",
+                        new_group_chat_prompt: "[Start a new group chat. Group members: {{group}}]",
+                        new_example_chat_prompt: "[Example Chat]",
+                        continue_nudge_prompt: "[Continue your last message without repeating its original content.]",
+                        group_nudge_prompt: "[Write the next reply only as {{char}}.]",
+                        
+                        wi_format: "{0}",
+                        scenario_format: "{{scenario}}",
+                        personality_format: "{{personality}}",
+                        bias_preset_selected: "Default (none)",
+                        max_context_unlocked: true,
+                        stream_openai: true,
+                        
+                        // 🔑 核心：SillyTavern 的 prompts 和 prompt_order 結構
+                        prompts: [
+                            {
+                                name: "Main Prompt",
+                                system_prompt: true,
+                                role: "system",
+                                content: "Write {{char}}'s next reply in a fictional chat between {{char}} and {{user}}.",
+                                identifier: "main"
+                            },
+                            {
+                                name: "Auxiliary Prompt",
+                                system_prompt: true,
+                                role: "system",
+                                content: "",
+                                identifier: "nsfw"
+                            },
+                            {
+                                identifier: "dialogueExamples",
+                                name: "Chat Examples",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                name: "Post-History Instructions",
+                                system_prompt: true,
+                                role: "system",
+                                content: "",
+                                identifier: "jailbreak"
+                            },
+                            {
+                                identifier: "chatHistory",
+                                name: "Chat History",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "worldInfoAfter",
+                                name: "World Info (after)",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "worldInfoBefore",
+                                name: "World Info (before)",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "enhanceDefinitions",
+                                role: "system",
+                                name: "Enhance Definitions",
+                                content: "If you have more knowledge of {{char}}, add to the character's lore and personality to enhance them but keep the Character Sheet's definitions absolute.",
+                                system_prompt: true,
+                                marker: false
+                            },
+                            {
+                                identifier: "charDescription",
+                                name: "Char Description",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "charPersonality",
+                                name: "Char Personality",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "scenario",
+                                name: "Scenario",
+                                system_prompt: true,
+                                marker: true
+                            },
+                            {
+                                identifier: "personaDescription",
+                                name: "Persona Description",
+                                system_prompt: true,
+                                marker: true
+                            }
+                        ],
+                        
+                        prompt_order: [
+                            {
+                                character_id: 100000,
+                                order: [
+                                    { identifier: "main", enabled: true },
+                                    { identifier: "worldInfoBefore", enabled: true },
+                                    { identifier: "charDescription", enabled: true },
+                                    { identifier: "charPersonality", enabled: true },
+                                    { identifier: "scenario", enabled: true },
+                                    { identifier: "enhanceDefinitions", enabled: false },
+                                    { identifier: "nsfw", enabled: true },
+                                    { identifier: "worldInfoAfter", enabled: true },
+                                    { identifier: "dialogueExamples", enabled: true },
+                                    { identifier: "chatHistory", enabled: true },
+                                    { identifier: "jailbreak", enabled: true }
+                                ]
+                            },
+                            {
+                                character_id: 100001,
+                                order: [
+                                    { identifier: "main", enabled: true },
+                                    { identifier: "worldInfoBefore", enabled: true },
+                                    { identifier: "personaDescription", enabled: true },
+                                    { identifier: "charDescription", enabled: true },
+                                    { identifier: "charPersonality", enabled: true },
+                                    { identifier: "scenario", enabled: true },
+                                    { identifier: "enhanceDefinitions", enabled: false },
+                                    { identifier: "nsfw", enabled: true },
+                                    { identifier: "worldInfoAfter", enabled: true },
+                                    { identifier: "dialogueExamples", enabled: true },
+                                    { identifier: "chatHistory", enabled: true },
+                                    { identifier: "jailbreak", enabled: true }
+                                ]
+                            }
+                        ],
+                        
+                        assistant_prefill: "",
+                        claude_use_sysprompt: false,
+                        squash_system_messages: false,
+                        show_thoughts: false,
+                        reasoning_effort: "medium",
+                        enable_web_search: false,
+                        extensions: {},
+                        
+                        createdAt: TimestampManager.createTimestamp(),
+                        updatedAt: TimestampManager.createTimestamp()
+                    }]
+                };
         }
     }
 
@@ -600,6 +949,60 @@ class DataOperations {
                     description: originalVersion.description || '',
                     tags: originalVersion.tags || ''
                 };
+
+            case 'preset':
+                return {
+                    ...baseClone,
+                    
+                    // 🔥 深拷貝所有預設欄位
+                    temperature: originalVersion.temperature || 1,
+                    frequency_penalty: originalVersion.frequency_penalty || 0,
+                    presence_penalty: originalVersion.presence_penalty || 0,
+                    top_p: originalVersion.top_p || 1,
+                    top_k: originalVersion.top_k || 0,
+                    top_a: originalVersion.top_a || 0,
+                    min_p: originalVersion.min_p || 0,
+                    repetition_penalty: originalVersion.repetition_penalty || 1,
+                    
+                    openai_max_context: originalVersion.openai_max_context || 100000,
+                    openai_max_tokens: originalVersion.openai_max_tokens || 4000,
+                    wrap_in_quotes: originalVersion.wrap_in_quotes || false,
+                    names_behavior: originalVersion.names_behavior || 0,
+                    
+                    send_if_empty: originalVersion.send_if_empty || "",
+                    impersonation_prompt: originalVersion.impersonation_prompt || "",
+                    new_chat_prompt: originalVersion.new_chat_prompt || "",
+                    new_group_chat_prompt: originalVersion.new_group_chat_prompt || "",
+                    new_example_chat_prompt: originalVersion.new_example_chat_prompt || "",
+                    continue_nudge_prompt: originalVersion.continue_nudge_prompt || "",
+                    group_nudge_prompt: originalVersion.group_nudge_prompt || "",
+                    
+                    wi_format: originalVersion.wi_format || "{0}",
+                    scenario_format: originalVersion.scenario_format || "{{scenario}}",
+                    personality_format: originalVersion.personality_format || "{{personality}}",
+                    
+                    bias_preset_selected: originalVersion.bias_preset_selected || "Default (none)",
+                    max_context_unlocked: originalVersion.max_context_unlocked !== false,
+                    stream_openai: originalVersion.stream_openai !== false,
+                    
+                    // 🔑 深拷貝核心陣列
+                    prompts: JSON.parse(JSON.stringify(originalVersion.prompts || [])),
+                    prompt_order: JSON.parse(JSON.stringify(originalVersion.prompt_order || [])),
+                    
+                    // 進階設定
+                    assistant_prefill: originalVersion.assistant_prefill || "",
+                    claude_use_sysprompt: originalVersion.claude_use_sysprompt || false,
+                    squash_system_messages: originalVersion.squash_system_messages || false,
+                    show_thoughts: originalVersion.show_thoughts || false,
+                    reasoning_effort: originalVersion.reasoning_effort || "medium",
+                    enable_web_search: originalVersion.enable_web_search || false,
+                    
+                    // 深拷貝擴展
+                    extensions: JSON.parse(JSON.stringify(originalVersion.extensions || {})),
+                    
+                    createdAt: TimestampManager.createTimestamp(),
+                    updatedAt: TimestampManager.createTimestamp()
+                };
         }
     }
 
@@ -609,7 +1012,8 @@ class DataOperations {
             worldbook: 'worldBook', 
             custom: 'customFields',
             userpersona: 'userPersona',
-            loveydovey: 'loveydovey'
+            loveydovey: 'loveydovey',
+            preset: 'preset'
         };
         
         const key = keyMap[type] || 'item';
@@ -622,7 +1026,8 @@ class DataOperations {
             worldbook: 'deleteWorldBookConfirm', 
             custom: 'deleteNotebookConfirm',
             userpersona: 'deleteUserPersonaConfirm',
-            loveydovey: 'deleteLoveydoveyConfirm'
+            loveydovey: 'deleteLoveydoveyConfirm',
+            preset: 'deletePresetConfirm'
         };
         
         const key = keyMap[type] || 'deleteConfirm';
@@ -2381,14 +2786,24 @@ function selectItem(type, itemId, versionId = null, searchOptions = null) {
                 }
             }
             break;
+
+        case 'preset':
+            currentPresetId = itemId;
+            if (versionId) {
+                currentPresetVersionId = versionId;
+            } else {
+                const preset = presets.find(p => p.id === itemId);
+                if (preset) {
+                    currentPresetVersionId = preset.versions[0].id;
+                }
+            }
+            break;
     }
     
     renderAll();
     // 統一使用延遲更新，避免重複調用
     setTimeout(() => {
         updateAllPageStats();
-        
-        // ✨ 新增：只在搜尋時執行滾動定位
         if (searchOptions && searchOptions.scrollToField) {
             const finalVersionId = versionId || (() => {
                 switch (type) {
@@ -2406,7 +2821,7 @@ function selectItem(type, itemId, versionId = null, searchOptions = null) {
             }
         }
         updateMobileBreadcrumb();
-    }, 300); // 延長等待時間，確保渲染完成
+    }, 300);
 }
 
 function goToHomePage() {
@@ -2503,6 +2918,30 @@ function enterListPage(type) {
         
         // 展開玩家角色區塊
         expandSidebarSection('userpersona');
+        
+        renderAll();
+        updateMobileBreadcrumb();
+        return;
+    }
+
+    if (type === 'preset') {
+        isHomePage = false;
+        isListPage = true;
+        listPageType = 'preset';
+        currentMode = type;
+        viewMode = 'single';
+        compareVersions = [];
+        batchEditMode = false;
+        selectedItems = [];
+        currentPage = 1;
+        searchText = '';
+
+        // 清除當前選中的預設
+        currentPresetId = null;
+        currentPresetVersionId = null;
+        
+        // 展開預設區塊
+        expandSidebarSection('preset');
         
         renderAll();
         updateMobileBreadcrumb();
@@ -2858,7 +3297,8 @@ function expandSidebarSection(targetType) {
         { type: 'loveydovey', id: 'loveydovey' }, 
         { type: 'userpersona', id: 'userpersona' },
         { type: 'worldbook', id: 'worldbook' },
-        { type: 'custom', id: 'custom' }
+        { type: 'custom', id: 'custom' },
+        { type: 'preset', id: 'preset' }
     ];
     
     sections.forEach(({ type, id }) => {

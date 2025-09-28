@@ -660,3 +660,209 @@
 
 }
 
+
+/* ===== 預設提示詞樣式系統 ===== */
+
+/* 1. 容器層級 */
+.preset-version-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 2. 分頁系統 */
+.preset-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.preset-tab {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.preset-tab:hover {
+    background: var(--bg-color);
+    border-color: var(--accent-color);
+}
+
+.preset-tab.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* 3. 控制按鈕區域 */
+.preset-controls {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    margin-bottom: 16px;
+}
+
+/* 4. 條目面板 - 參考 WorldBook 樣式 */
+.preset-entry-panel {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    background: var(--header-bg);
+}
+
+.preset-entry-header {
+    display: flex;
+    gap: var(--wb-entry-gap, 8px);
+    margin: 10px;
+    align-items: center;
+}
+
+/* 5. 條目內容區域 */
+.preset-entry-content {
+    padding: 0 10px;
+    display: none;
+}
+
+/* 6. 欄位布局 - 參考 WorldBook */
+.preset-prompt-name {
+    flex: 1;
+    margin-right: 8px;
+    min-width: 150px;
+}
+
+.preset-prompt-name .field-input {
+    font-weight: 500;
+    min-width: 150px;
+    width: 100%;
+}
+
+.preset-prompt-role {
+    width: 100px;
+    margin-right: 8px;
+}
+
+.preset-prompt-type {
+    width: 120px;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preset-prompt-injection {
+    width: 80px;
+    margin-right: 8px;
+}
+
+.preset-prompt-injection .field-input {
+    width: 80px;
+    text-align: center;
+}
+
+/* 7. 標籤樣式 */
+.tag-marker {
+    background: var(--border-color);
+    color: var(--text-muted);
+    opacity: 0.8;
+}
+
+.tag-editable {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* 8. 響應式調整 - 參考 WorldBook */
+@media (max-width: 992px) {
+    .preset-entry-header {
+        display: flex;
+        gap: 6px;
+        margin: 6px 0;
+        flex-wrap: wrap;
+    }
+
+    .preset-prompt-name {
+        width: 100%;
+        min-width: 120px;
+        margin-bottom: 8px;
+    }
+    
+    .preset-prompt-role,
+    .preset-prompt-injection {
+        min-width: 80px;
+    }
+    
+    .preset-prompt-type {
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 768px) {
+    .preset-entry-panel {
+        padding: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .preset-entry-header {
+        gap: 4px;
+        margin: 6px 0;
+    }
+    
+    .preset-entry-header .field-input.compact-input {
+        padding: 3px 5px;
+        font-size: 11px;
+        height: 26px;
+        border-radius: 4px;
+    }
+    
+    .preset-prompt-name .field-input {
+        font-size: 12px;
+        font-weight: 500;
+    }
+    
+    .preset-prompt-role select,
+    .preset-prompt-injection input {
+        font-size: 10px;
+        text-align: center;
+    }
+    
+    .preset-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .preset-tabs {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .preset-tab {
+        font-size: 0.85em;
+        padding: 6px 12px;
+    }
+}
+
+/* 9. 空狀態樣式 */
+.prompts-list .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* 10. 容器樣式 */
+.prompts-entries-container {
+    margin-top: 8px;
+}
+
+.prompts-list {
+    width: 100%;
+}

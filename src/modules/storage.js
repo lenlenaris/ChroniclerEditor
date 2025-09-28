@@ -1,14 +1,13 @@
-//å„²å­˜è³‡æ–™
 
 async function saveData() {
     try {
-        // ä½¿ç”¨ IndexedDB å„²å­˜
         const results = await Promise.all([
             characterDB.saveCharacters(characters),
             characterDB.saveCustomSections(customSections),
             characterDB.saveWorldBooks(worldBooks),
             characterDB.saveLoveyDoveyCharacters(loveyDoveyCharacters),
-            characterDB.saveUserPersonas(userPersonas)
+            characterDB.saveUserPersonas(userPersonas),
+            characterDB.savePresets(presets)
         ]);
 
         const allSaved = results.every(result => result === true);
@@ -23,19 +22,18 @@ async function saveData() {
             showSaveNotification();
         }
         
-        // æ›´æ–°å„²å­˜ç©ºé–“è³‡è¨Š
         showStorageInfo();
         
     } catch (error) {
         console.error('å„²å­˜è³‡æ–™å¤±æ•—ï¼š', error);
         
-        // å®Œå…¨é™ç´šåˆ°èˆŠæ–¹æ¡ˆ
         try {
             localStorage.setItem('characterCreatorData', JSON.stringify(characters));
             localStorage.setItem('characterCreatorCustomData', JSON.stringify(customSections));
             localStorage.setItem('characterCreatorWorldBooks', JSON.stringify(worldBooks));
             localStorage.setItem('characterCreatorUserPersonas', JSON.stringify(userPersonas));
             localStorage.setItem('characterCreatorLoveyDoveyCharacters', JSON.stringify(loveyDoveyCharacters));
+            localStorage.setItem('characterCreatorPresets', JSON.stringify(presets));
 
             
         } catch (fallbackError) {
@@ -49,51 +47,44 @@ async function saveData() {
     }
 }
 
-// éœé»˜ä¿å­˜ï¼ˆä¸é¡¯ç¤ºé€šçŸ¥ï¼‰
 async function saveDataSilent() {
     try {
-        // ä½¿ç”¨ IndexedDB å„²å­˜
         const results = await Promise.all([
             characterDB.saveCharacters(characters),
             characterDB.saveCustomSections(customSections),
             characterDB.saveUserPersonas(userPersonas),
             characterDB.saveWorldBooks(worldBooks),
-            characterDB.saveLoveyDoveyCharacters(loveyDoveyCharacters)
+            characterDB.saveLoveyDoveyCharacters(loveyDoveyCharacters),
+            characterDB.savePresets(presets)
         ]);
 
         const allSaved = results.every(result => result === true);
         
         if (allSaved) {
             markAsSaved();
-            
-            // ðŸš« ä¸èª¿ç”¨ showSaveNotification()
+
         } else {
             console.warn('âš ï¸ éƒ¨åˆ†è³‡æ–™å„²å­˜å¤±æ•—ï¼Œå·²é™ç´šåˆ° localStorage');
             markAsSaved(); 
-            // ðŸš« ä¸èª¿ç”¨ showSaveNotification()
         }
         
-        // æ›´æ–°å„²å­˜ç©ºé–“è³‡è¨Šï¼ˆä½†ä¸é¡¯ç¤ºé€šçŸ¥ï¼‰
-        // showStorageInfo(); // é€™å€‹ä¹Ÿå¯èƒ½æœ‰é€šçŸ¥ï¼Œå…ˆè¨»è§£æŽ‰
-        
-        return true; // è¿”å›žæˆåŠŸç‹€æ…‹
+        return true;
         
     } catch (error) {
         console.error('éœé»˜å„²å­˜è³‡æ–™å¤±æ•—ï¼š', error);
-        
-        // å®Œå…¨é™ç´šåˆ°èˆŠæ–¹æ¡ˆ
+
         try {
             localStorage.setItem('characterCreatorData', JSON.stringify(characters));
             localStorage.setItem('characterCreatorCustomData', JSON.stringify(customSections));
             localStorage.setItem('characterCreatorUserPersonas', JSON.stringify(userPersonas));
             localStorage.setItem('characterCreatorWorldBooks', JSON.stringify(worldBooks));
             localStorage.setItem('characterCreatorLoveyDoveyCharacters', JSON.stringify(loveyDoveyCharacters));
+            localStorage.setItem('characterCreatorPresets', JSON.stringify(presets));
             markAsSaved();
             
             return true;
         } catch (fallbackError) {
             console.error('é€£ localStorage éƒ½å„²å­˜å¤±æ•—:', fallbackError);
-            // éœé»˜æ¨¡å¼ä¸‹ä¹Ÿä¸é¡¯ç¤ºéŒ¯èª¤å°è©±æ¡†ï¼Œåªåœ¨æŽ§åˆ¶å°è¨˜éŒ„
             return false;
         }
     }
@@ -113,7 +104,7 @@ async function loadData() {
             worldBooks = await characterDB.loadWorldBooks();
             userPersonas = await characterDB.loadUserPersonas();
             loveyDoveyCharacters = await characterDB.loadLoveyDoveyCharacters();
-            
+            presets = await characterDB.loadPresets();      
             
         } else {
             const saved = localStorage.getItem('characterCreatorData');
@@ -140,6 +131,11 @@ async function loadData() {
             if (savedUserPersonas) {
                 userPersonas = JSON.parse(savedUserPersonas);
             }
+
+            const savedPresets = localStorage.getItem('characterCreatorPresets');
+            if (savedPresets) {
+                presets = JSON.parse(savedPresets);
+            }
             
             
         }
@@ -165,6 +161,8 @@ async function loadData() {
         currentUserPersonaVersionId = null;
         currentLoveyDoveyId = null;
         currentLoveyDoveyVersionId = null;
+        currentPresetId = null;
+        currentPresetVersionId = null;
         
         markAsSaved();
 
@@ -252,37 +250,36 @@ async function loadData() {
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
                 
-                // å‰µå»ºè§’è‰²è¡¨æ ¼
                 if (!db.objectStoreNames.contains('characters')) {
                     const characterStore = db.createObjectStore('characters', { keyPath: 'id' });
                     characterStore.createIndex('name', 'name', { unique: false });
                 }
 
-                // å‰µå»ºå¿å¿æˆ‘æˆ‘è¡¨æ ¼
                 if (!db.objectStoreNames.contains('loveyDoveyCharacters')) {
                     const loveyDoveyStore = db.createObjectStore('loveyDoveyCharacters', { keyPath: 'id' });
                     loveyDoveyStore.createIndex('name', 'name', { unique: false });
                 }
                 
-                // å‰µå»ºè‡ªå®šç¾©å€å¡Šè¡¨æ ¼
                 if (!db.objectStoreNames.contains('customSections')) {
                     const customStore = db.createObjectStore('customSections', { keyPath: 'id' });
                     customStore.createIndex('name', 'name', { unique: false });
                 }
                 
-                // å‰µå»ºä¸–ç•Œæ›¸è¡¨æ ¼
                 if (!db.objectStoreNames.contains('worldBooks')) {
                     const worldBookStore = db.createObjectStore('worldBooks', { keyPath: 'id' });
                     worldBookStore.createIndex('name', 'name', { unique: false });
                 }
 
-                //  å‰µå»ºçŽ©å®¶è§’è‰²è¡¨æ ¼
                 if (!db.objectStoreNames.contains('userPersonas')) {
                     const userPersonaStore = db.createObjectStore('userPersonas', { keyPath: 'id' });
                     userPersonaStore.createIndex('name', 'name', { unique: false });
                 }
 
-                // å‰µå»ºè¨­å®šè¡¨æ ¼
+                if (!db.objectStoreNames.contains('presets')) {
+                    const presetStore = db.createObjectStore('presets', { keyPath: 'id' });
+                    presetStore.createIndex('name', 'name', { unique: false });
+                }
+
                 if (!db.objectStoreNames.contains('settings')) {
                     db.createObjectStore('settings', { keyPath: 'key' });
                 }
@@ -450,7 +447,6 @@ async detectPrivateMode() {
         }
     }
 
-    // è¼‰å…¥å¿å¿æˆ‘æˆ‘è§’è‰²
     async loadLoveyDoveyCharacters() {
         if (!this.db) return this.fallbackLoad('characterCreatorLoveyDoveyCharacters');
 
@@ -464,7 +460,6 @@ async detectPrivateMode() {
         }
     }
 
-    // å„²å­˜ä¸–ç•Œæ›¸
     async saveWorldBooks(worldBooksData) {
         if (!this.db) return this.fallbackSave('characterCreatorWorldBooks', worldBooksData);
 
@@ -483,7 +478,6 @@ async detectPrivateMode() {
         }
     }
 
-    // è¼‰å…¥ä¸–ç•Œæ›¸
     async loadWorldBooks() {
         if (!this.db) return this.fallbackLoad('characterCreatorWorldBooks');
 
@@ -494,6 +488,37 @@ async detectPrivateMode() {
         } catch (error) {
             console.error('IndexedDB è¼‰å…¥ä¸–ç•Œæ›¸å¤±æ•—:', error);
             return this.fallbackLoad('characterCreatorWorldBooks');
+        }
+    }
+
+    async savePresets(presetsData) {
+        if (!this.db) return this.fallbackSave('characterCreatorPresets', presetsData);
+
+        try {
+            const transaction = this.db.transaction(['presets'], 'readwrite');
+            const store = transaction.objectStore('presets');
+            
+            await this.clearStore(store);
+            for (const preset of presetsData) {
+                await this.addToStore(store, preset);
+            }
+            return true;
+        } catch (error) {
+            console.error('IndexedDB 儲存預設失敗:', error);
+            return this.fallbackSave('characterCreatorPresets', presetsData);
+        }
+    }
+
+    async loadPresets() {
+        if (!this.db) return this.fallbackLoad('characterCreatorPresets');
+
+        try {
+            const transaction = this.db.transaction(['presets'], 'readonly');
+            const store = transaction.objectStore('presets');
+            return await this.getAllFromStore(store) || [];
+        } catch (error) {
+            console.error('IndexedDB 載入預設失敗:', error);
+            return this.fallbackLoad('characterCreatorPresets');
         }
     }
 
@@ -558,49 +583,46 @@ async detectPrivateMode() {
         return null;
     }
 
-    // é·ç§» localStorage è³‡æ–™åˆ° IndexedDB
     async migrateFromLocalStorage() {
         if (!this.db) return false;
 
         try {
-            
-            
-            // é·ç§»è§’è‰²è³‡æ–™
+                  
             const oldCharacters = this.fallbackLoad('characterCreatorData');
             if (oldCharacters.length > 0) {
                 await this.saveCharacters(oldCharacters);
                 
             }
 
-            // é·ç§»è‡ªå®šç¾©å€å¡Š
             const oldCustom = this.fallbackLoad('characterCreatorCustomData');
             if (oldCustom.length > 0) {
                 await this.saveCustomSections(oldCustom);
                 
             }
 
-            // é·ç§»ä¸–ç•Œæ›¸
             const oldWorldBooks = this.fallbackLoad('characterCreatorWorldBooks');
             if (oldWorldBooks.length > 0) {
                 await this.saveWorldBooks(oldWorldBooks);
                 
             }
 
-            // é·ç§»çŽ©å®¶è§’è‰²
             const oldUserPersonas = this.fallbackLoad('characterCreatorUserPersonas');
             if (oldUserPersonas.length > 0) {
                 await this.saveUserPersonas(oldUserPersonas);
                 
             }
 
-            // é·ç§»å¿å¿æˆ‘æˆ‘è§’è‰²
             const oldLoveyDoveyCharacters = this.fallbackLoad('characterCreatorLoveyDoveyCharacters');
             if (oldLoveyDoveyCharacters.length > 0) {
                 await this.saveLoveyDoveyCharacters(oldLoveyDoveyCharacters);
                 
             }
 
-            // æ¨™è¨˜å·²é·ç§»
+            const oldPresets = this.fallbackLoad('characterCreatorPresets');
+            if (oldPresets.length > 0) {
+                await this.savePresets(oldPresets);
+            }
+
             const transaction = this.db.transaction(['settings'], 'readwrite');
             const store = transaction.objectStore('settings');
             await this.addToStore(store, { key: 'migrated', value: true, date: new Date().toISOString() });
@@ -613,7 +635,6 @@ async detectPrivateMode() {
         }
     }
 
-    // æª¢æŸ¥æ˜¯å¦å·²é·ç§»
     async checkMigrationStatus() {
         if (!this.db) return false;
 
@@ -639,10 +660,8 @@ async function showStorageInfo() {
     if (estimate) {
         const usagePercent = Math.round((estimate.used / estimate.total) * 100);
         
-        
-        // å¦‚æžœä½¿ç”¨è¶…éŽ 80%ï¼Œé¡¯ç¤ºè­¦å‘Š
         if (usagePercent > 80) {
-            showStorageWarning(estimate.used * 1024); // è½‰æ›ç‚º KB
+            showStorageWarning(estimate.used * 1024);
         }
     }
 }
@@ -677,5 +696,4 @@ function showStorageWarning(sizeKB) {
     }, 8000);
 }
 
-// å‰µå»ºå…¨åŸŸ DB å¯¦ä¾‹
 const characterDB = new CharacterDB();

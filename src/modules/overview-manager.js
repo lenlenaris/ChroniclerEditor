@@ -60,6 +60,10 @@ static renderOverview(type, options = {}) {
         'custom': { 
             showImport: false, 
             gridId: `${type}-list`
+        },
+        'preset': {
+            showImport: true, 
+            gridId: `${type}-list`
         }
     };
     
@@ -91,6 +95,7 @@ static renderOverview(type, options = {}) {
                 break;
             case 'worldbook':
             case 'custom':
+            case 'preset':
                 this.renderItems(type, config.gridId);
                 break;
         }
@@ -466,26 +471,8 @@ static applySorting(sortValue) {
 
     this.currentSort = sortValue;
     this.saveSortPreference(sortValue);
-    
-    // 🆕 重置分頁狀態，因為排序改變了
     this.currentlyShown = this.itemsPerPage;
-    this.lastProcessParams = null; // 強制重新處理
-    
-    // 如果切換到非自定義排序，清除自定義排序
-/*
-    if (sortValue !== 'custom') {
-        console.warn(`[applySorting] 偵測到非 custom 排序，準備清除自定義排序...`);
-        if (isHomePage) {
-            DragSortManager.clearCustomOrder('character');
-        } else if (isListPage) {
-            DragSortManager.clearCustomOrder(listPageType);
-        }
-        else if (currentMode === 'loveydovey' && !ItemManager.getCurrentItemId()) {
-            DragSortManager.clearCustomOrder('loveydovey');
-        }
-    }
-*/
-    
+    this.lastProcessParams = null;  
     this.syncDropdownValue();
     
     // 根據當前頁面類型重新渲染
@@ -964,6 +951,7 @@ static showMoreItems(type) {
             case 'userpersona': return userPersonas;
             case 'worldbook': return worldBooks;
             case 'custom': return customSections;
+            case 'preset': return presets;
             default: return [];
         }
     }
@@ -1215,7 +1203,8 @@ static getItemStats(item, type) {
         const typeKeyMap = {
             'userpersona': 'userPersona',
             'worldbook': 'worldBook', 
-            'custom': 'customFields'
+            'custom': 'customFields',
+            'preset': 'preset'
         };
         
         return `
@@ -1224,6 +1213,7 @@ static getItemStats(item, type) {
                 <div class="add-item-text">
                     ${type === 'worldbook' ? t('clickToAddWorldBookOrImport') : 
                      type === 'custom' ? t('clickToAddNotebook') : 
+                     type === 'preset' ? t('clickToAddPreset') :
                      `${t('clickToAdd')} ${t(typeKeyMap[type] || 'item')}`}
                 </div>
             </div>
@@ -1280,7 +1270,8 @@ static renderBreadcrumbNav() {
         } else if (isListPage) {
             const typeNames = {
                 'worldbook': t('worldBook'),
-                'custom': t('customFields')
+                'custom': t('customFields'),
+                'preset': t('preset')
             };
             return { name: typeNames[listPageType] || listPageType, type: listPageType };
         } else if (currentMode === 'userpersona' && !ItemManager.getCurrentItemId()) {
@@ -1321,6 +1312,11 @@ static renderBreadcrumbNav() {
                 tooltip: 'tooltipAddCustom',
                 importFn: null,
                 importTooltip: null
+            },
+            'preset': { 
+                tooltip: 'tooltipAddPreset',
+                importFn: 'importPreset()',
+                importTooltip: 'tooltipImportPreset'
             }
         };
         
@@ -1445,7 +1441,7 @@ static renderBatchOperationsBars() {
 
 static renderOverviewLayout(config) {
     const { type, showImport = false, gridId } = config; // 移除了 maxWidth
-    const isListPage = (type === 'worldbook' || type === 'custom');
+    const isListPage = (type === 'worldbook' || type === 'custom' || type === 'preset');
     const breadcrumbHtml = this.renderBreadcrumbNav();
     
     if (isListPage) {
@@ -1870,7 +1866,8 @@ class FolderManager {
         userpersona: '玩家角色', 
         loveydovey: '卿卿我我',
         worldbook: '世界書',
-        custom: '筆記本'
+        custom: '筆記本',
+        preset: '預設'
     };
     
     // 創建新資料夾（返回資料夾ID）
