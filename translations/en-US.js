@@ -497,6 +497,8 @@ window.ChroniclerTranslations['en-US'] = {
     noDataAvailable: 'No data available',
     noEnabledPrompts: 'No enabled prompts',
     source: 'Source',
+    monospaceFont: 'Monospace Font',
+    serifFont: 'Serif Font',
 
     
     // ========================================

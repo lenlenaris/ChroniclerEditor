@@ -875,27 +875,48 @@
 
 /* ===== 預覽模式樣式 ===== */
 
-/* 預覽模式容器 */
-.preset-preview-mode {
-    display: flex;
-    gap: 16px;
-    width: 100%;
+/* 預覽模式頂部欄樣式 */
+.character-header-bar.preview-mode {
+    max-width: 100%;
+    margin: 0 auto var(--spacing-xl) auto;
+    margin-bottom: 12px;
 }
 
-/* 預覽面板 */
+/* 預覽視圖容器 */
+.versions-container.preview-view {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 16px;
+}
+
+/* 確保預覽模式下的 version-panel 有固定高度和獨立滾動 */
+.preview-view .version-panel {
+    flex: 1;
+    min-width: 0;
+    max-height: calc(100vh - 120px); /* 減去頂部控制欄和間距 */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 預覽面板特殊樣式 */
 .preset-preview-panel {
     flex: 1;
-    background: var(--content-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
+    min-width: 0;
+}
+
+/* 預覽內容包裝器 */
+.preset-preview-content-wrapper {
+    flex: 1;
     padding: 16px;
-    max-height: 80vh;
     overflow-y: auto;
 }
 
-/* 編輯面板（預覽模式下） */
-.preset-edit-panel {
-    flex: 1;
+/* 確保編輯面板內容也可以正常滾動 */
+.preview-view .version-panel > div {
+    flex-shrink: 0; /* 防止內容被壓縮 */
 }
 
 /* 預覽內容 */
@@ -906,6 +927,23 @@
     color: var(--text-color);
     white-space: pre-wrap;
     word-wrap: break-word;
+}
+
+/* 字體切換樣式 */
+.preset-preview-content.font-monospace {
+    font-family: 'Courier New', Monaco, monospace;
+}
+
+.preset-preview-content.font-serif {
+    font-family: 'Georgia', 'Times New Roman', '微軟正黑體', serif;
+    letter-spacing: 0.3px;
+}
+
+/* 字體按鈕激活狀態 */
+.version-panel-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 /* 來源標記樣式 */
@@ -920,36 +958,18 @@
     border-left: 3px solid var(--accent-color);
 }
 
-/* 預覽頂部控制列 */
-.preset-preview-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.preset-preview-title {
-    font-size: 1em;
-    font-weight: 600;
-    color: var(--accent-color);
-    margin: 0;
-}
-
-/* 手機版響應式 */
+/* 手機版預覽模式 */
 @media (max-width: 768px) {
-    .preset-preview-mode {
+    .versions-container.preview-view {
         flex-direction: column;
         gap: 12px;
     }
     
-    .preset-preview-panel {
+    .preview-view .version-panel {
         max-height: 40vh;
-        order: 1;
     }
     
-    .preset-edit-panel {
-        order: 2;
+    .preset-preview-content-wrapper {
+        max-height: 40vh;
     }
 }

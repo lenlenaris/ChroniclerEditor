@@ -498,6 +498,8 @@ window.ChroniclerTranslations['zh-TW'] = {
     noDataAvailable: '無可用數據',
     noEnabledPrompts: '沒有啟用的提示詞',
     source: '來源',
+    monospaceFont: '程式字體', 
+    serifFont: '文章字體',
 
 
 

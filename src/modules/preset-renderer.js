@@ -630,12 +630,13 @@ static collapseAllPrompts(versionId) {
 
 // 切換預覽模式
 static togglePreviewMode(versionId) {
-    const container = document.querySelector(`#editable-prompts-list-${versionId}`).closest('.preset-prompts-container');
-    const isPreviewMode = container.classList.contains('preview-mode');
+    // 檢查是否已經在預覽模式
+    const headerBar = document.querySelector('.character-header-bar');
+    const isPreviewMode = headerBar && headerBar.classList.contains('preview-mode');
     
     if (isPreviewMode) {
         // 退出預覽模式
-        this.exitPreviewMode(versionId);
+        this.exitPreviewMode();
     } else {
         // 進入預覽模式
         this.enterPreviewMode(versionId);
@@ -644,82 +645,171 @@ static togglePreviewMode(versionId) {
 
 // 進入預覽模式
 static enterPreviewMode(versionId) {
-    const container = document.querySelector(`#editable-prompts-list-${versionId}`).closest('.preset-prompts-container');
-    const editContainer = document.querySelector(`#editable-prompts-list-${versionId}`);
+    const presetData = this.getCurrentPresetData(versionId);
+    if (!presetData) return;
+    
+    const { preset, version } = presetData;
+    
+    // 找到主要容器
+    const versionsContainer = document.querySelector('.versions-container');
+    const headerBar = document.querySelector('.character-header-bar');
+    
+    if (!versionsContainer || !headerBar) return;
     
     // 標記為預覽模式
-    container.classList.add('preview-mode');
+    headerBar.classList.remove('single-mode', 'compare-mode');
+    headerBar.classList.add('preview-mode');
+    versionsContainer.classList.remove('single-view', 'compare-view');
+    versionsContainer.classList.add('preview-view');
     
-    // 生成預覽內容
-    const previewContent = this.generatePreviewContent(versionId);
+    // 創建預覽面板和編輯面板（獨立容器）
+    const previewPanel = this.renderPreviewPanel(preset, version);
+    const editPanel = ContentRenderer.renderVersionPanel(preset, version, 'preset');
     
-    // 創建預覽模式布局
-    container.innerHTML = `
-        <div class="preset-preview-mode">
-            <div class="preset-preview-panel">
-                <div class="preset-preview-header">
-                    <h4 class="preset-preview-title">${t('promptPreview')}</h4>
-                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.refreshPreview('${versionId}')" style="display: flex; align-items: center; gap: 4px;">
-                        ${IconManager.refresh({width: 12, height: 12})}
-                        <span>${t('refresh')}</span>
-                    </button>
-                </div>
-                <div class="preset-preview-content" id="preview-content-${versionId}">
-                    ${previewContent}
-                </div>
-            </div>
-            <div class="preset-edit-panel">
-                ${editContainer.outerHTML}
-            </div>
-        </div>
+    // 替換為並排的獨立容器
+    versionsContainer.innerHTML = `
+        ${previewPanel}
+        ${editPanel}
     `;
     
-    // 更新按鈕文字
-    const btnText = document.getElementById(`preview-btn-text-${versionId}`);
-    if (btnText) {
-        btnText.textContent = t('exitPreview');
-    }
+    // 更新所有預覽按鈕的狀態
+    this.updateAllPreviewButtons(true);
     
-    // 重新初始化編輯面板的功能
-    setTimeout(() => {
-        this.enablePromptsDragSort(this.getCurrentPresetId(), versionId, 100001);
-    }, 100);
+// 重新初始化編輯功能，並確保預覽內容正確渲染
+setTimeout(() => {
+    this.enablePromptsDragSort(preset.id, version.id, 100001);
+    updateAllPageStats();
+    updateVersionStats('preset', preset.id, version.id);
+    
+    // 強制重新整理預覽內容，確保首次顯示正確
+    this.refreshPreview(version.id);
+    
+    // 初始化字體設置
+    this.initPreviewFont(version.id);
+}, 200);
 }
 
 // 退出預覽模式
-static exitPreviewMode(versionId) {
-    const container = document.querySelector(`.preset-prompts-container.preview-mode`);
-    if (!container) return;
+static exitPreviewMode() {
+    const versionsContainer = document.querySelector('.versions-container');
+    const headerBar = document.querySelector('.character-header-bar');
     
-    // 移除預覽模式標記
-    container.classList.remove('preview-mode');
+    if (!versionsContainer || !headerBar) return;
     
-    // 恢復原來的編輯布局
-    const editPanel = container.querySelector('.preset-edit-panel');
-    if (editPanel) {
-        const editContainer = editPanel.querySelector(`#editable-prompts-list-${versionId}`);
-        if (editContainer) {
-            container.innerHTML = editContainer.outerHTML;
+    // 恢復為單一模式
+    headerBar.classList.remove('preview-mode', 'compare-mode');
+    headerBar.classList.add('single-mode');
+    versionsContainer.classList.remove('preview-view', 'compare-view');
+    versionsContainer.classList.add('single-view');
+    
+    // 恢復原始的單版本布局
+    const currentItem = ItemManager.getCurrentItem();
+    const currentVersionId = ItemManager.getCurrentVersionId();
+    
+    if (currentItem && currentVersionId) {
+        const version = currentItem.versions.find(v => v.id === currentVersionId);
+        if (version) {
+            const versionHTML = ContentRenderer.renderVersionPanel(currentItem, version, 'preset');
+            versionsContainer.innerHTML = versionHTML;
         }
     }
     
-    // 更新按鈕文字
-    const btnText = document.getElementById(`preview-btn-text-${versionId}`);
-    if (btnText) {
-        btnText.textContent = t('previewMode');
-    }
+    // 更新所有預覽按鈕的狀態
+    this.updateAllPreviewButtons(false);
     
-    // 重新初始化拖曳功能
+    // 重新初始化功能
     setTimeout(() => {
-        this.enablePromptsDragSort(this.getCurrentPresetId(), versionId, 100001);
-    }, 100);
+        if (currentItem && currentVersionId) {
+            this.enablePromptsDragSort(currentItem.id, currentVersionId, 100001);
+            updateAllPageStats();
+            updateVersionStats('preset', currentItem.id, currentVersionId);
+        }
+    }, 200);
 }
 
-// 輔助方法：獲取當前 preset ID
+// 渲染預覽面板（獨立的 version-panel）
+static renderPreviewPanel(preset, version) {
+    const previewContent = this.generatePreviewContent(version.id);
+    
+    return `
+        <div class="version-panel preset-preview-panel">
+            <div class="version-header-container">
+                <div class="version-header">
+                    <input type="text" class="version-title title-font" value="${t('promptPreview')} - ${version.name}" readonly 
+                        style="background: var(--bg-secondary); color: var(--text-muted);">
+                        <div class="version-controls">
+                            <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewFont('${version.id}', 'monospace')" 
+                                    id="font-mono-btn-${version.id}" title="${t('monospaceFont')}" style="display: flex; align-items: center; gap: 4px;">
+                                <span style="font-family: monospace; font-weight: bold;">Aa</span>
+                            </button>
+                            <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewFont('${version.id}', 'serif')" 
+                                    id="font-serif-btn-${version.id}" title="${t('serifFont')}" style="display: flex; align-items: center; gap: 4px;">
+                                <span style="font-family: serif; font-weight: bold;">Aa</span>
+                            </button>
+                            <button class="version-panel-btn hover-primary" onclick="PresetRenderer.refreshPreview('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
+                                ${IconManager.refresh({width: 14, height: 14})}
+                                <span>${t('refresh')}</span>
+                            </button>
+                        </div>
+                </div>
+                <div class="version-divider"></div>
+            </div>
+            
+            <div class="preset-preview-content-wrapper">
+                <div class="preset-preview-content" id="preview-content-${version.id}">
+                    ${previewContent}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// 切換預覽字體
+static togglePreviewFont(versionId, fontType) {
+    const previewContent = document.getElementById(`preview-content-${versionId}`);
+    if (!previewContent) return;
+    
+    // 移除所有字體 class
+    previewContent.classList.remove('font-monospace', 'font-serif');
+    
+    // 移除所有按鈕的激活狀態
+    const monoBtn = document.getElementById(`font-mono-btn-${versionId}`);
+    const serifBtn = document.getElementById(`font-serif-btn-${versionId}`);
+    
+    if (monoBtn) monoBtn.classList.remove('active');
+    if (serifBtn) serifBtn.classList.remove('active');
+    
+    // 應用選擇的字體
+    if (fontType === 'monospace') {
+        previewContent.classList.add('font-monospace');
+        if (monoBtn) monoBtn.classList.add('active');
+    } else if (fontType === 'serif') {
+        previewContent.classList.add('font-serif');  
+        if (serifBtn) serifBtn.classList.add('active');
+    }
+    
+    // 儲存用戶偏好
+    localStorage.setItem('previewFontType', fontType);
+}
+
+// 初始化字體設置
+static initPreviewFont(versionId) {
+    const savedFont = localStorage.getItem('previewFontType') || 'monospace';
+    this.togglePreviewFont(versionId, savedFont);
+}
+
+// 更新所有預覽按鈕狀態
+static updateAllPreviewButtons(isPreviewMode) {
+    const buttons = document.querySelectorAll('[id^="preview-btn-text-"]');
+    buttons.forEach(btn => {
+        btn.textContent = isPreviewMode ? t('exitPreview') : t('previewMode');
+    });
+}
+
+// 輔助方法：獲取當前 preset ID  
 static getCurrentPresetId() {
-    // 這裡需要根據你的現有邏輯來獲取當前的 preset ID
-    // 暫時返回一個佔位符，你可能需要調整這個邏輯
-    return window.currentPresetId || 'current';
+    const currentItem = ItemManager.getCurrentItem();
+    return currentItem ? currentItem.id : 'current';
 }
 
 // 生成預覽內容
@@ -753,14 +843,14 @@ static generatePreviewContent(versionId) {
         if (isMarker) {
             // Marker 條目顯示來源標記
             contentParts.push(`<div class="preset-preview-source">*${t('source')}：${prompt.name}*</div>`);
-    } else {
-        // 一般條目顯示內容
-        if (prompt.content && prompt.content.trim()) {
-            // HTML 轉義，讓 XML 標籤能正確顯示
-            const escapedContent = this.escapeHtml(prompt.content.trim());
-            contentParts.push(escapedContent);
+        } else {
+            // 一般條目顯示內容
+            if (prompt.content && prompt.content.trim()) {
+                // HTML 轉義，讓 XML 標籤能正確顯示
+                const escapedContent = this.escapeHtml(prompt.content.trim());
+                contentParts.push(escapedContent);
+            }
         }
-    }
     });
     
     if (contentParts.length === 0) {
@@ -819,6 +909,13 @@ static getCurrentPresetData(versionId) {
     
     console.warn('無法找到 preset 數據，versionId:', versionId);
     return null;
+}
+
+// HTML 轉義方法
+static escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // 重新整理預覽內容
