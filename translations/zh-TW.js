@@ -485,6 +485,9 @@ window.ChroniclerTranslations['zh-TW'] = {
     chatPromptManagement: '聊天中的提示詞管理',
     depth: '深度',
     order: '順序',
+    position: '位置',
+    markerContentNotEditable: '此提示內容由其他地方提取，無法編輯。',
+    source: '來源',
 
 
 

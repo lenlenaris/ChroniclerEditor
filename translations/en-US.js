@@ -484,6 +484,9 @@ window.ChroniclerTranslations['en-US'] = {
     chatPromptManagement: 'Chat Prompt Management', 
     depth: 'Depth',
     order: 'Order',
+    position: 'Position',
+    markerContentNotEditable: 'This prompt content is extracted from elsewhere and cannot be edited. ',
+    source: 'Source',
 
     
     // ========================================

@@ -58,19 +58,25 @@ static renderPromptsList(preset, version, characterId) {
     
     // 渲染單個提示詞條目
     static renderPromptEntry(presetId, versionId, prompt, characterId) {
-        const isMarker = prompt.marker === true;
-        const canEditContent = !isMarker;
+    const isMarker = prompt.marker === true;
+    const canEditContent = !isMarker;
+    
+    // 特殊標記條目：Chat Examples 和 Chat History 只能編輯 enabled
+    const isSpecialMarker = prompt.identifier === 'dialogueExamples' || prompt.identifier === 'chatHistory';
+    const canEditName = !isSpecialMarker;
+    const canEditRole = !isSpecialMarker;
+    const canEditPosition = !isSpecialMarker;
         
         return `
-            <div class="entry-panel sortable-item preset-entry-panel ${!prompt.enabled ? 'preset-entry-disabled' : ''}" data-prompt-identifier="${prompt.identifier}">
-               <!-- 條目標題列 -->
+<div class="entry-panel sortable-item preset-entry-panel ${!prompt.enabled ? 'preset-entry-disabled' : ''}" data-prompt-identifier="${prompt.identifier}">
+<!-- 條目標題列 - 展開前顯示：拖曳、展開按鈕、開關、名字、role、@深度 -->
 <div class="entry-header preset-entry-header">
     <!-- 拖曳控制 -->
     <div class="drag-handle custom-field-drag-handle">
         ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
     </div>
     
-    <!-- 展開按鈕 - 移到拖曳柄右邊 -->
+    <!-- 展開按鈕 -->
     <button class="entry-toggle-btn wb-toggle-btn" onclick="PresetRenderer.togglePromptContent('${prompt.identifier}')">
         <span class="arrow-icon arrow-right"></span>
     </button>
@@ -86,66 +92,96 @@ static renderPromptsList(preset, version, characterId) {
     </label>
     
     <!-- 名稱 -->
-    <div class="preset-prompt-name">
+    <div class="preset-prompt-name" style="flex: 1;">
         <input type="text" class="field-input compact-input" 
             placeholder="${t('promptName')}"
             value="${prompt.name || ''}"
+            ${!canEditName ? 'readonly' : ''}
+            style="${!canEditName ? 'background: var(--bg-secondary); color: var(--text-muted);' : ''}"
             onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'name', this.value)">
     </div>
-    
-<!-- 角色類型 -->
-<div class="preset-prompt-role">
-    <select class="field-input compact-input" 
-        onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'role', this.value)">
-        <option value="system" ${prompt.role === 'system' ? 'selected' : ''}>${t('system')}</option>
-        <option value="user" ${prompt.role === 'user' ? 'selected' : ''}>${t('user')}</option>
-        <option value="assistant" ${prompt.role === 'assistant' ? 'selected' : ''}>${t('assistant')}</option>
-    </select>
+
+<!-- 深度顯示（預留空間，沒有設定時顯示空白） -->
+<div class="preset-prompt-depth-indicator" id="depth-indicator-${prompt.identifier}" 
+    style="min-width: 40px; text-align: center; color: var(--text-muted); font-size: 0.9em;">
+    ${prompt.injection_position === 1 && prompt.injection_depth ? `@${prompt.injection_depth}` : ''}
 </div>
     
+    <!-- 角色類型 -->
+    <div class="preset-prompt-role" style="min-width: 80px;">
+        <select class="field-input compact-input" 
+            ${!canEditRole ? 'disabled' : ''}
+            style="${!canEditRole ? 'background: var(--bg-secondary); color: var(--text-muted);' : ''}"
+            onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'role', this.value)">
+            <option value="system" ${prompt.role === 'system' ? 'selected' : ''}>${t('system')}</option>
+            <option value="user" ${prompt.role === 'user' ? 'selected' : ''}>${t('user')}</option>
+            <option value="assistant" ${prompt.role === 'assistant' ? 'selected' : ''}>${t('assistant')}</option>
+        </select>
+    </div>
+    
+
+</div>
+    
+<!-- 條目內容區域 -->
+<div class="entry-content preset-entry-content" id="prompt-content-${prompt.identifier}" style="display: none;">
+<!-- 進階設定區域 -->
+<div class="preset-advanced-settings" style="margin-bottom: 15px; padding: 0px; background: var(--bg-secondary); border-radius: 6px;">
+    <div style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
 <!-- 位置類型 -->
-<div class="preset-prompt-position">
+<div>
+    <label class="field-label" style="margin-bottom: 5px; display: block;">${t('position')}</label>
     <select class="field-input compact-input" 
+        style="max-width: 120px; ${!canEditPosition ? 'background: var(--bg-secondary); color: var(--text-muted);' : ''}"
+        ${!canEditPosition ? 'disabled' : ''}
         onchange="PresetRenderer.updatePromptPosition('${presetId}', '${versionId}', '${prompt.identifier}', parseInt(this.value))"
         id="position-select-${prompt.identifier}">
         <option value="0" ${(prompt.injection_position || 0) === 0 ? 'selected' : ''}>${t('relativePosition')}</option>
         <option value="1" ${prompt.injection_position === 1 ? 'selected' : ''}>${t('chatPromptManagement')}</option>
     </select>
 </div>
-
+        
 <!-- 深度（僅在絕對位置時顯示） -->
-<div class="preset-prompt-depth" id="depth-field-${prompt.identifier}" 
-    style="${prompt.injection_position === 1 ? '' : 'display: none;'}">
+<div id="absolute-controls-${prompt.identifier}" style="${prompt.injection_position === 1 ? '' : 'display: none;'}">
+    <label class="field-label" style="margin-bottom: 5px; display: block;">${t('depth')}</label>
     <input type="number" class="field-input compact-input" 
+        style="width: 80px; ${!canEditPosition ? 'background: var(--bg-secondary); color: var(--text-muted);' : ''}"
         value="${prompt.injection_depth || 4}" 
         min="0" max="999"
+        ${!canEditPosition ? 'readonly' : ''}
         placeholder="${t('depth')}"
-        onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'injection_depth', parseInt(this.value))">
+        onchange="PresetRenderer.updatePromptDepth('${presetId}', '${versionId}', '${prompt.identifier}', parseInt(this.value))">
 </div>
 
 <!-- 順序（僅在絕對位置時顯示） -->
-<div class="preset-prompt-order" id="order-field-${prompt.identifier}"
-    style="${prompt.injection_position === 1 ? '' : 'display: none;'}">
+<div id="order-field-${prompt.identifier}" style="${prompt.injection_position === 1 ? '' : 'display: none;'}">
+    <label class="field-label" style="margin-bottom: 5px; display: block;">${t('order')}</label>
     <input type="number" class="field-input compact-input" 
+        style="width: 80px; ${!canEditPosition ? 'background: var(--bg-secondary); color: var(--text-muted);' : ''}"
         value="${prompt.injection_order || 100}" 
         min="1" max="999"
+        ${!canEditPosition ? 'readonly' : ''}
         placeholder="${t('order')}"
         onchange="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'injection_order', parseInt(this.value))">
 </div>
+    </div>
 </div>
-                
-                <!-- 條目內容區域 -->
-                <div class="entry-content preset-entry-content" id="prompt-content-${prompt.identifier}" style="display: none;">
-                    <div class="field-group">
-                        <label class="field-label">${t('promptContent')}</label>
-                        <textarea class="field-input" 
-                            placeholder="${t('promptContentPlaceholder')}"
-                            ${!canEditContent ? 'readonly' : ''}
-                            style="min-height: 120px; ${!canEditContent ? 'background: var(--bg-color); color: var(--text-muted);' : ''}"
-                            oninput="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'content', this.value)">${prompt.content || ''}</textarea>
-                    </div>
-                </div>
-            </div>
+    
+<!-- 內容區域 -->
+<div class="field-group">
+    ${canEditContent ? `
+        <label class="field-label">${t('promptContent')}</label>
+        <textarea class="field-input" 
+            placeholder="${t('promptContentPlaceholder')}"
+            style="min-height: 120px;"
+            oninput="PresetRenderer.updatePromptField('${presetId}', '${versionId}', '${prompt.identifier}', 'content', this.value)">${prompt.content || ''}</textarea>
+    ` : `
+        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 6px; color: var(--text-muted); font-style: italic; font-size: 0.9em;">
+            ${t('markerContentNotEditable')}${t('source')}：${prompt.identifier}
+        </div>
+    `}
+</div>
+</div>
+</div>
         `;
     }
     
@@ -244,19 +280,42 @@ static updatePromptPosition(presetId, versionId, identifier, position) {
     this.updatePromptField(presetId, versionId, identifier, 'injection_position', position);
     
     // 控制深度和順序欄位的顯示/隱藏
-    const depthField = document.getElementById(`depth-field-${identifier}`);
+    const absoluteControls = document.getElementById(`absolute-controls-${identifier}`);
     const orderField = document.getElementById(`order-field-${identifier}`);
+    const depthIndicator = document.getElementById(`depth-indicator-${identifier}`);
     
-    if (depthField && orderField) {
+    if (absoluteControls && orderField && depthIndicator) {
         if (position === 1) {
             // 聊天中的提示詞管理：顯示深度和順序
-            depthField.style.display = '';
-            orderField.style.display = '';
+            absoluteControls.style.display = '';
+            orderField.style.display = 'block';
+            orderField.style.marginTop = '10px';
+            // 更新深度顯示
+            const preset = presets.find(p => p.id === presetId);
+            const version = preset?.versions.find(v => v.id === versionId);
+            const prompt = version?.prompts?.find(p => p.identifier === identifier);
+            if (prompt && prompt.injection_depth) {
+                depthIndicator.textContent = `@${prompt.injection_depth}`;
+                depthIndicator.style.display = '';
+            }
         } else {
             // 相對位置：隱藏深度和順序
-            depthField.style.display = 'none';
+            absoluteControls.style.display = 'none';
             orderField.style.display = 'none';
+            depthIndicator.style.display = 'none';
         }
+    }
+}
+
+// 更新深度並即時更新顯示
+static updatePromptDepth(presetId, versionId, identifier, depth) {
+    // 更新深度值
+    this.updatePromptField(presetId, versionId, identifier, 'injection_depth', depth);
+    
+    // 即時更新右側的深度顯示
+    const depthIndicator = document.getElementById(`depth-indicator-${identifier}`);
+    if (depthIndicator) {
+        depthIndicator.textContent = `@${depth}`;
     }
 }
 
