@@ -2,10 +2,18 @@ class PresetRenderer {
     // 主要版本內容渲染函數
 static renderPresetVersionContent(preset, version) {
     const content = `
-        <div class="preset-version-content">
-            <div class="preset-header">
-                <h3 class="section-title">${t('editablePrompts')}</h3>
-            </div>
+<div class="preset-header">
+    <div class="preset-controls-bar" style="display: flex; gap: 10px; justify-content: flex-start; align-items: center;">
+        <button class="version-panel-btn hover-primary" onclick="PresetRenderer.expandAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
+            ${IconManager.expandAll({width: 14, height: 14})}
+            <span>${t('expandAll')}</span>
+        </button>
+        <button class="version-panel-btn hover-primary" onclick="PresetRenderer.collapseAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
+            ${IconManager.collapseAll({width: 14, height: 14})}
+            <span>${t('collapseAll')}</span>
+        </button>
+    </div>
+</div>
             
             <!-- 只顯示可編輯條目列表 (character_id: 100001) -->
             <div class="preset-prompts-container">
@@ -567,6 +575,51 @@ static restorePromptCollapseStates(states) {
             allToggleBtns.forEach(toggleBtn => {
                 if (toggleBtn) toggleBtn.innerHTML = '<span class="arrow-icon arrow-right"></span>';
             });
+        }
+    });
+}
+
+// 展開所有提示詞條目
+static expandAllPrompts(versionId) {
+    console.log('🔍 展開全部被觸發，versionId:', versionId);
+    
+    // 修正選擇器：直接查找有該 versionId 的容器
+    const container = document.querySelector(`.prompts-entries-container[data-version-id="${versionId}"]`);
+    if (!container) {
+        console.warn('❌ 找不到容器，versionId:', versionId);
+    }
+    
+    const entryPanels = container.querySelectorAll('.preset-entry-panel');
+    
+    entryPanels.forEach(panel => {
+        const identifier = panel.dataset.promptIdentifier;
+        const content = document.getElementById(`prompt-content-${identifier}`);
+        const toggleBtn = panel.querySelector('.entry-toggle-btn');
+        
+        if (content && toggleBtn) {
+            content.style.display = 'block';
+            toggleBtn.innerHTML = '<span class="arrow-icon arrow-down"></span>';
+        }
+    });
+}
+
+// 摺疊所有提示詞條目
+static collapseAllPrompts(versionId) {
+    // 修正選擇器：直接查找有該 versionId 的容器
+    const container = document.querySelector(`.prompts-entries-container[data-version-id="${versionId}"]`);
+    if (!container) {
+        console.warn('❌ 找不到容器，versionId:', versionId);
+        return;
+    }
+    const entryPanels = container.querySelectorAll('.preset-entry-panel');
+    entryPanels.forEach(panel => {
+        const identifier = panel.dataset.promptIdentifier;
+        const content = document.getElementById(`prompt-content-${identifier}`);
+        const toggleBtn = panel.querySelector('.entry-toggle-btn');
+        
+        if (content && toggleBtn) {
+            content.style.display = 'none';
+            toggleBtn.innerHTML = '<span class="arrow-icon arrow-right"></span>';
         }
     });
 }

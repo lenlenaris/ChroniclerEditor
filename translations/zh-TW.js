@@ -489,6 +489,8 @@ window.ChroniclerTranslations['zh-TW'] = {
     markerContentNotEditable: '此提示內容由其他地方提取，無法編輯。',
     source: '來源',
     promptsCount: '提示詞',
+    expandAll: '展開全部',
+    collapseAll: '摺疊全部',
 
 
 

@@ -432,6 +432,38 @@ class IconManager {
         </svg>`;
     }
 
+    // 展開全部圖標
+    static expandAll(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            strokeWidth = 2,
+            className = '',
+            style = ''
+        } = options;
+        
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <polyline points="7,13 12,18 17,13"/>
+            <polyline points="7,6 12,11 17,6"/>
+        </svg>`;
+    }
+
+    // 摺疊全部圖標
+    static collapseAll(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            strokeWidth = 2,
+            className = '',
+            style = ''
+        } = options;
+        
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <polyline points="17,11 12,6 7,11"/>
+            <polyline points="17,18 12,13 7,18"/>
+        </svg>`;
+    }
+
 
     // 文件圖示
     static file(options = {}) {

@@ -488,6 +488,8 @@ window.ChroniclerTranslations['en-US'] = {
     markerContentNotEditable: 'This prompt content is extracted from elsewhere and cannot be edited. ',
     source: 'Source',
     promptsCount: 'prompts',
+    expandAll: 'Expand All',
+    collapseAll: 'Collapse All',
 
     
     // ========================================
