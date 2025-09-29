@@ -351,7 +351,8 @@ static searchInWorldBooks(searchText) {
                                     snippet: snippet,
                                     itemId: preset.id,
                                     versionId: version.id,
-                                    type: 'preset'
+                                    type: 'preset',
+                                    promptIdentifier: prompt.identifier
                                 });
                             }
                         }
@@ -488,11 +489,18 @@ static renderResultSection(sectionName, results, icon) {
             }
         }
     }
-}
+} else if (result.type === 'preset') {
+            // 【新增】為預設結果提供更清晰的描述
+            fieldDescription = `${t('prompt')} - ${result.fieldName}`;
+        }
+        
+        // 🧠 關鍵修改：將 jumpToResult 的第四個參數，在類型為 'preset' 時，傳遞 promptIdentifier
+        const jumpArgs = `'${result.type}', '${result.itemId}', '${result.versionId}', '${result.type === 'preset' ? result.promptIdentifier : result.fieldName}', '${this.escapeForAttribute(this.escapeRegex(searchText))}'`;
+
         
         html += `
 <div class="search-result-item tag-item-hover" 
-     onclick="ContentSearchManager.jumpToResult('${result.type}', '${result.itemId}', '${result.versionId}', '${result.fieldName}', '${this.escapeForAttribute(searchText)}')"
+     onclick="ContentSearchManager.jumpToResult(${jumpArgs})"
      style="
          padding: 12px 16px; 
          margin-bottom: 8px; 
@@ -537,17 +545,27 @@ static renderResultSection(sectionName, results, icon) {
     }
     
 // 跳轉到結果
-static jumpToResult(type, itemId, versionId, fieldName, searchText) {
+static jumpToResult(type, itemId, versionId, fieldIdentifier, searchText) { // 參數名改為 fieldIdentifier 更通用
     this.closeSearchModal();
     
     // 延遲執行，確保模態框完全關閉
     setTimeout(() => {
-        selectItem(type, itemId, versionId, {
-            scrollToField: fieldName,
+        let options = {
             highlightText: searchText
-        });
+        };
+
+        if (type === 'preset') {
+            // 對於 preset，我們傳遞 promptIdentifier 用於後續定位
+            options.scrollToPrompt = fieldIdentifier;
+        } else {
+            // 對於其他類型，我們傳遞欄位名稱
+            options.scrollToField = fieldIdentifier;
+        }
+
+        selectItem(type, itemId, versionId, options);
     }, 100);
 }
+
 // 轉義屬性值中的特殊字符
 static escapeForAttribute(str) {
     if (!str) return '';
@@ -632,6 +650,53 @@ function highlightElement(element) {
         element.style.border = originalStyle.border;
         element.style.boxShadow = originalStyle.boxShadow;
     }, 3000);
+}
+
+// 滾動到指定的 Preset 提示詞條目
+function scrollToPresetPrompt(promptIdentifier, searchText) {
+    if (!promptIdentifier) return;
+
+    // 1. 找到條目面板並展開它
+    const entryPanel = document.querySelector(`.preset-entry-panel[data-prompt-identifier="${promptIdentifier}"]`);
+    if (!entryPanel) {
+        console.warn('找不到預設條目面板:', promptIdentifier);
+        return;
+    }
+
+    const content = entryPanel.querySelector('.preset-entry-content');
+    const toggleBtn = entryPanel.querySelector('.entry-toggle-btn');
+    const arrowIcon = toggleBtn ? toggleBtn.querySelector('.arrow-icon') : null;
+
+    // 如果是收合的，就把它展開
+    if (content && content.style.display === 'none') {
+        content.style.display = 'block';
+        if (arrowIcon) {
+            arrowIcon.classList.remove('arrow-right');
+            arrowIcon.classList.add('arrow-down');
+        }
+    }
+    
+    // 2. 找到目標 textarea
+    const targetElement = entryPanel.querySelector('textarea');
+    if (targetElement) {
+        // 滾動到目標元素
+        targetElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+        
+        // 添加高亮效果
+        highlightElement(targetElement);
+        
+        // 聚焦到元素
+        setTimeout(() => {
+            targetElement.focus();
+        }, 500);
+    } else {
+        // 如果是 marker (沒有 textarea)，就只滾動到面板
+        entryPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        highlightElement(entryPanel);
+    }
 }
 
 // 顯示其他設定介面
@@ -1063,4 +1128,44 @@ function showCloudSync() {
             modal.remove();
         }
     });
+}
+
+function scrollToPresetPrompt(promptIdentifier, searchText) {
+    if (!promptIdentifier) return;
+
+    // 1. 找到條目面板並展開它
+    const entryPanel = document.querySelector(`.preset-entry-panel[data-prompt-identifier="${promptIdentifier}"]`);
+    if (!entryPanel) {
+        console.warn('找不到預設條目面板:', promptIdentifier);
+        return;
+    }
+
+    const content = entryPanel.querySelector('.preset-entry-content');
+    const toggleBtn = entryPanel.querySelector('.entry-toggle-btn');
+    if (content && content.style.display === 'none') {
+        // 使用 PresetRenderer 的方法來展開，確保狀態一致
+        PresetRenderer.togglePromptContent(promptIdentifier);
+    }
+    
+    // 2. 找到目標 textarea
+    const targetElement = entryPanel.querySelector('textarea');
+    if (targetElement) {
+        // 滾動到目標元素
+        targetElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+        
+        // 添加高亮效果
+        highlightElement(targetElement);
+        
+        // 聚焦到元素
+        setTimeout(() => {
+            targetElement.focus();
+        }, 500);
+    } else {
+        // 如果是 marker (沒有 textarea)，就只滾動到面板
+        entryPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        highlightElement(entryPanel);
+    }
 }

@@ -2812,25 +2812,22 @@ function selectItem(type, itemId, versionId = null, searchOptions = null) {
     }
     
     renderAll();
+    
     // 統一使用延遲更新，避免重複調用
     setTimeout(() => {
         updateAllPageStats();
-        if (searchOptions && searchOptions.scrollToField) {
-            const finalVersionId = versionId || (() => {
-                switch (type) {
-                    case 'character': return currentVersionId;
-                    case 'loveydovey': return currentLoveyDoveyVersionId;
-                    case 'userpersona': return currentUserPersonaVersionId;
-                    case 'custom': return currentCustomVersionId;
-                    case 'worldbook': return currentWorldBookVersionId;
-                    default: return null;
-                }
-            })();
-            
-            if (finalVersionId) {
+        
+        if (searchOptions) {
+            // 處理一般欄位的滾動
+            if (searchOptions.scrollToField) {
                 scrollToSearchResult(type, searchOptions.scrollToField, searchOptions.highlightText);
             }
+            
+        if (searchOptions.scrollToPrompt) {
+            scrollToPresetPrompt(searchOptions.scrollToPrompt, searchOptions.highlightText);
         }
+        }
+        
         updateMobileBreadcrumb();
     }, 300);
 }
