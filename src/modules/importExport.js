@@ -1689,13 +1689,9 @@ static createWorldBookMarkdownContent(worldBook, version) {
     }
 
 static createPresetData(preset, version) {
-    // 建立完整的 SillyTavern 預設格式
+    // 按照 SillyTavern 的標準順序構建匯出物件
     const exportData = {
-        // 核心陣列
-        prompts: version.prompts || [],
-        prompt_order: version.prompt_order || [],
-        
-        // 基本參數
+        // 第一組：基本生成參數
         temperature: version.temperature || 1,
         frequency_penalty: version.frequency_penalty || 0,
         presence_penalty: version.presence_penalty || 0,
@@ -1705,40 +1701,54 @@ static createPresetData(preset, version) {
         min_p: version.min_p || 0,
         repetition_penalty: version.repetition_penalty || 1,
         
-        // OpenAI 設定
+        // 第二組：OpenAI 專用參數
         openai_max_context: version.openai_max_context || 100000,
         openai_max_tokens: version.openai_max_tokens || 4000,
         wrap_in_quotes: version.wrap_in_quotes || false,
         names_behavior: version.names_behavior || 0,
         
-        // 格式設定
+        // 第三組：提示詞模板
+        send_if_empty: version.send_if_empty || "",
+        impersonation_prompt: version.impersonation_prompt || "[Write your next reply from the point of view of {{user}}, using the chat history so far as a guideline for the writing style of {{user}}. Write 1 reply only in internet RP style. Don't write as {{char}} or system. Don't describe actions of {{char}}.]",
+        new_chat_prompt: version.new_chat_prompt || "[Start a new Chat]",
+        new_group_chat_prompt: version.new_group_chat_prompt || "[Start a new group chat. Group members: {{group}}]",
+        new_example_chat_prompt: version.new_example_chat_prompt || "[Example Chat]",
+        continue_nudge_prompt: version.continue_nudge_prompt || "[Continue your last message without repeating its original content.]",
+        bias_preset_selected: version.bias_preset_selected || "Default (none)",
+        
+        // 第四組：上下文設定
+        max_context_unlocked: version.max_context_unlocked !== false,
         wi_format: version.wi_format || "{0}",
         scenario_format: version.scenario_format || "{{scenario}}",
         personality_format: version.personality_format || "{{personality}}",
+        group_nudge_prompt: version.group_nudge_prompt || "[Write the next reply only as {{char}}.]",
         
-        // 提示詞模板
-        send_if_empty: version.send_if_empty || "",
-        impersonation_prompt: version.impersonation_prompt || "",
-        new_chat_prompt: version.new_chat_prompt || "",
-        new_group_chat_prompt: version.new_group_chat_prompt || "",
-        new_example_chat_prompt: version.new_example_chat_prompt || "",
-        continue_nudge_prompt: version.continue_nudge_prompt || "",
-        group_nudge_prompt: version.group_nudge_prompt || "",
-        
-        // 其他設定
-        bias_preset_selected: version.bias_preset_selected || "Default (none)",
-        max_context_unlocked: version.max_context_unlocked !== false,
         stream_openai: version.stream_openai !== false,
         
-        // 進階設定
+        // 核心：提示詞陣列（放在參數之後）
+        prompts: version.prompts || [],
+        prompt_order: version.prompt_order || [],
+        
+        // 第五組：進階設定
         assistant_prefill: version.assistant_prefill || "",
+        assistant_impersonation: version.assistant_impersonation || "",
         claude_use_sysprompt: version.claude_use_sysprompt || false,
+        use_makersuite_sysprompt: version.use_makersuite_sysprompt || false,
         squash_system_messages: version.squash_system_messages || false,
+        image_inlining: version.image_inlining || false,
+        inline_image_quality: version.inline_image_quality || "auto",
+        video_inlining: version.video_inlining || false,
+        continue_prefill: version.continue_prefill || false,
+        continue_postfix: version.continue_postfix || " ",
+        function_calling: version.function_calling || false,
         show_thoughts: version.show_thoughts || false,
         reasoning_effort: version.reasoning_effort || "medium",
         enable_web_search: version.enable_web_search || false,
+        request_images: version.request_images || false,
+        seed: version.seed || -1,
+        n: version.n || 1,
         
-        // 擴展
+        // 擴展（最後）
         extensions: version.extensions || {}
     };
     
@@ -2693,6 +2703,9 @@ static createNewPresetFromImport(data, presetName, isRenamed) {
             currentPresetId = preset.id;
             currentPresetVersionId = preset.versions[0].id;
             expandCurrentItemVersions();
+        if (typeof OverviewManager !== 'undefined') {
+            OverviewManager.invalidateCache();
+        }
         }, 100);
     }, 50);
     
@@ -2786,6 +2799,10 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
     setTimeout(() => {
         renderAll();
         markAsChanged();
+
+        if (typeof OverviewManager !== 'undefined') {
+    OverviewManager.invalidateCache();
+}
         
         setTimeout(() => {
             currentMode = 'preset';

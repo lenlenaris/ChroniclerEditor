@@ -2942,8 +2942,7 @@ function enterListPage(type) {
         
         // 展開預設區塊
         expandSidebarSection('preset');
-        
-        renderAll();
+        OverviewManager.renderOverview('preset', { showImport: true });
         updateMobileBreadcrumb();
         return;
     }
