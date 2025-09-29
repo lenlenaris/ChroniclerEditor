@@ -3757,6 +3757,11 @@ function updateSidebarTranslations() {
     const addCustomBtn = document.querySelector('button[onclick="addCustomSection()"]');
     if (addCustomBtn) addCustomBtn.textContent = t('addCustomField');
     
+    // 預設區塊
+    const presetSection = document.querySelector('#preset-icon').closest('.sidebar-section');
+    const presetTitle = presetSection?.querySelector('.sidebar-section-title');
+    if (presetTitle) presetTitle.textContent = t('preset');
+
     // 卿卿我我區塊
     const loveyDoveySection = document.querySelector('#loveydovey-icon').closest('.sidebar-section');
     const loveyDoveyTitle = loveyDoveySection?.querySelector('.sidebar-section-title');

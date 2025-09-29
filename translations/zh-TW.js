@@ -470,15 +470,14 @@ window.ChroniclerTranslations['zh-TW'] = {
     saveError: '保存失敗',
     presetOnlySupportsJSON: '預設僅支援 JSON 格式',
     invalidPresetFile: '無效的預設檔案格式',
-    presetParseError: '預設檔案解析錯誤：{0}',
-    presetAlreadyExists: '預設 "{0}" 已存在',
+    presetParseError: '預設檔案解析錯誤',
+    presetAlreadyExists: '預設已存在',
     addAsNewPresetVersion: '新增為新版本',
     createAsNewPreset: '建立為新預設',
-    presetImportSuccess: '成功匯入預設 "{0}"',
-    presetRenamedImportSuccess: '成功匯入預設為 "{0}"',
-    importedFromPreset: '從 {0} 匯入',
-    versionAddedToPreset: '版本 "{0}" 已新增至預設 "{1}"',
-    preset: '預設',
+    presetImportSuccess: '成功匯入預設',
+    presetRenamedImportSuccess: '成功匯入預設',
+    importedFromPreset: '已從其他預設匯入',
+    versionAddedToPreset: '版本已新增至預設',
     markdownFormatComingSoon: 'Markdown 格式即將推出',
     comingSoon: '即將推出',
     relativePosition: '相對位置',
@@ -503,7 +502,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     calculating: '計算中...',
     enabledPrompts: '個啟用條目',
     previewDisabledInCompare: '對比模式下無法使用預覽',
-
+    itemsPresets: '$1 個預設',
 
 
     // ========================================

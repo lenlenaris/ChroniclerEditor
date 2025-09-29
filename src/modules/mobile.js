@@ -382,6 +382,17 @@ function getMobileBreadcrumbForEdit() {
                     versionName = currentVersion.name;
                 }
             }
+
+        } else if (currentMode === 'preset') {
+            typeName = t('preset');
+            const preset = presets.find(p => p.id === currentItemId);
+            if (preset) {
+                itemName = preset.name;
+                const currentVersion = preset.versions.find(v => v.id === currentPresetVersionId);
+                if (currentVersion) {
+                    versionName = currentVersion.name;
+                }
+            }
         }
         
         // 組合麵包屑文字
