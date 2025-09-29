@@ -882,29 +882,35 @@
     margin-bottom: 12px;
 }
 
-/* 預覽視圖容器 */
+/* 預覽視圖容器 - 使用獨立樣式避免影響對比模式 */
 .versions-container.preview-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: var(--spacing-xxl);
     max-width: 100%;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    gap: 16px;
+    margin: 0 auto;
 }
 
-/* 確保預覽模式下的 version-panel 有固定高度和獨立滾動 */
-.preview-view .version-panel {
-    flex: 1;
-    min-width: 0;
-    max-height: calc(100vh - 120px); /* 減去頂部控制欄和間距 */
+/* 預覽模式下的 version-panel 獨立滾動設置 */
+.versions-container.preview-view > .version-panel {
+    max-height: calc(100vh - 120px);
     overflow-y: auto;
     display: flex;
     flex-direction: column;
 }
 
-/* 預覽面板特殊樣式 */
-.preset-preview-panel {
-    flex: 1;
-    min-width: 0;
+/* 預覽標題輸入框 - 移除唯讀時的互動效果 */
+.preset-preview-panel .version-title[readonly]:hover,
+.preset-preview-panel .version-title[readonly]:focus {
+    border-color: transparent !important;
+    outline: none !important;
+}
+
+/* 預覽統計樣式 */
+.preset-preview-stats {
+    padding: 8px 12px 0px 12px;
+    font-size: 0.85em;
+    color: var(--text-muted);
 }
 
 /* 預覽內容包裝器 */
@@ -914,19 +920,14 @@
     overflow-y: auto;
 }
 
-/* 確保編輯面板內容也可以正常滾動 */
-.preview-view .version-panel > div {
-    flex-shrink: 0; /* 防止內容被壓縮 */
-}
-
-/* 預覽內容 */
+/* 預覽內容基礎樣式 */
 .preset-preview-content {
-    font-family: 'Courier New', Monaco, monospace;
-    font-size: 0.9em;
-    line-height: 1.6;
+    font-size: 0.95em;
+    line-height: 1.7;
     color: var(--text-color);
     white-space: pre-wrap;
     word-wrap: break-word;
+    letter-spacing: 0.3px;
 }
 
 /* 字體切換樣式 */
@@ -958,14 +959,19 @@
     border-left: 3px solid var(--accent-color);
 }
 
+/* 確保編輯面板內容不被壓縮 */
+.versions-container.preview-view .version-panel > div {
+    flex-shrink: 0;
+}
+
 /* 手機版預覽模式 */
 @media (max-width: 768px) {
     .versions-container.preview-view {
-        flex-direction: column;
-        gap: 12px;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
     }
     
-    .preview-view .version-panel {
+    .versions-container.preview-view > .version-panel {
         max-height: 40vh;
     }
     
@@ -973,3 +979,16 @@
         max-height: 40vh;
     }
 }
+
+/* 預覽統計樣式 */
+.preset-preview-stats {
+    padding: 8px 12px 0px 12px;
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.preset-preview-panel .version-title[readonly]:hover,
+.preset-preview-panel .version-title[readonly]:focus {
+    border-color: transparent !important;
+    outline: none !important;
+} 

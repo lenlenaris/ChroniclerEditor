@@ -499,6 +499,9 @@ window.ChroniclerTranslations['en-US'] = {
     source: 'Source',
     monospaceFont: 'Monospace Font',
     serifFont: 'Serif Font',
+    calculating: 'Calculating...',
+    enabledPrompts: 'enabled prompts',
+    previewDisabledInCompare: 'Preview is disabled in compare mode',
 
     
     // ========================================

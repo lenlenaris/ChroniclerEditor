@@ -295,8 +295,8 @@ static exportAllData() {
         worldBooks: worldBooks,
         userPersonas: userPersonas,
         loveyDoveyCharacters: loveyDoveyCharacters,
-        
-        // 🆕 資料夾資訊
+        presets: presets,
+
         folders: folders,
         
         // 所有設定
@@ -316,7 +316,7 @@ static exportAllData() {
         
         // 元資料
         exportDate: new Date().toISOString(),
-        version: '2.1.0'  // 🔧 版本號升級，表示支援資料夾
+        version: '2.1.0'
     };
     
     const filename = `chronicler_complete_backup_${new Date().toISOString().split('T')[0]}.json`;
@@ -2464,6 +2464,7 @@ setTimeout(() => {
             if (data.worldBooks?.length) dataItems.push(t('itemsWorldBooks', data.worldBooks.length));
             if (data.userPersonas?.length) dataItems.push(t('itemsUserPersonas', data.userPersonas.length));
             if (data.loveyDoveyCharacters?.length) dataItems.push(t('itemsLoveyDoveyCharacters', data.loveyDoveyCharacters.length));
+            if (data.presets?.length) dataItems.push(t('itemsPresets', data.presets.length));
 
             const settingsItems = [];
             if (data.settings?.customThemes) settingsItems.push(t('customThemes'));
@@ -2482,7 +2483,8 @@ setTimeout(() => {
                 customSections = data.customSections || [];
                 worldBooks = data.worldBooks || [];
                 userPersonas = data.userPersonas || []; 
-                loveyDoveyCharacters = data.loveyDoveyCharacters || []; 
+                loveyDoveyCharacters = data.loveyDoveyCharacters || [];
+                presets = data.presets || []; 
                 
                 // 第二階段：恢復所有設定
                 if (data.settings) {
@@ -2526,6 +2528,8 @@ setTimeout(() => {
                 currentUserPersonaVersionId = userPersonas[0]?.versions[0]?.id || null;
                 currentLoveyDoveyId = loveyDoveyCharacters[0]?.id || null;
                 currentLoveyDoveyVersionId = loveyDoveyCharacters[0]?.versions[0]?.id || null;
+                currentPresetId = presets[0]?.id || null; 
+                currentPresetVersionId = presets[0]?.versions[0]?.id || null; 
                 currentMode = 'character';
                 compareVersions = [];
                 
@@ -2933,7 +2937,8 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
             customSections = [];
             worldBooks = [];
             userPersonas = []; 
-            loveyDoveyCharacters = []; 
+            loveyDoveyCharacters = [];
+            presets = []; 
             
             // 第二階段：重置所有狀態變數
             currentCharacterId = null;
@@ -2945,7 +2950,9 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
             currentUserPersonaId = null;    
             currentUserPersonaVersionId = null;  
             currentLoveyDoveyId = null;   
-            currentLoveyDoveyVersionId = null; 
+            currentLoveyDoveyVersionId = null;
+            currentPresetId = null;
+            currentPresetVersionId = null; 
             currentMode = 'character';
             viewMode = 'single';
             compareVersions = [];
@@ -2954,21 +2961,26 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
             
             // 第三階段：清空 IndexedDB
             if (characterDB.db) {
-                const transaction = characterDB.db.transaction([
+                const storeNames = [
                     'characters', 
                     'customSections', 
                     'worldBooks', 
                     'userPersonas', 
-                    'loveyDoveyCharacters' 
-                ], 'readwrite');
+                    'loveyDoveyCharacters'
+                ];
                 
-                await Promise.all([
-                    characterDB.clearStore(transaction.objectStore('characters')),
-                    characterDB.clearStore(transaction.objectStore('customSections')),
-                    characterDB.clearStore(transaction.objectStore('worldBooks')),
-                    characterDB.clearStore(transaction.objectStore('userPersonas')), 
-                    characterDB.clearStore(transaction.objectStore('loveyDoveyCharacters')) 
-                ]);
+                // 檢查 presets store 是否存在
+                if (characterDB.db.objectStoreNames.contains('presets')) {
+                    storeNames.push('presets');
+                }
+                
+                const transaction = characterDB.db.transaction(storeNames, 'readwrite');
+                
+                const clearPromises = storeNames.map(storeName => 
+                    characterDB.clearStore(transaction.objectStore(storeName))
+                );
+                
+                await Promise.all(clearPromises);
             }
             
             // 第四階段：清空所有 localStorage 和設定
@@ -2978,6 +2990,7 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
                 localStorage.removeItem('characterCreatorWorldBooks');
                 localStorage.removeItem('characterCreatorUserPersonas');
                 localStorage.removeItem('characterCreatorLoveyDoveyCharacters');
+                localStorage.removeItem('characterCreatorPresets');
 
                 // 清空主題和介面設定
                 localStorage.removeItem('characterCreatorCustomColors');

@@ -500,6 +500,9 @@ window.ChroniclerTranslations['zh-TW'] = {
     source: '來源',
     monospaceFont: '程式字體', 
     serifFont: '文章字體',
+    calculating: '計算中...',
+    enabledPrompts: '個啟用條目',
+    previewDisabledInCompare: '對比模式下無法使用預覽',
 
 
 

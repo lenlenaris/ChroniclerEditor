@@ -2,22 +2,26 @@ class PresetRenderer {
     // 主要版本內容渲染函數
 static renderPresetVersionContent(preset, version) {
     const content = `
-<div class="preset-header">
-<div class="preset-controls-bar" style="display: flex; gap: 10px; justify-content: flex-start; align-items: center;">
-    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewMode('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
-        ${IconManager.eye({width: 14, height: 14})}
-        <span id="preview-btn-text-${version.id}">${t('previewMode')}</span>
-    </button>
-    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.expandAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
-        ${IconManager.expandAll({width: 14, height: 14})}
-        <span>${t('expandAll')}</span>
-    </button>
-    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.collapseAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
-        ${IconManager.collapseAll({width: 14, height: 14})}
-        <span>${t('collapseAll')}</span>
-    </button>
-</div>
-</div>
+        <div class="preset-version-content">
+            <div class="preset-header">
+                <div class="preset-controls-bar" style="display: flex; gap: 10px; justify-content: flex-start; align-items: center;">
+                    <button class="version-panel-btn hover-primary ${viewMode === 'compare' ? 'disabled' : ''}" 
+                            onclick="${viewMode === 'compare' ? 'return false;' : `PresetRenderer.togglePreviewMode('${version.id}')`}" 
+                            title="${viewMode === 'compare' ? t('previewDisabledInCompare') : ''}"
+                            style="display: flex; align-items: center; gap: 6px; ${viewMode === 'compare' ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                        ${IconManager.eye({width: 14, height: 14})}
+                        <span id="preview-btn-text-${version.id}">${t('previewMode')}</span>
+                    </button>
+                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.expandAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
+                        ${IconManager.expandAll({width: 14, height: 14})}
+                        <span>${t('expandAll')}</span>
+                    </button>
+                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.collapseAllPrompts('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
+                        ${IconManager.collapseAll({width: 14, height: 14})}
+                        <span>${t('collapseAll')}</span>
+                    </button>
+                </div>
+            </div>
             
             <!-- 只顯示可編輯條目列表 (character_id: 100001) -->
             <div class="preset-prompts-container">
@@ -28,10 +32,10 @@ static renderPresetVersionContent(preset, version) {
         </div>
     `;
     
-    // 只初始化可編輯條目的拖拽排序
+    // 只初始化可編輯條目的拖曳排序
     setTimeout(() => {
         this.enablePromptsDragSort(preset.id, version.id, 100001);
-        console.log(`🎯 已初始化 preset ${preset.id} version ${version.id} 的可編輯條目拖拽排序`);
+        console.log(`🎯 已初始化 preset ${preset.id} version ${version.id} 的可編輯條目拖曳排序`);
 
         updateAllPageStats();
         updateVersionStats('preset', preset.id, version.id);
@@ -681,11 +685,14 @@ setTimeout(() => {
     updateAllPageStats();
     updateVersionStats('preset', preset.id, version.id);
     
-    // 強制重新整理預覽內容，確保首次顯示正確
-    this.refreshPreview(version.id);
-    
-    // 初始化字體設置
-    this.initPreviewFont(version.id);
+// 強制重新整理預覽內容，確保首次顯示正確
+this.refreshPreview(version.id);
+
+// 初始化字體設置
+this.initPreviewFont(version.id);
+
+// 更新統計
+this.updatePreviewStats(version.id);
 }, 200);
 }
 
@@ -731,37 +738,83 @@ static exitPreviewMode() {
 static renderPreviewPanel(preset, version) {
     const previewContent = this.generatePreviewContent(version.id);
     
-    return `
-        <div class="version-panel preset-preview-panel">
-            <div class="version-header-container">
-                <div class="version-header">
-                    <input type="text" class="version-title title-font" value="${t('promptPreview')} - ${version.name}" readonly 
-                        style="background: var(--bg-secondary); color: var(--text-muted);">
-                        <div class="version-controls">
-                            <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewFont('${version.id}', 'monospace')" 
-                                    id="font-mono-btn-${version.id}" title="${t('monospaceFont')}" style="display: flex; align-items: center; gap: 4px;">
-                                <span style="font-family: monospace; font-weight: bold;">Aa</span>
-                            </button>
-                            <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewFont('${version.id}', 'serif')" 
-                                    id="font-serif-btn-${version.id}" title="${t('serifFont')}" style="display: flex; align-items: center; gap: 4px;">
-                                <span style="font-family: serif; font-weight: bold;">Aa</span>
-                            </button>
-                            <button class="version-panel-btn hover-primary" onclick="PresetRenderer.refreshPreview('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
-                                ${IconManager.refresh({width: 14, height: 14})}
-                                <span>${t('refresh')}</span>
-                            </button>
-                        </div>
+return `
+    <div class="version-panel preset-preview-panel">
+        <div class="version-header-container">
+            <div class="version-header">
+                <input type="text" class="version-title title-font" value="${t('promptPreview')} - ${version.name}" readonly 
+                    style="background: var(--bg-secondary); color: var(--text-muted);">
+                <div class="version-controls">
+                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewFont('${version.id}', 'monospace')" 
+                            id="font-mono-btn-${version.id}" title="${t('monospaceFont')}" style="display: flex; align-items: center; gap: 4px;">
+                        <span style="font-family: monospace; font-weight: bold;">Aa</span>
+                    </button>
+                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewFont('${version.id}', 'serif')" 
+                            id="font-serif-btn-${version.id}" title="${t('serifFont')}" style="display: flex; align-items: center; gap: 4px;">
+                        <span style="font-family: serif; font-weight: bold;">Aa</span>
+                    </button>
+                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.refreshPreview('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
+                        ${IconManager.refresh({width: 14, height: 14})}
+                        <span>${t('refresh')}</span>
+                    </button>
                 </div>
-                <div class="version-divider"></div>
             </div>
-            
-            <div class="preset-preview-content-wrapper">
-                <div class="preset-preview-content" id="preview-content-${version.id}">
-                    ${previewContent}
-                </div>
+            <div class="version-stats preset-preview-stats" id="preview-stats-${version.id}">
+                <span class="stats-text">${t('calculating')}</span>
+            </div>
+            <div class="version-divider"></div>
+        </div>
+        
+        <div class="preset-preview-content-wrapper">
+            <div class="preset-preview-content" id="preview-content-${version.id}">
+                ${previewContent}
             </div>
         </div>
-    `;
+    </div>
+`;
+}
+
+// 計算並更新預覽統計
+static updatePreviewStats(versionId) {
+    const presetData = this.getCurrentPresetData(versionId);
+    if (!presetData) return;
+    
+    const { preset, version } = presetData;
+    
+    // 找到可編輯條目的配置
+    const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
+    if (!orderConfig || !orderConfig.order) return;
+    
+    // 收集所有啟用的內容
+    let allContent = '';
+    let enabledCount = 0;
+    
+    orderConfig.order.forEach(orderItem => {
+        if (!orderItem.enabled) return;
+        
+        const prompt = version.prompts?.find(p => p.identifier === orderItem.identifier);
+        if (!prompt) return;
+        
+        enabledCount++;
+        
+        // 只計算非 marker 條目的內容
+        if (!prompt.marker && prompt.content && prompt.content.trim()) {
+            allContent += prompt.content.trim() + '\n\n';
+        }
+    });
+    
+    // 計算統計
+    const chars = allContent.length;
+    const tokens = countTokens(allContent);
+    
+    // 更新顯示
+    const statsElement = document.getElementById(`preview-stats-${versionId}`);
+    if (statsElement) {
+        const statsText = statsElement.querySelector('.stats-text');
+        if (statsText) {
+            statsText.textContent = `${enabledCount} ${t('enabledPrompts')} / ${chars} ${t('chars')} / ${tokens} ${t('tokens')}`;
+        }
+    }
 }
 
 // 切換預覽字體
@@ -925,6 +978,9 @@ static refreshPreview(versionId) {
     
     const newContent = this.generatePreviewContent(versionId);
     previewContent.innerHTML = newContent;
+    
+    // 更新統計
+    this.updatePreviewStats(versionId);
 }
 
 // HTML 轉義方法

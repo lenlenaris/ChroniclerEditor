@@ -363,6 +363,7 @@ class GoogleCloudSync {
                 worldBooks: worldBooks,
                 userPersonas: userPersonas,
                 loveyDoveyCharacters: loveyDoveyCharacters,
+                presets: presets,
                 folders: folders,
                 settings: {
                     customThemes: localStorage.getItem('characterCreator_customThemes'),
@@ -636,6 +637,7 @@ class GoogleCloudSync {
             worldBooks = data.worldBooks || [];
             userPersonas = data.userPersonas || [];
             loveyDoveyCharacters = data.loveyDoveyCharacters || [];
+            presets = data.presets || [];
             
             // 恢復設定
             if (data.settings) {
@@ -679,6 +681,8 @@ class GoogleCloudSync {
             currentUserPersonaVersionId = userPersonas[0]?.versions[0]?.id || null;
             currentLoveyDoveyId = loveyDoveyCharacters[0]?.id || null;
             currentLoveyDoveyVersionId = loveyDoveyCharacters[0]?.versions[0]?.id || null;
+            currentPresetId = presets[0]?.id || null;
+            currentPresetVersionId = presets[0]?.versions[0]?.id || null; 
             currentMode = 'character';
             compareVersions = [];
             
