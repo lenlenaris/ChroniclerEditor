@@ -21,6 +21,10 @@ static renderPresetVersionContent(preset, version) {
                         <span>${t('collapseAll')}</span>
                     </button>
                 </div>
+
+                <div class="controls-description" style="color: var(--text-muted); font-size: 0.85em; margin-top: 8px; padding-left: 2px;">
+                    ${t('presetControlsDescription')}
+                </div>
             </div>
             
             <!-- 只顯示可編輯條目列表 (character_id: 100001) -->

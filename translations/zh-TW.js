@@ -503,6 +503,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     enabledPrompts: '個啟用條目',
     previewDisabledInCompare: '對比模式下無法使用預覽',
     itemsPresets: '$1 個預設',
+    presetControlsDescription: '暫時只供更改現有條目參數、順序及內容，無法新增或刪除條目。<br>預覽模式：組合已啟用條目的內容並進行預覽。',
 
 
     // ========================================

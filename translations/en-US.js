@@ -502,6 +502,7 @@ window.ChroniclerTranslations['en-US'] = {
     enabledPrompts: 'enabled prompts',
     previewDisabledInCompare: 'Preview is disabled in compare mode',
     itemsPresets: '$1 Presets',
+    presetControlsDescription: 'You can adjust the content, order, and parameters of existing entries here, but you cannot add or delete them. <br>Preview Mode: combines all enabled entries for you to review.',
 
     
     // ========================================
