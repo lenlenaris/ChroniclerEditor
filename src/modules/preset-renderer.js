@@ -213,9 +213,13 @@ static renderPromptsList(preset, version, characterId) {
     // 展開/收合條目內容
     static togglePromptContent(identifier) {
         const content = document.getElementById(`prompt-content-${identifier}`);
-        const toggleBtn = event.target.closest('.entry-toggle-btn');
+        // 🧠【修正】我們不再依賴 event.target，而是直接用 identifier 來精準查找對應的按鈕
+        const toggleBtn = document.querySelector(`.entry-toggle-btn[onclick*="togglePromptContent('${identifier}')"]`);
         
-        if (!content || !toggleBtn) return;
+        if (!content || !toggleBtn) {
+            console.warn(`togglePromptContent: 找不到ID為 ${identifier} 的內容或按鈕`);
+            return;
+        }
         
         const isExpanded = content.style.display !== 'none';
         
