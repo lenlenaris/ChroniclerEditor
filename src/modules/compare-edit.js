@@ -209,6 +209,7 @@ class CrossTypeCompareManager {
                 ${showLoveyDovey ? `<option value="loveydovey" ${currentType === 'loveydovey' ? 'selected' : ''}>${t('loveydovey')}</option>` : ''}
                 <option value="userpersona" ${currentType === 'userpersona' ? 'selected' : ''}>${t('userPersona')}</option>
                 <option value="worldbook" ${currentType === 'worldbook' ? 'selected' : ''}>${t('worldBook')}</option>
+                <option value="preset" ${currentType === 'preset' ? 'selected' : ''}>${t('preset')}</option>
                 <option value="custom" ${currentType === 'custom' ? 'selected' : ''}>${t('customFields')}</option>
             </select>
             
@@ -290,6 +291,9 @@ static updateItemOptions(side) {
             case 'custom':
                 items = customSections;
                 break;
+            case 'preset':
+            items = presets;
+            break;
         }
         
         const item = items.find(i => i.id === itemId);
@@ -412,6 +416,13 @@ setTimeout(() => {
         if (rightItem && crossTypeItems.right.type === 'custom') {
             DragSortManager.enableCustomFieldsDragSort(crossTypeItems.right.itemId, crossTypeItems.right.versionId);
         }
+
+        if (leftItem && crossTypeItems.left.type === 'preset') {
+            PresetRenderer.enablePromptsDragSort();
+        }
+        if (rightItem && crossTypeItems.right.type === 'preset') {
+            PresetRenderer.enablePromptsDragSort();
+        }        
     }
 }, 100);
 }
@@ -449,6 +460,7 @@ static getItemById(type, itemId) {
         case 'userpersona': items = userPersonas; break;
         case 'worldbook': items = worldBooks; break;
         case 'custom': items = customSections; break;
+        case 'preset': items = presets; break;
     }
     return items.find(item => item.id === itemId);
 }
@@ -461,7 +473,8 @@ static getTypeDisplayName(type) {
         'loveydovey': t('loveydovey'),
         'userpersona': t('userPersona'),
         'worldbook': t('worldBook'),
-        'custom': t('customFields')
+        'custom': t('customFields'),
+        'preset': t('preset')
     };
     return typeNames[type] || type;
 }
@@ -487,6 +500,9 @@ static getItemsForType(type) {
         case 'custom':
             sourceArray = customSections;
             break;
+        case 'preset':
+            sourceArray = presets;
+            break;            
     }
     
     sourceArray.forEach(item => {
