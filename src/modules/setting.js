@@ -98,7 +98,8 @@ class ContentSearchManager {
             userPersonas: this.searchInUserPersonas(searchText),
             worldbooks: this.searchInWorldBooks(searchText),
             customs: this.searchInCustomSections(searchText),
-            loveydovey: ContentSearchManager.searchInLoveyDovey(searchText)
+            loveydovey: ContentSearchManager.searchInLoveyDovey(searchText),
+            presets: this.searchInPresets(searchText)
         };
         
         this.currentResults = results;
@@ -328,6 +329,39 @@ static searchInWorldBooks(searchText) {
         
         return results;
     }
+
+        // 搜尋預設
+    static searchInPresets(searchText) {
+        const results = [];
+        const searchLower = searchText.toLowerCase();
+
+        presets.forEach(preset => {
+            preset.versions.forEach(version => {
+                // 搜尋所有可編輯的 prompts
+                if (version.prompts && Array.isArray(version.prompts)) {
+                    version.prompts.forEach(prompt => {
+                        // 只搜尋有內容且非標記的條目
+                        if (prompt.content && !prompt.marker) {
+                            if (prompt.content.toLowerCase().includes(searchLower)) {
+                                const snippet = this.createSnippet(prompt.content, searchText);
+                                results.push({
+                                    itemName: preset.name,
+                                    versionName: version.name,
+                                    fieldName: prompt.name || prompt.identifier, // 優先使用 name
+                                    snippet: snippet,
+                                    itemId: preset.id,
+                                    versionId: version.id,
+                                    type: 'preset'
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        return results;
+    }
     
     // 創建摘要片段
     static createSnippet(content, searchText, maxLength = 100) {
@@ -367,7 +401,8 @@ static searchInWorldBooks(searchText) {
                   results.userPersonas.length + 
                   results.worldbooks.length + 
                   results.customs.length + 
-                  results.loveydovey.length;
+                  results.loveydovey.length + 
+                  results.presets.length;
         
         if (totalCount === 0) {
             this.showEmptyState(t('searchNotFound').replace('$1', searchText));
@@ -406,6 +441,10 @@ static searchInWorldBooks(searchText) {
             html += this.renderResultSection(t('customFields'), results.customs, `${IconManager.file()}`);
         }
 
+        // 預設結果
+        if (results.presets.length > 0) {
+            html += this.renderResultSection(t('preset'), results.presets, `${IconManager.settings()}`);
+        }
         
         container.innerHTML = html;
     }
