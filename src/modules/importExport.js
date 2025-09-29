@@ -2204,6 +2204,9 @@ setTimeout(() => {
         
         // 強制更新側邊欄狀態
         expandCurrentItemVersions();
+                if (typeof OverviewManager !== 'undefined') {
+            OverviewManager.invalidateCache();
+        }
     }, 100);
 }, 50);
         
@@ -2283,6 +2286,9 @@ setTimeout(() => {
         
         // 強制更新側邊欄狀態
         expandCurrentItemVersions();
+                if (typeof OverviewManager !== 'undefined') {
+            OverviewManager.invalidateCache();
+        }
     }, 100);
 }, 50);
         
