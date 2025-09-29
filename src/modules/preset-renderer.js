@@ -32,10 +32,9 @@ static renderPresetVersionContent(preset, version) {
         </div>
     `;
     
-    // 只初始化可編輯條目的拖曳排序
     setTimeout(() => {
-        this.enablePromptsDragSort(preset.id, version.id, 100001);
-        console.log(`🎯 已初始化 preset ${preset.id} version ${version.id} 的可編輯條目拖曳排序`);
+        this.enablePromptsDragSort(); // 👈 不再傳遞參數
+        console.log(`🎯 已觸發 preset 的可編輯條目拖曳排序初始化`);
 
         updateAllPageStats();
         updateVersionStats('preset', preset.id, version.id);
@@ -359,72 +358,63 @@ static updatePromptDepth(presetId, versionId, identifier, depth) {
 }
 
 // 啟用條目拖拽排序 - 參考 WorldBook 做法
-static enablePromptsDragSort(presetId, versionId, characterId) {
-    const containerSelector = `[data-character-id="${characterId}"]`;
-    const container = document.querySelector(containerSelector);
-    
-    if (!container || typeof DragSortManager === 'undefined') {
-        console.warn('無法啟用預設提示詞拖拽排序：容器不存在或 DragSortManager 未載入');
+static enablePromptsDragSort() {
+    // 找到所有可編輯條目的容器（對比模式下可能有多個）
+    const containers = document.querySelectorAll('.prompts-entries-container[data-character-id="100001"]');
+
+    if (containers.length === 0 || typeof Sortable === 'undefined') {
+        // console.warn('無法啟用預設提示詞拖拽排序：容器不存在或 Sortable 未載入');
         return;
     }
-    
-    // 檢查是否已經啟用
-    const existingInstance = DragSortManager.sortableInstances.get(containerSelector);
-    if (existingInstance) {
-        existingInstance.destroy();
-    }
-    
-    let savedStates = {}; // 保存折疊狀態
-    const commonConfig = DragSortManager.getCommonSortableConfig();
-    
-    const sortable = new Sortable(container, {
-        handle: '.drag-handle',
-        animation: 150,
-        easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-        
-        draggable: '.preset-entry-panel',
-        
-        ghostClass: 'sortable-ghost',
-        chosenClass: 'sortable-chosen', 
-        dragClass: 'sortable-drag',
-        
-        // 應用通用配置
-        forceFallback: commonConfig.forceFallback,
-        fallbackOnBody: commonConfig.fallbackOnBody,
-        
-        // 排除按鈕
-        filter: function(evt, item, container) {
-            return item.classList.contains('loveydovey-add-btn') || 
-                   item.tagName === 'BUTTON';
-        },
-        
-        onStart: function(evt) {
-            commonConfig.onStartCommon(evt, container);
-            document.body.style.cursor = 'grabbing';
-            
-            // 記錄當前折疊狀態
-            savedStates = PresetRenderer.getCurrentPromptCollapseStates();
-        },
-        
-        onEnd: function(evt) {
-            commonConfig.onEndCommon(evt, container);
-            document.body.style.cursor = '';
-            
-            if (evt.oldIndex !== evt.newIndex) {
-                // 重新排序 - 參考 WorldBook 的做法
-                PresetRenderer.reorderPromptsFromContainer(container, presetId, versionId, characterId);
-                
-                // 立即恢復折疊狀態
-                setTimeout(() => {
-                    PresetRenderer.restorePromptCollapseStates(savedStates);
-                }, 10);
-            }
+
+    // 為每個容器都啟用拖曳
+    containers.forEach(container => {
+        // 檢查是否已經啟用，有的話先銷毀
+        if (container._sortable) {
+            container._sortable.destroy();
         }
+        
+        let savedStates = {}; // 用於保存折疊狀態
+
+        container._sortable = Sortable.create(container, {
+            handle: '.drag-handle',
+            animation: 150,
+            easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+            
+            draggable: '.preset-entry-panel',
+            
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen', 
+            dragClass: 'sortable-drag',
+            
+            onStart: function(evt) {
+                document.body.style.cursor = 'grabbing';
+                // 記錄當前折疊狀態
+                savedStates = PresetRenderer.getCurrentPromptCollapseStates();
+            },
+            
+            onEnd: function(evt) {
+                document.body.style.cursor = '';
+                
+                if (evt.oldIndex !== evt.newIndex) {
+                    // 關鍵！從容器的 data 屬性獲取正確的版本信息
+                    const presetId = container.dataset.presetId;
+                    const versionId = container.dataset.versionId;
+                    const characterId = parseInt(container.dataset.characterId);
+                    
+                    if (presetId && versionId && !isNaN(characterId)) {
+                        // ✨ 呼叫既有的重新排序函數，確保 order 陣列會被更新
+                        PresetRenderer.reorderPromptsFromContainer(container, presetId, versionId, characterId);
+                    }
+                    
+                    // 立即恢復折疊狀態
+                    setTimeout(() => {
+                        PresetRenderer.restorePromptCollapseStates(savedStates);
+                    }, 10);
+                }
+            }
+        });
     });
-    
-    // 儲存實例到 DragSortManager
-    DragSortManager.sortableInstances.set(containerSelector, sortable);
-    return sortable;
 }
 
 // 基於特定容器重新排序 - 參考 WorldBook 的 reorderWorldBookEntriesFromContainer

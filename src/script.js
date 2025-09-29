@@ -2569,6 +2569,14 @@ function switchToItem(type, itemId) {
                 currentUserPersonaVersionId = userPersona.versions[0].id;
             }
             break;
+
+        case 'preset':
+            currentPresetId = itemId;
+            const preset = presets.find(p => p.id === itemId);
+            if (preset && preset.versions.length > 0) {
+                currentPresetVersionId = preset.versions[0].id;
+            }
+            break;
     }
 
     const versionsList = document.getElementById(`${type}-versions-${itemId}`);
@@ -2649,6 +2657,9 @@ requestAnimationFrame(() => {
                 break;
             case 'worldbook':
                 currentWorldBookVersionId = subId;
+                break;
+            case 'preset':
+                currentPresetVersionId = subId;
                 break;
         }
     }
