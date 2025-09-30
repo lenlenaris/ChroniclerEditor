@@ -329,11 +329,28 @@ class StatsManager {
 
             case 'preset':
                 if (version.prompts && Array.isArray(version.prompts)) {
-                    // 只統計有內容且非標記類型的提示詞
-                    const editablePrompts = version.prompts.filter(p => p.content && !p.marker);
-                    const promptCount = editablePrompts.length;
-                    allText = editablePrompts.map(prompt => prompt.content).join('');
-                    extraInfo = `${promptCount} ${t('promptsCount')} / `;
+                    // 找到可編輯條目的配置（character_id: 100001）
+                    const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
+                    
+                    if (orderConfig && orderConfig.order) {
+                        // 取得所有在列表中且啟用的條目的 identifier
+                        const enabledIdentifiers = new Set(
+                            orderConfig.order
+                                .filter(item => item.enabled)
+                                .map(item => item.identifier)
+                        );
+                        
+                        // 只統計在列表中、啟用、有內容且非標記類型的提示詞
+                        const activePrompts = version.prompts.filter(p => 
+                            enabledIdentifiers.has(p.identifier) && 
+                            p.content && 
+                            !p.marker
+                        );
+                        
+                        const promptCount = activePrompts.length;
+                        allText = activePrompts.map(prompt => prompt.content).join('');
+                        extraInfo = `${promptCount} ${t('promptsCount')} / `;
+                    }
                 }
                 break;
         }
@@ -388,7 +405,6 @@ function updateFieldStats(textareaId) {
     }, 200);
 }
 
-// ðŸŽ¯ æ ¸å¿ƒå‡½æ•¸2ï¼šæ›´æ–°ç‰ˆæœ¬çµ±è¨ˆï¼ˆå¸¶è¼•é‡é˜²æŠ–ï¼‰
 function updateVersionStats(itemType, itemId, versionId) {
     if (updateVersionStatsTimer) {
         clearTimeout(updateVersionStatsTimer);
@@ -685,13 +701,29 @@ function getQuickStatsEstimate(version, itemType) {
             break;
         case 'preset':
             if (version.prompts && Array.isArray(version.prompts)) {
-                const promptCount = version.prompts.filter(p => p.content && !p.marker).length;
-                const textParts = version.prompts
-                    .filter(p => p.content && !p.marker)
-                    .map(prompt => prompt.content)
-                    .filter(Boolean);
-                allText = textParts.join('');
-                extraInfo = `${promptCount} ${t('promptsCount')} / `;
+                // 找到可編輯條目的配置（character_id: 100001）
+                const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
+                
+                if (orderConfig && orderConfig.order) {
+                    // 取得所有在列表中且啟用的條目的 identifier
+                    const enabledIdentifiers = new Set(
+                        orderConfig.order
+                            .filter(item => item.enabled)
+                            .map(item => item.identifier)
+                    );
+                    
+                    // 只統計在列表中、啟用、有內容且非標記類型的提示詞
+                    const activePrompts = version.prompts.filter(p => 
+                        enabledIdentifiers.has(p.identifier) && 
+                        p.content && 
+                        !p.marker
+                    );
+                    
+                    const promptCount = activePrompts.length;
+                    const textParts = activePrompts.map(prompt => prompt.content).filter(Boolean);
+                    allText = textParts.join('');
+                    extraInfo = `${promptCount} ${t('promptsCount')} / `;
+                }
             }
             break;
     }

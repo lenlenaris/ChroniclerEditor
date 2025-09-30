@@ -829,17 +829,16 @@ static updatePreviewStats(versionId) {
     // 收集所有啟用的內容
     let allContent = '';
     let enabledCount = 0;
-    
+
     orderConfig.order.forEach(orderItem => {
         if (!orderItem.enabled) return;
         
         const prompt = version.prompts?.find(p => p.identifier === orderItem.identifier);
         if (!prompt) return;
         
-        enabledCount++;
-        
-        // 只計算非 marker 條目的內容
+        // 只計算非 marker 條目的內容和數量
         if (!prompt.marker && prompt.content && prompt.content.trim()) {
+            enabledCount++;
             allContent += prompt.content.trim() + '\n\n';
         }
     });
