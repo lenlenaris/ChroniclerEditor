@@ -503,17 +503,24 @@ window.ChroniclerTranslations['zh-TW'] = {
     enabledPrompts: '個啟用條目',
     previewDisabledInCompare: '對比模式下無法使用預覽',
     itemsPresets: '$1 個預設',
-    presetControlsDescription: '暫時只供更改現有條目參數、順序及內容，無法新增或刪除條目。<br>預覽模式：組合已啟用條目的內容並進行預覽。',
+    presetControlsDescription: '預覽模式：組合已啟用條目的內容並進行預覽。',
     hiddenPrompts: '隱藏的條目',
-    selectPromptToAdd: '選擇要添加的條目',
-    addPrompt: '添加',
+    selectPromptToAdd: '選擇條目',
+    addPrompt: '插入提示',
     removeFromList: '從列表移除',
     cannotRemoveMarker: '無法移除標記條目',
     pleaseSelectPrompt: '請先選擇一個條目',
     promptAlreadyInList: '該條目已在列表中',
     promptAdded: '條目已添加',
     promptRemoved: '條目已移除',
-
+    deletePrompt: '刪除提示詞',
+    cannotDeleteMarker: '無法刪除標記條目',
+    confirmDeletePrompt: '確定要永久刪除條目「$1」嗎？此操作無法復原。',
+    promptDeleted: '條目已刪除',
+    createPrompt: '新增提示詞',
+    promptCreated: '提示詞已新增',    
+    cannotRemoveCorePrompt: '無法移除核心系統條目',
+    cannotDeleteCorePrompt: '無法刪除核心系統條目',
 
     // ========================================
     // 8. 版本控制

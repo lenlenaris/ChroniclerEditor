@@ -26,7 +26,7 @@ static renderPresetVersionContent(preset, version) {
                     ${t('presetControlsDescription')}
                 </div>
                 <!-- 添加隱藏條目選單 -->
-<div class="hidden-prompts-controls" style="display: flex; align-items: center; gap: 10px; margin-top: 12px; background: var(--bg-secondary); border-radius: 6px;">
+<div class="hidden-prompts-controls" style="display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 8px; background: var(--bg-secondary); border-radius: 6px; flex-wrap: wrap;">
     <label style="font-size: 0.9em; color: var(--text-color); white-space: nowrap;">
         ${t('hiddenPrompts')}:
     </label>
@@ -36,9 +36,24 @@ static renderPresetVersionContent(preset, version) {
     <button class="version-panel-btn btn-primary" 
             onclick="PresetRenderer.addHiddenPrompt('${preset.id}', '${version.id}')" 
             style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-        ${IconManager.plus({width: 14, height: 14})}
+        ${IconManager.link({width: 14, height: 14})}
         <span>${t('addPrompt')}</span>
     </button>
+    <!-- 刪除條目按鈕 -->
+<button class="version-panel-btn hover-danger" 
+        onclick="PresetRenderer.deletePromptPermanently('${preset.id}', '${version.id}')" 
+        style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+    ${IconManager.trash({width: 14, height: 14})}
+    <span>${t('deletePrompt')}</span>
+</button>
+<!-- 新增條目按鈕 -->
+<button class="version-panel-btn btn-primary" 
+        onclick="PresetRenderer.createNewPrompt('${preset.id}', '${version.id}')" 
+        style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+    ${IconManager.plus({width: 14, height: 14})}
+    <span>${t('createPrompt')}</span>
+</button>
+
 </div>
             </div>
             
@@ -104,6 +119,8 @@ static renderPromptsList(preset, version, characterId) {
     const canEditName = !isSpecialMarker;
     const canEditRole = !isSpecialMarker;
     const canEditPosition = !isSpecialMarker;
+    const isCorePrompt = ['main', 'nsfw', 'jailbreak', 'enhanceDefinitions'].includes(prompt.identifier);
+    const cannotRemove = isMarker || isCorePrompt;
         
         return `
 <div class="entry-panel sortable-item preset-entry-panel ${!prompt.enabled ? 'preset-entry-disabled' : ''}" data-prompt-identifier="${prompt.identifier}">
@@ -157,13 +174,14 @@ static renderPromptsList(preset, version, characterId) {
         </select>
     </div>
 
-<!-- 🆕 移除按鈕 (marker 條目顯示但禁用) -->
-<button class="version-panel-btn ${isMarker ? 'hover-disabled' : 'hover-danger'}" 
-        onclick="${isMarker ? 'return false;' : `PresetRenderer.removePromptFromOrder('${presetId}', '${versionId}', '${prompt.identifier}', ${characterId})`}"
-        title="${isMarker ? t('cannotRemoveMarker') : t('removeFromList')}"
-        style="display: flex; align-items: center; padding: 4px 8px; ${isMarker ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
-        ${isMarker ? 'disabled' : ''}>
-    ${IconManager.minus({width: 14, height: 14})}
+    
+<!--  移除按鈕 (marker 和核心條目顯示但禁用) -->
+<button class="version-panel-btn ${cannotRemove ? 'hover-disabled' : 'hover-danger'}" 
+        onclick="${cannotRemove ? 'return false;' : `PresetRenderer.removePromptFromOrder('${presetId}', '${versionId}', '${prompt.identifier}', ${characterId})`}"
+        title="${cannotRemove ? t('cannotRemoveCorePrompt') : t('removeFromList')}"
+        style="display: flex; align-items: center; padding: 4px 8px; ${cannotRemove ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
+        ${cannotRemove ? 'disabled' : ''}>
+    ${IconManager.linkOff({width: 14, height: 14})}
 </button>
     
 
@@ -1027,8 +1045,12 @@ static getHiddenPrompts(presetId, versionId, characterId) {
     // 取得所有在 order 中的 identifier
     const visibleIdentifiers = new Set(orderConfig.order.map(item => item.identifier));
     
-    // 過濾出隱藏的條目
-    const hiddenPrompts = version.prompts.filter(prompt => !visibleIdentifiers.has(prompt.identifier));
+    // 過濾出隱藏的條目（排除核心系統條目）
+    const corePrompts = ['main', 'nsfw', 'jailbreak', 'enhanceDefinitions'];
+    const hiddenPrompts = version.prompts.filter(prompt => 
+        !visibleIdentifiers.has(prompt.identifier) && 
+        !corePrompts.includes(prompt.identifier)
+    );
     
     // 按 name 排序
     hiddenPrompts.sort((a, b) => {
@@ -1171,6 +1193,124 @@ static updateHiddenPromptsSelect(presetId, versionId) {
         if (addButton) addButton.disabled = false;
     }
 }
+
+// 永久刪除條目（從 prompts 陣列中完全移除）
+static deletePromptPermanently(presetId, versionId) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    // 取得選中的 identifier
+    const selectElement = document.getElementById(`hidden-prompts-select-${versionId}`);
+    const identifier = selectElement?.value;
+    
+    if (!identifier) {
+        NotificationManager.warning(t('pleaseSelectPrompt'));
+        return;
+    }
+    
+    // 找到對應的 prompt
+    const promptIndex = version.prompts.findIndex(p => p.identifier === identifier);
+    if (promptIndex === -1) return;
+    
+    const prompt = version.prompts[promptIndex];
+    
+    // 檢查是否為 marker 條目或核心系統條目（不允許刪除）
+    const isCorePrompt = ['main', 'nsfw', 'jailbreak', 'enhanceDefinitions'].includes(identifier);
+    if (prompt.marker === true || isCorePrompt) {
+        NotificationManager.error(t('cannotDeleteCorePrompt'));
+        return;
+    }
+    
+    // 顯示確認對話框
+    const confirmMessage = t('confirmDeletePrompt', prompt.name || identifier);
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    // 從 prompts 陣列中完全刪除
+    version.prompts.splice(promptIndex, 1);
+    
+    // 同時確保它不在任何 order 陣列中
+    version.prompt_order?.forEach(orderConfig => {
+        const orderIndex = orderConfig.order.findIndex(item => item.identifier === identifier);
+        if (orderIndex !== -1) {
+            orderConfig.order.splice(orderIndex, 1);
+        }
+    });
+    
+    // 更新時間戳
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+    
+    // 重新渲染
+    this.refreshPresetContent(presetId, versionId);
+    
+    NotificationManager.success(t('promptDeleted'));
+}
+
+// 創建新的條目
+static createNewPrompt(presetId, versionId) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    // 生成新的 UUID identifier
+    const newIdentifier = this.generateUUID();
+    
+    // 創建新條目
+    const newPrompt = {
+        identifier: newIdentifier,
+        name: '',
+        system_prompt: false,
+        enabled: false,
+        marker: false,
+        role: 'system',
+        content: '',
+        injection_position: 0,
+        injection_depth: 4,
+        forbid_overrides: false,
+        injection_order: 100,
+        injection_trigger: []
+    };
+    
+    // 添加到 prompts 陣列
+    version.prompts.push(newPrompt);
+    
+    // 找到可編輯條目的配置（character_id: 100001）
+    const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
+    if (!orderConfig) return;
+    
+    // 添加到 order 陣列的最上方，並設為啟用
+    orderConfig.order.unshift({
+        identifier: newIdentifier,
+        enabled: true
+    });
+    
+    // 更新時間戳
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+    
+    // 重新渲染
+    this.refreshPresetContent(presetId, versionId);
+    
+    NotificationManager.success(t('promptCreated'));
+}
+
+// 生成 UUID v4 格式的 identifier
+static generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+
 
 }
 
