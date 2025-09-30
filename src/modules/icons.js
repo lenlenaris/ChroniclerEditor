@@ -448,6 +448,21 @@ class IconManager {
         </svg>`;
     }
 
+    // 減號圖標
+static minus(options = {}) {
+    const {
+        width = 16,
+        height = 16,
+        strokeWidth = 2,
+        className = '',
+        style = ''
+    } = options;
+    
+    return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+        <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>`;
+}
+
     // 眼睛圖標（預覽）
     static eye(options = {}) {
         const {

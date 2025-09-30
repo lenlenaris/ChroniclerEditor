@@ -503,6 +503,15 @@ window.ChroniclerTranslations['en-US'] = {
     previewDisabledInCompare: 'Preview is disabled in compare mode',
     itemsPresets: '$1 Presets',
     presetControlsDescription: 'You can adjust the content, order, and parameters of existing entries here, but you cannot add or delete them. <br>Preview Mode: combines all enabled entries for you to review.',
+    hiddenPrompts: 'Hidden Prompts',
+    selectPromptToAdd: 'Select a prompt to add',
+    addPrompt: 'Add',
+    removeFromList: 'Remove from list',
+    cannotRemoveMarker: 'Cannot remove marker prompt',
+    pleaseSelectPrompt: 'Please select a prompt first',
+    promptAlreadyInList: 'This prompt is already in the list',
+    promptAdded: 'Prompt added',
+    promptRemoved: 'Prompt removed',
 
     
     // ========================================

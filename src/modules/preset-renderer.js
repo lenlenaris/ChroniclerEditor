@@ -25,6 +25,21 @@ static renderPresetVersionContent(preset, version) {
                 <div class="controls-description" style="color: var(--text-muted); font-size: 0.85em; margin-top: 8px; padding-left: 2px;">
                     ${t('presetControlsDescription')}
                 </div>
+                <!-- 添加隱藏條目選單 -->
+<div class="hidden-prompts-controls" style="display: flex; align-items: center; gap: 10px; margin-top: 12px; background: var(--bg-secondary); border-radius: 6px;">
+    <label style="font-size: 0.9em; color: var(--text-color); white-space: nowrap;">
+        ${t('hiddenPrompts')}:
+    </label>
+    <select id="hidden-prompts-select-${version.id}" class="field-input compact-input" style="flex: 1; min-width: 200px;">
+        <option value="">${t('selectPromptToAdd')}</option>
+    </select>
+    <button class="version-panel-btn btn-primary" 
+            onclick="PresetRenderer.addHiddenPrompt('${preset.id}', '${version.id}')" 
+            style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+        ${IconManager.plus({width: 14, height: 14})}
+        <span>${t('addPrompt')}</span>
+    </button>
+</div>
             </div>
             
             <!-- 只顯示可編輯條目列表 (character_id: 100001) -->
@@ -42,6 +57,7 @@ static renderPresetVersionContent(preset, version) {
 
         updateAllPageStats();
         updateVersionStats('preset', preset.id, version.id);
+        this.updateHiddenPromptsSelect(preset.id, version.id);
     }, 200);
     
     return content;
@@ -140,6 +156,15 @@ static renderPromptsList(preset, version, characterId) {
             <option value="assistant" ${prompt.role === 'assistant' ? 'selected' : ''}>${t('assistant')}</option>
         </select>
     </div>
+
+<!-- 🆕 移除按鈕 (marker 條目顯示但禁用) -->
+<button class="version-panel-btn ${isMarker ? 'hover-disabled' : 'hover-danger'}" 
+        onclick="${isMarker ? 'return false;' : `PresetRenderer.removePromptFromOrder('${presetId}', '${versionId}', '${prompt.identifier}', ${characterId})`}"
+        title="${isMarker ? t('cannotRemoveMarker') : t('removeFromList')}"
+        style="display: flex; align-items: center; padding: 4px 8px; ${isMarker ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
+        ${isMarker ? 'disabled' : ''}>
+    ${IconManager.minus({width: 14, height: 14})}
+</button>
     
 
 </div>
@@ -986,6 +1011,165 @@ static escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// 取得所有隱藏的條目（在 prompts 中但不在 order 陣列的）
+static getHiddenPrompts(presetId, versionId, characterId) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return [];
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return [];
+    
+    const orderConfig = version.prompt_order?.find(config => config.character_id === characterId);
+    if (!orderConfig) return [];
+    
+    // 取得所有在 order 中的 identifier
+    const visibleIdentifiers = new Set(orderConfig.order.map(item => item.identifier));
+    
+    // 過濾出隱藏的條目
+    const hiddenPrompts = version.prompts.filter(prompt => !visibleIdentifiers.has(prompt.identifier));
+    
+    // 按 name 排序
+    hiddenPrompts.sort((a, b) => {
+        const nameA = a.name || '';
+        const nameB = b.name || '';
+        return nameA.localeCompare(nameB);
+    });
+    
+    return hiddenPrompts;
+}
+
+// 將隱藏條目添加到 order 陣列的最上方
+static addHiddenPrompt(presetId, versionId) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    // 取得選中的 identifier
+    const selectElement = document.getElementById(`hidden-prompts-select-${versionId}`);
+    const identifier = selectElement?.value;
+    
+    if (!identifier) {
+        NotificationManager.warning(t('pleaseSelectPrompt'));
+        return;
+    }
+    
+    // 找到對應的 prompt
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt) return;
+    
+    // 找到可編輯條目的配置（character_id: 100001）
+    const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
+    if (!orderConfig) return;
+    
+    // 檢查是否已經在列表中
+    if (orderConfig.order.some(item => item.identifier === identifier)) {
+        NotificationManager.warning(t('promptAlreadyInList'));
+        return;
+    }
+    
+    // 添加到最上方
+    orderConfig.order.unshift({
+        identifier: identifier,
+        enabled: true
+    });
+    
+    // 更新時間戳
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+    
+    // 重新渲染
+    this.refreshPresetContent(presetId, versionId);
+    
+    NotificationManager.success(t('promptAdded'));
+}
+
+// 從 order 陣列移除條目（資料保留在 prompts 中）
+static removePromptFromOrder(presetId, versionId, identifier, characterId) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    const orderConfig = version.prompt_order?.find(config => config.character_id === characterId);
+    if (!orderConfig) return;
+    
+    // 找到條目的索引
+    const index = orderConfig.order.findIndex(item => item.identifier === identifier);
+    if (index === -1) return;
+    
+    // 移除條目
+    orderConfig.order.splice(index, 1);
+    
+    // 更新時間戳
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+    
+    // 重新渲染
+    this.refreshPresetContent(presetId, versionId);
+    
+    NotificationManager.success(t('promptRemoved'));
+}
+
+// 重新渲染 preset 內容（保持折疊狀態）
+static refreshPresetContent(presetId, versionId) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    // 保存當前折疊狀態
+    const savedStates = this.getCurrentPromptCollapseStates();
+    
+    // 重新渲染列表
+    const listContainer = document.getElementById(`editable-prompts-list-${versionId}`);
+    if (listContainer) {
+        listContainer.innerHTML = this.renderPromptsList(preset, version, 100001);
+    }
+    
+    // 更新隱藏條目下拉選單
+    this.updateHiddenPromptsSelect(presetId, versionId);
+    
+    // 重新啟用拖曳排序
+    setTimeout(() => {
+        this.enablePromptsDragSort();
+        this.restorePromptCollapseStates(savedStates);
+        updateAllPageStats();
+        updateVersionStats('preset', presetId, versionId);
+    }, 100);
+}
+
+// 更新隱藏條目下拉選單
+static updateHiddenPromptsSelect(presetId, versionId) {
+    const selectElement = document.getElementById(`hidden-prompts-select-${versionId}`);
+    if (!selectElement) return;
+    
+    const hiddenPrompts = this.getHiddenPrompts(presetId, versionId, 100001);
+    
+    // 清空並重建選項
+    selectElement.innerHTML = `<option value="">${t('selectPromptToAdd')}</option>`;
+    
+    hiddenPrompts.forEach(prompt => {
+        const option = document.createElement('option');
+        option.value = prompt.identifier;
+        option.textContent = prompt.name || prompt.identifier;
+        selectElement.appendChild(option);
+    });
+    
+    // 如果沒有隱藏條目，禁用選單和按鈕
+    const addButton = selectElement.parentElement.querySelector('button');
+    if (hiddenPrompts.length === 0) {
+        selectElement.disabled = true;
+        if (addButton) addButton.disabled = true;
+    } else {
+        selectElement.disabled = false;
+        if (addButton) addButton.disabled = false;
+    }
 }
 
 }

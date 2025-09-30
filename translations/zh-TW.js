@@ -504,6 +504,15 @@ window.ChroniclerTranslations['zh-TW'] = {
     previewDisabledInCompare: '對比模式下無法使用預覽',
     itemsPresets: '$1 個預設',
     presetControlsDescription: '暫時只供更改現有條目參數、順序及內容，無法新增或刪除條目。<br>預覽模式：組合已啟用條目的內容並進行預覽。',
+    hiddenPrompts: '隱藏的條目',
+    selectPromptToAdd: '選擇要添加的條目',
+    addPrompt: '添加',
+    removeFromList: '從列表移除',
+    cannotRemoveMarker: '無法移除標記條目',
+    pleaseSelectPrompt: '請先選擇一個條目',
+    promptAlreadyInList: '該條目已在列表中',
+    promptAdded: '條目已添加',
+    promptRemoved: '條目已移除',
 
 
     // ========================================
