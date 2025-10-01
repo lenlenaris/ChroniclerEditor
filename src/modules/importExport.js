@@ -1794,6 +1794,8 @@ static createPresetData(preset, version) {
             return currentUserPersonaVersionId;
         } else if (type === 'loveydovey' && currentLoveyDoveyId === itemId) {
             return currentLoveyDoveyVersionId;
+        } else if (type === 'preset' && currentPresetId === itemId) {
+            return currentPresetVersionId;
         }
         return null;
     }

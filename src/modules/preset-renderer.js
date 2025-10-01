@@ -26,28 +26,28 @@ static renderPresetVersionContent(preset, version) {
                     ${t('presetControlsDescription')}
                 </div>
                 <!-- 添加隱藏條目選單 -->
-<div class="hidden-prompts-controls" style="display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 8px; background: var(--bg-secondary); border-radius: 6px; flex-wrap: wrap;">
+<div class="hidden-prompts-controls" style="display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 8px 0px; background: var(--bg-secondary); border-radius: 6px; flex-wrap: wrap;">
     <label style="font-size: 0.9em; color: var(--text-color); white-space: nowrap;">
         ${t('hiddenPrompts')}:
     </label>
     <select id="hidden-prompts-select-${version.id}" class="field-input compact-input" style="flex: 1; min-width: 200px;">
         <option value="">${t('selectPromptToAdd')}</option>
     </select>
-    <button class="version-panel-btn btn-primary" 
+    <button class="version-panel-btn hover-primary" 
             onclick="PresetRenderer.addHiddenPrompt('${preset.id}', '${version.id}')" 
             style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
         ${IconManager.link({width: 14, height: 14})}
         <span>${t('addPrompt')}</span>
     </button>
     <!-- 刪除條目按鈕 -->
-<button class="version-panel-btn hover-danger" 
+<button class="version-panel-btn hover-primary" 
         onclick="PresetRenderer.deletePromptPermanently('${preset.id}', '${version.id}')" 
         style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
     ${IconManager.trash({width: 14, height: 14})}
     <span>${t('deletePrompt')}</span>
 </button>
 <!-- 新增條目按鈕 -->
-<button class="version-panel-btn btn-primary" 
+<button class="version-panel-btn hover-primary" 
         onclick="PresetRenderer.createNewPrompt('${preset.id}', '${version.id}')" 
         style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
     ${IconManager.plus({width: 14, height: 14})}
