@@ -1,5 +1,5 @@
 // ===== 1. 全域變數初始化 =====
-let currentLang = localStorage.getItem('characterCreatorLang') || 'zh';
+let currentLang = localStorage.getItem('characterCreatorLang') || 'en';
 let translationsReady = false;
 
 // 資料變數

@@ -196,7 +196,7 @@ static renderPromptsList(preset, version, characterId) {
 <div>
     <label class="field-label" style="margin-bottom: 5px; display: block;">${t('position')}</label>
     <select class="field-input compact-input" 
-        style="max-width: 120px; ${!canEditPosition ? 'background: var(--bg-secondary); color: var(--text-muted);' : ''}"
+        style="max-width: 180px; ${!canEditPosition ? 'background: var(--bg-secondary); color: var(--text-muted);' : ''}"
         ${!canEditPosition ? 'disabled' : ''}
         onchange="PresetRenderer.updatePromptPosition('${presetId}', '${versionId}', '${prompt.identifier}', parseInt(this.value))"
         id="position-select-${prompt.identifier}">

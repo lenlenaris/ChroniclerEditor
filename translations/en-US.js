@@ -479,8 +479,8 @@ window.ChroniclerTranslations['en-US'] = {
     versionAddedToPreset: 'Version added to preset',
     markdownFormatComingSoon: 'Markdown format coming soon',
     comingSoon: 'Coming Soon',
-    relativePosition: 'Relative Position',
-    chatPromptManagement: 'Chat Prompt Management', 
+    relativePosition: 'Relative',
+    chatPromptManagement: 'In-Chat', 
     depth: 'Depth',
     order: 'Order',
     position: 'Position',
@@ -502,7 +502,7 @@ window.ChroniclerTranslations['en-US'] = {
     enabledPrompts: 'enabled prompts',
     previewDisabledInCompare: 'Preview is disabled in compare mode',
     itemsPresets: '$1 Presets',
-    presetControlsDescription: 'Preview Mode: combines all enabled entries for you to review.',
+    presetControlsDescription: 'Preview Mode: View all enabled entries combined.',
     hiddenPrompts: 'Hidden Prompts',
     selectPromptToAdd: 'Select a prompt',
     addPrompt: 'Insert Prompt',
@@ -608,8 +608,8 @@ window.ChroniclerTranslations['en-US'] = {
     // 10. Interface & Theme Settings
     // ========================================
     // Interface Settings
-    customInterface: 'Interface',
-    interfaceThemeSettings: 'Interface & Theme',
+    customInterface: 'Theme Color',
+    interfaceThemeSettings: 'Theme Color',
     languageSelection: 'Language',
     otherSettings: 'Other Settings',
     featureDisplay: 'Feature Visibility',
@@ -637,21 +637,21 @@ window.ChroniclerTranslations['en-US'] = {
 
     // Color Customization
     colorCustomization: 'Color Customization',
-    primaryColor: 'Primary Color',
-    secondaryColor: 'Secondary Color',
-    accentColor: 'Accent Color',
-    bgColor: 'Background Color',
-    surfaceColor: 'Surface Color (Buttons, Inputs)',
-    textColor: 'Text Color',
-    textMutedColor: 'Muted Text Color',
-    borderColor: 'Border Color',
+    primaryColor: 'Primary',
+    secondaryColor: 'Secondary',
+    accentColor: 'Accent',
+    bgColor: 'Background',
+    surfaceColor: 'Surface',
+    textColor: 'Text',
+    textMutedColor: 'Muted Text',
+    borderColor: 'Border',
     headerBgColor: 'Header Background',
     sidebarBgColor: 'Sidebar Background',
     mainContentBgColor: 'Main Content Background',
     contentBgColor: 'Editor Panel Background',
-    successColor: 'Success Color',
-    warningColor: 'Warning Color',
-    dangerColor: 'Danger Color',
+    successColor: 'Success',
+    warningColor: 'Warning',
+    dangerColor: 'Danger',
     
     // ========================================
     // 11. System Messages
