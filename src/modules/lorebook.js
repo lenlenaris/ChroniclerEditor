@@ -52,20 +52,55 @@ function addWorldBookEntry(worldBookId, versionId) {
             
             version.entries.push(newEntry);
             
-            if (crossTypeCompareMode) {
-                if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
-                    WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
+            // 🎯 找到正確的容器（使用更精確的選擇器）
+            const container = document.querySelector(`.entries-container[data-world-book-id="${worldBookId}"][data-version-id="${versionId}"]`);
+            
+            if (container) {
+                // 找到該容器內的新增按鈕
+                const addButton = container.querySelector('.loveydovey-add-btn');
+                
+                if (addButton) {
+                    // 在新增按鈕前插入新條目
+                    const newEntryHTML = WorldBookRenderer.renderWorldBookEntry(worldBookId, versionId, newEntry);
+                    addButton.insertAdjacentHTML('beforebegin', newEntryHTML);
+                    
+                    markAsChanged();
+                    
+                    // 🎯 只初始化新條目相關功能
+                    setTimeout(() => {
+                        // 更新統計
+                        updateFieldStats(`worldbook-${worldBookId}-${versionId}-${newEntry.id}`);
+                        // 初始化自動調整大小
+                        initAutoResize();
+                        // 重新啟用該版本的拖曳排序
+                        enableWorldBookEntriesDragSort(worldBookId, versionId);
+                    }, 50);
                 } else {
-                    CrossTypeCompareManager.renderCrossTypeInterface();
+                    console.warn('找不到新增按鈕，使用備用渲染方案');
+                    fallbackRender();
                 }
             } else {
-                renderAll();
+                console.warn('找不到條目容器，使用備用渲染方案');
+                fallbackRender();
             }
             
-            markAsChanged();
-            setTimeout(() => {
-                enableWorldBookEntriesDragSort(worldBookId, versionId);
-            }, 100);
+            // 🛡️ 備用渲染方案
+            function fallbackRender() {
+                if (crossTypeCompareMode) {
+                    if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
+                        WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
+                    } else {
+                        CrossTypeCompareManager.renderCrossTypeInterface();
+                    }
+                } else {
+                    renderAll();
+                }
+                
+                markAsChanged();
+                setTimeout(() => {
+                    enableWorldBookEntriesDragSort(worldBookId, versionId);
+                }, 100);
+            }
         }
     }
 }
