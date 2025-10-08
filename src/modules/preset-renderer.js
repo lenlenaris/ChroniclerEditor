@@ -132,7 +132,7 @@ static renderPromptsList(preset, version, characterId) {
     </div>
     
     <!-- 展開按鈕 -->
-    <button class="entry-toggle-btn wb-toggle-btn" onclick="PresetRenderer.togglePromptContent('${prompt.identifier}')">
+    <button class="entry-toggle-btn wb-toggle-btn" onclick="PresetRenderer.togglePromptContent('${prompt.identifier}', event)">
         <span class="arrow-icon arrow-right"></span>
     </button>
     
@@ -258,13 +258,28 @@ static renderPromptsList(preset, version, characterId) {
     
     
     // 展開/收合條目內容
-    static togglePromptContent(identifier) {
-        const content = document.getElementById(`prompt-content-${identifier}`);
-        // 🧠【修正】我們不再依賴 event.target，而是直接用 identifier 來精準查找對應的按鈕
-        const toggleBtn = document.querySelector(`.entry-toggle-btn[onclick*="togglePromptContent('${identifier}')"]`);
+    static togglePromptContent(identifier, event) {
+        // 🎯 從點擊事件獲取當前按鈕，確保操作正確的面板
+        const toggleBtn = event ? event.currentTarget : 
+                        document.querySelector(`.entry-toggle-btn[onclick*="togglePromptContent('${identifier}')"]`);
         
-        if (!content || !toggleBtn) {
-            console.warn(`togglePromptContent: 找不到ID為 ${identifier} 的內容或按鈕`);
+        if (!toggleBtn) {
+            console.warn(`togglePromptContent: 找不到ID為 ${identifier} 的按鈕`);
+            return;
+        }
+        
+        // 🎯 從按鈕向上查找最近的 entry-panel，確保操作同一個面板內的內容
+        const entryPanel = toggleBtn.closest('.entry-panel');
+        if (!entryPanel) {
+            console.warn(`togglePromptContent: 找不到ID為 ${identifier} 的條目面板`);
+            return;
+        }
+        
+        // 🎯 在當前面板內查找對應的內容區域
+        const content = entryPanel.querySelector(`#prompt-content-${identifier}`);
+        
+        if (!content) {
+            console.warn(`togglePromptContent: 找不到ID為 ${identifier} 的內容區域`);
             return;
         }
         
