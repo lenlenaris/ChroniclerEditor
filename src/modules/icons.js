@@ -465,6 +465,37 @@ static move(options = {}) {
     </svg>`;
 }
 
+// 勾選方框圖標
+static checkSquare(options = {}) {
+    const {
+        width = 16,
+        height = 16,
+        strokeWidth = 2,
+        className = '',
+        style = ''
+    } = options;
+    
+    return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <path d="m9 12 2 2 4-4"/>
+    </svg>`;
+}
+
+// 空方框圖標（未勾選）
+static square(options = {}) {
+    const {
+        width = 16,
+        height = 16,
+        strokeWidth = 2,
+        className = '',
+        style = ''
+    } = options;
+    
+    return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+    </svg>`;
+}
+
     // 鏈結圖示（用於插入條目）
 static link(options = {}) {
     const { width = 16, height = 16, style = '' } = options;

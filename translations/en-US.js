@@ -325,6 +325,20 @@ window.ChroniclerTranslations['en-US'] = {
     moveFailed: 'Move failed',
     noMatchingWorldBooks: 'No matching world books',
     untitledEntry: 'Untitled Entry',
+
+    worldbookBatchMode: 'Batch Mode',
+    worldbookExitBatchMode: 'Exit Batch Mode',
+    worldbookSelectedCount: '$1 entries selected',
+    worldbookBatchCopy: 'Batch Copy',
+    worldbookBatchMove: 'Batch Move',
+    worldbookBatchDelete: 'Batch Delete',
+    worldbookNoEntriesSelected: 'Please select entries first',
+    worldbookBatchCopySuccess: 'Successfully copied $1 entries',
+    worldbookBatchDeleteConfirm: 'Delete $1 entries?\n\n⚠️ This cannot be undone!',
+    worldbookBatchDeleteSuccess: 'Successfully deleted $1 entries',
+    worldbookBatchMoveTitle: 'Batch Move Entries',
+    worldbookBatchMoveDescription: 'Select where to move $1 entries',
+    worldbookBatchMoveSuccess: 'Successfully moved $1 entries to "$2"',
     
     // ========================================
     // 5. Notebook Management

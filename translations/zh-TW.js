@@ -326,6 +326,20 @@ window.ChroniclerTranslations['zh-TW'] = {
     moveFailed: '移動失敗',
     noMatchingWorldBooks: '沒有符合的世界書',
     untitledEntry: '未命名條目',
+
+    worldbookBatchMode: '批量模式',
+    worldbookExitBatchMode: '退出批量模式',
+    worldbookSelectedCount: '已選擇 $1 個條目',
+    worldbookBatchCopy: '批量複製',
+    worldbookBatchMove: '批量移動',
+    worldbookBatchDelete: '批量刪除',
+    worldbookNoEntriesSelected: '請先選擇條目',
+    worldbookBatchCopySuccess: '成功複製 $1 個條目',
+    worldbookBatchDeleteConfirm: '確定要刪除 $1 個條目嗎？\n\n⚠️ 此操作無法復原！',
+    worldbookBatchDeleteSuccess: '成功刪除 $1 個條目',
+    worldbookBatchMoveTitle: '批量移動條目',
+    worldbookBatchMoveDescription: '選擇要將 $1 個條目移動到哪個世界書',
+    worldbookBatchMoveSuccess: '成功移動 $1 個條目到「$2」',
     
     // ========================================
     // 5. 筆記本管理

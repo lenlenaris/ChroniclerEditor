@@ -419,17 +419,27 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
         <div class="entry-panel sortable-item wb-entry-panel" data-entry-id="${entry.id}" data-display-index="${entry.displayIndex || 0}">
           <!-- Entry header -->
           <div class="entry-header wb-entry-header-grid">
-              <!-- Column 1: Left Controls -->
-              <div class="wb-entry-col-left">
-                  <!-- Drag handle -->
-                  <div class="drag-handle custom-field-drag-handle">
-                      ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
-                  </div>
-                  
-                  <!-- Toggle button -->
-                  <button class="entry-toggle-btn wb-toggle-btn" onclick="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entry.id}', event)">
-                      <span class="arrow-icon arrow-right"></span>
-                  </button>
+             <!-- Column 1: Left Controls -->
+<div class="wb-entry-col-left">
+    <!-- Batch checkbox (hidden by default) -->
+    <label class="batch-checkbox" 
+           id="batch-checkbox-${entry.id}"
+           style="display: none; cursor: pointer; margin-right: 8px;">
+        <input type="checkbox" 
+               class="batch-checkbox-input"
+               data-entry-id="${entry.id}"
+               onchange="updateBatchSelection('${worldBookId}', '${versionId}')">
+    </label>
+    
+    <!-- Drag handle -->
+    <div class="drag-handle custom-field-drag-handle">
+        ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+    </div>
+    
+    <!-- Toggle button -->
+    <button class="entry-toggle-btn wb-toggle-btn" onclick="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entry.id}', event)">
+        <span class="arrow-icon arrow-right"></span>
+    </button>
                   
                   <!-- Enable entry toggle -->
                   <label class="wb-toggle-wrapper">
@@ -1685,4 +1695,376 @@ function moveWorldBookEntry(sourceWorldBookId, sourceVersionId, targetWorldBookI
     }
     
     return true;
+}
+
+// ===== 批量編輯功能 =====
+
+// 切換批量模式
+function toggleWorldBookBatchMode(worldBookId, versionId) {
+    const container = document.querySelector(`.entries-container[data-world-book-id="${worldBookId}"][data-version-id="${versionId}"]`);
+    if (!container) return;
+    
+    const isActive = container.classList.toggle('batch-mode-active');
+    const button = document.getElementById(`batch-mode-toggle-${worldBookId}-${versionId}`);
+    
+    // 顯示/隱藏所有勾選框
+    const checkboxes = container.querySelectorAll('.batch-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.style.display = isActive ? 'flex' : 'none';
+    });
+    
+    // 更新按鈕樣式
+    if (button) {
+        if (isActive) {
+            button.style.background = 'var(--primary-color)';
+            button.style.color = 'white';
+            button.title = t('worldbookExitBatchMode');
+        } else {
+            button.style.background = '';
+            button.style.color = '';
+            button.title = t('worldbookBatchMode');
+            // 取消所有選擇
+            container.querySelectorAll('.batch-checkbox-input').forEach(cb => cb.checked = false);
+        }
+    }
+    
+    // 顯示/隱藏批量操作欄
+    if (isActive) {
+        showBatchToolbar(worldBookId, versionId);
+    } else {
+        hideBatchToolbar(worldBookId, versionId);
+    }
+}
+
+// 更新批量選擇狀態
+function updateBatchSelection(worldBookId, versionId) {
+    const container = document.querySelector(`.entries-container[data-world-book-id="${worldBookId}"][data-version-id="${versionId}"]`);
+    if (!container) return;
+    
+    const selectedCheckboxes = container.querySelectorAll('.batch-checkbox-input:checked');
+    const selectedCount = selectedCheckboxes.length;
+    
+    // 更新工具欄顯示
+    const toolbar = document.getElementById(`batch-toolbar-${worldBookId}-${versionId}`);
+    if (toolbar) {
+        const countDisplay = toolbar.querySelector('.batch-count');
+        if (countDisplay) {
+            countDisplay.textContent = t('worldbookSelectedCount').replace('$1', selectedCount);
+        }
+        
+        // 啟用/禁用批量操作按鈕
+        const actionButtons = toolbar.querySelectorAll('.batch-action-btn');
+        actionButtons.forEach(btn => {
+            btn.disabled = selectedCount === 0;
+        });
+    }
+}
+
+// 顯示批量操作工具欄
+function showBatchToolbar(worldBookId, versionId) {
+    // 移除舊的工具欄（如果存在）
+    hideBatchToolbar(worldBookId, versionId);
+    
+    const container = document.querySelector(`.entries-container[data-world-book-id="${worldBookId}"][data-version-id="${versionId}"]`);
+    if (!container) return;
+    
+    const toolbar = document.createElement('div');
+    toolbar.id = `batch-toolbar-${worldBookId}-${versionId}`;
+    toolbar.className = 'batch-toolbar';
+    toolbar.innerHTML = `
+        <div class="batch-toolbar-content">
+            <div class="batch-info">
+                <span class="batch-count">${t('worldbookSelectedCount').replace('$1', '0')}</span>
+            </div>
+            <div class="batch-actions">
+                <button class="overview-btn hover-primary batch-action-btn" 
+                        disabled
+                        onclick="batchCopyEntries('${worldBookId}', '${versionId}')"
+                        title="${t('worldbookBatchCopy')}">
+                    ${IconManager.copy({width: 14, height: 14})}
+                    ${t('copyEntry')}
+                </button>
+                <button class="overview-btn hover-primary batch-action-btn" 
+                        disabled
+                        onclick="batchMoveEntries('${worldBookId}', '${versionId}')"
+                        title="${t('worldbookBatchMove')}">
+                    ${IconManager.move({width: 14, height: 14})}
+                    ${t('moveEntry')}
+                </button>
+                <button class="overview-btn overview-danger-btn batch-action-btn" 
+                        disabled
+                        onclick="batchDeleteEntries('${worldBookId}', '${versionId}')"
+                        title="${t('worldbookBatchDelete')}">
+                    ${IconManager.delete({width: 14, height: 14})}
+                    ${t('deleteEntry')}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // 插入到版本面板底部
+    const versionPanel = container.closest('.version-panel');
+    if (versionPanel) {
+        versionPanel.appendChild(toolbar);
+    }
+}
+
+// 隱藏批量操作工具欄
+function hideBatchToolbar(worldBookId, versionId) {
+    const toolbar = document.getElementById(`batch-toolbar-${worldBookId}-${versionId}`);
+    if (toolbar) {
+        toolbar.remove();
+    }
+}
+
+// 獲取選中的條目 ID
+function getSelectedEntryIds(worldBookId, versionId) {
+    const container = document.querySelector(`.entries-container[data-world-book-id="${worldBookId}"][data-version-id="${versionId}"]`);
+    if (!container) return [];
+    
+    const selectedCheckboxes = container.querySelectorAll('.batch-checkbox-input:checked');
+    return Array.from(selectedCheckboxes).map(cb => cb.dataset.entryId);
+}
+
+// 批量複製條目
+function batchCopyEntries(worldBookId, versionId) {
+    const entryIds = getSelectedEntryIds(worldBookId, versionId);
+    if (entryIds.length === 0) {
+        NotificationManager.warning(t('worldbookNoEntriesSelected'));
+        return;
+    }
+    
+    let successCount = 0;
+    entryIds.forEach(entryId => {
+        const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+        if (worldBook) {
+            const version = worldBook.versions.find(v => v.id === versionId);
+            if (version) {
+                const originalEntry = version.entries.find(e => e.id === entryId);
+                if (originalEntry) {
+                    const maxUid = Math.max(-1, ...version.entries.map(e => e.uid || 0));
+                    const newUid = maxUid + 1;
+                    
+                    const newEntry = {
+                        ...originalEntry,
+                        id: generateId(),
+                        uid: newUid,
+                        displayIndex: version.entries.length,
+                        comment: (originalEntry.comment || '') + t('copyPrefix')
+                    };
+                    
+                    version.entries.push(newEntry);
+                    successCount++;
+                }
+            }
+        }
+    });
+    
+    if (successCount > 0) {
+        TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
+        markAsChanged();
+        
+        // 重新渲染
+        if (crossTypeCompareMode) {
+            if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
+                WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
+            } else {
+                CrossTypeCompareManager.renderCrossTypeInterface();
+            }
+        } else {
+            renderWorldBookContent();
+        }
+        
+        // 重新啟用批量模式
+        setTimeout(() => {
+            toggleWorldBookBatchMode(worldBookId, versionId);
+            toggleWorldBookBatchMode(worldBookId, versionId);
+        }, 100);
+        
+        NotificationManager.success(t('worldbookBatchCopySuccess').replace('$1', successCount));
+    }
+}
+
+// 批量移動條目
+function batchMoveEntries(worldBookId, versionId) {
+    const entryIds = getSelectedEntryIds(worldBookId, versionId);
+    if (entryIds.length === 0) {
+        NotificationManager.warning(t('worldbookNoEntriesSelected'));
+        return;
+    }
+    
+    // 開啟移動對話框（複用單個移動的 UI，但改成批量）
+    openBatchMoveDialog(worldBookId, versionId, entryIds);
+}
+
+// 批量刪除條目
+function batchDeleteEntries(worldBookId, versionId) {
+    const entryIds = getSelectedEntryIds(worldBookId, versionId);
+    if (entryIds.length === 0) {
+        NotificationManager.warning(t('worldbookNoEntriesSelected'));
+        return;
+    }
+    
+    if (!NotificationManager.confirmWithOptions(
+        t('worldbookBatchDeleteConfirm').replace('$1', entryIds.length),
+        t('confirm'),
+        t('cancel')
+    )) {
+        return;
+    }
+    
+    const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+    if (worldBook) {
+        const version = worldBook.versions.find(v => v.id === versionId);
+        if (version) {
+            // 過濾掉選中的條目
+            version.entries = version.entries.filter(e => !entryIds.includes(e.id));
+            
+            // 重新計算 displayIndex
+            version.entries.forEach((e, index) => {
+                e.displayIndex = index;
+            });
+            
+            TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
+            markAsChanged();
+            
+            // 重新渲染
+            if (crossTypeCompareMode) {
+                if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
+                    WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
+                } else {
+                    CrossTypeCompareManager.renderCrossTypeInterface();
+                }
+            } else {
+                renderWorldBookContent();
+            }
+            
+            // 重新啟用批量模式
+            setTimeout(() => {
+                toggleWorldBookBatchMode(worldBookId, versionId);
+                toggleWorldBookBatchMode(worldBookId, versionId);
+            }, 100);
+            
+            NotificationManager.success(t('worldbookBatchDeleteSuccess').replace('$1', entryIds.length));
+        }
+    }
+}
+
+// 開啟批量移動對話框
+function openBatchMoveDialog(sourceWorldBookId, sourceVersionId, entryIds) {
+    // 生成世界書-版本選項列表
+    let optionsHTML = '';
+    worldBooks.forEach(wb => {
+        wb.versions.forEach(v => {
+            // 排除來源本身
+            if (wb.id === sourceWorldBookId && v.id === sourceVersionId) {
+                return;
+            }
+            optionsHTML += `
+                <div class="tag-detail-item tag-item-hover move-option" 
+                     data-worldbook-id="${wb.id}" 
+                     data-version-id="${v.id}"
+                     onclick="selectMoveTarget('${wb.id}', '${v.id}', '${wb.name}', '${v.name}')"
+                     style="padding: 12px 16px; margin-bottom: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 6px; transition: all 0.2s ease;">
+                    <div style="font-weight: 500; color: var(--text-color); font-size: 0.9em;">
+                        ${wb.name}
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.85em; margin-top: 2px;">
+                        ${v.name}
+                    </div>
+                </div>
+            `;
+        });
+    });
+    
+    const content = `
+        <div class="compact-modal-content" style="max-width: 600px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="compact-modal-header" style="justify-content: space-between;">
+                <div class="custom-field-right-controls">
+                    ${IconManager.move({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('worldbookBatchMoveTitle')}</h3>
+                </div>
+                <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
+            </div>
+            
+            <div style="flex: 1; overflow-y: auto; padding: 0 4px;">
+                <p class="compact-modal-desc" style="text-align: left; margin-bottom: 16px;">
+                    ${t('worldbookBatchMoveDescription').replace('$1', `<strong>${entryIds.length}</strong>`)}
+                </p>
+                
+                <!-- 搜尋框 -->
+                <input type="text" 
+                       id="move-search-input" 
+                       class="field-input msize-input"
+                       placeholder="${t('searchWorldBooks')}"
+                       style="margin-bottom: 12px; font-size: 0.9em; padding: 12px 16px;"
+                       oninput="filterMoveOptions(this.value)">
+                
+                <!-- 目標列表 -->
+                <div id="move-options-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-color); padding: 8px;">
+                    ${optionsHTML || `<div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">${t('noOtherWorldBooks')}</div>`}
+                </div>
+                
+                <!-- 已選擇提示 -->
+                <div id="move-selected-display" style="margin-top: 12px; padding: 12px; background: var(--surface-color); border-radius: 6px; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9em; min-height: 48px; display: flex; align-items: center;">
+                    ${t('pleaseSelectTarget')}
+                </div>
+            </div>
+
+            <div class="compact-modal-footer" style="justify-content: center; margin-top: 16px;">
+                <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">
+                    ${t('cancel')}
+                </button>
+                <button id="confirm-move-btn" class="overview-btn btn-primary" disabled 
+                        onclick="confirmBatchMoveEntries('${sourceWorldBookId}', '${sourceVersionId}', '${entryIds.join(',')}')">
+                    ${t('confirmMove')}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    ModalManager.create({
+        title: '',
+        content: content,
+        footer: '',
+        maxWidth: '600px'
+    });
+    
+    // 儲存選擇狀態到全域變數
+    window.moveEntryTarget = null;
+}
+
+// 確認批量移動
+function confirmBatchMoveEntries(sourceWorldBookId, sourceVersionId, entryIdsStr) {
+    if (!window.moveEntryTarget) {
+        NotificationManager.warning(t('pleaseSelectTarget'));
+        return;
+    }
+    
+    // 將逗號分隔的字串轉回陣列
+    const entryIds = entryIdsStr.split(',');
+    
+    const { worldBookId: targetWorldBookId, versionId: targetVersionId, worldBookName, versionName } = window.moveEntryTarget;
+    
+    let successCount = 0;
+    entryIds.forEach(entryId => {
+        const success = moveWorldBookEntry(sourceWorldBookId, sourceVersionId, targetWorldBookId, targetVersionId, entryId);
+        if (success) successCount++;
+    });
+    
+    if (successCount > 0) {
+        // 關閉模態框
+        document.querySelector('.modal')?.remove();
+        
+        NotificationManager.success(
+            t('worldbookBatchMoveSuccess')
+                .replace('$1', successCount)
+                .replace('$2', `${worldBookName} - ${versionName}`)
+        );
+        
+        // 清理全域變數
+        window.moveEntryTarget = null;
+    } else {
+        NotificationManager.error(t('moveFailed'));
+    }
 }

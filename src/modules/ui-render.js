@@ -242,6 +242,15 @@ onchange="updateVersionName('${itemType}', '${item.id}', '${version.id}', this.v
         ${IconManager.bookmark({width: 14, height: 14})}
     </button>
 ` : ''}
+
+    ${itemType === 'worldbook' ? `
+        <button class="version-panel-btn hover-primary" 
+                id="batch-mode-toggle-${item.id}-${version.id}"
+                onclick="toggleWorldBookBatchMode('${item.id}', '${version.id}')" 
+                title="${t('batchMode')}">
+            ${IconManager.selectAll({width: 14, height: 14})}
+        </button>
+    ` : ''}
                 
                 <!-- 版本操作按鈕 -->
                 ${this.createVersionButtonGroup(itemType, item.id, version.id, showDelete)}
