@@ -448,6 +448,23 @@ class IconManager {
         </svg>`;
     }
 
+// 移動圖標（外部箭頭）
+static move(options = {}) {
+    const {
+        width = 16,
+        height = 16,
+        strokeWidth = 2,
+        className = '',
+        style = ''
+    } = options;
+    
+    return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" y1="14" x2="21" y2="3"/>
+    </svg>`;
+}
+
     // 鏈結圖示（用於插入條目）
 static link(options = {}) {
     const { width = 16, height = 16, style = '' } = options;

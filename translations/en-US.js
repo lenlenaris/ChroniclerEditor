@@ -312,6 +312,19 @@ window.ChroniclerTranslations['en-US'] = {
     groupPlaceholder: 'Only one entry with the same label',
     automationIdPlaceholder: '(None)',
     noEntries: 'No entries available',
+
+    moveEntry: 'Move Entry',
+    moveEntryTitle: 'Move Entry',
+    moveEntryDescription: 'Select where to move entry $1',
+    searchWorldBooks: 'Search world books...',
+    noOtherWorldBooks: 'No other world books available',
+    pleaseSelectTarget: 'Please select a target world book',
+    selectedTarget: 'Selected',
+    confirmMove: 'Confirm Move',
+    moveSuccess: 'Entry "$1" has been moved to "$2"',
+    moveFailed: 'Move failed',
+    noMatchingWorldBooks: 'No matching world books',
+    untitledEntry: 'Untitled Entry',
     
     // ========================================
     // 5. Notebook Management

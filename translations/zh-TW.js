@@ -313,6 +313,19 @@ window.ChroniclerTranslations['zh-TW'] = {
     groupPlaceholder: '不建議在編輯器中更改，如需調整請返回 SillyTavern',
     automationIdPlaceholder: '(無)',
     noEntries: '暫無條目',
+
+    moveEntry: '移動條目',
+    moveEntryTitle: '移動條目',
+    moveEntryDescription: '將條目 $1 移動至：',
+    searchWorldBooks: '搜尋世界書...',
+    noOtherWorldBooks: '沒有其他世界書可供選擇',
+    pleaseSelectTarget: '請選擇目標世界書',
+    selectedTarget: '已選擇',
+    confirmMove: '確認移動',
+    moveSuccess: '條目「$1」已成功移動到「$2」',
+    moveFailed: '移動失敗',
+    noMatchingWorldBooks: '沒有符合的世界書',
+    untitledEntry: '未命名條目',
     
     // ========================================
     // 5. 筆記本管理

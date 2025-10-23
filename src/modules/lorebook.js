@@ -513,6 +513,12 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                       ${IconManager.copy({width: 14, height: 14})}
                   </button>
 
+                  <!-- Move entry button -->
+                    <button class="copy-btn" onclick="openMoveEntryDialog('${worldBookId}', '${versionId}', '${entry.id}')" 
+                            title="${t('moveEntry')}">
+                        ${IconManager.move({width: 14, height: 14})}
+                    </button>
+
                   <!-- Delete entry button -->
                   <button class="delete-btn" onclick="confirmRemoveWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}')" 
                           title="${t('deleteEntry')}">
@@ -1408,4 +1414,275 @@ function updateWorldBookEntryAdvanced(worldBookId, versionId, entryId, field, va
             }
         }
     }
+}
+
+// ===== 條目移動功能 =====
+
+// 開啟移動條目對話框
+function openMoveEntryDialog(sourceWorldBookId, sourceVersionId, entryId) {
+    // 獲取來源條目資訊
+    const sourceWorldBook = worldBooks.find(wb => wb.id === sourceWorldBookId);
+    if (!sourceWorldBook) return;
+    
+    const sourceVersion = sourceWorldBook.versions.find(v => v.id === sourceVersionId);
+    if (!sourceVersion) return;
+    
+    const entry = sourceVersion.entries.find(e => e.id === entryId);
+    if (!entry) return;
+    
+    // 生成世界書-版本選項列表
+    let optionsHTML = '';
+    worldBooks.forEach(wb => {
+        wb.versions.forEach(v => {
+            // 排除來源本身
+            if (wb.id === sourceWorldBookId && v.id === sourceVersionId) {
+                return;
+            }
+            optionsHTML += `
+                <div class="tag-detail-item tag-item-hover move-option" 
+                     data-worldbook-id="${wb.id}" 
+                     data-version-id="${v.id}"
+                     onclick="selectMoveTarget('${wb.id}', '${v.id}', '${wb.name}', '${v.name}')"
+                     style="padding: 12px 16px; margin-bottom: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 6px; transition: all 0.2s ease;">
+                    <div style="font-weight: 500; color: var(--text-color); font-size: 0.9em;">
+                        ${wb.name}
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.85em; margin-top: 2px;">
+                        ${v.name}
+                    </div>
+                </div>
+            `;
+        });
+    });
+    
+    const content = `
+        <div class="compact-modal-content" style="max-width: 600px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="compact-modal-header" style="justify-content: space-between;">
+                <div class="custom-field-right-controls">
+                    ${IconManager.move({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('moveEntryTitle')}</h3>
+                </div>
+                <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
+            </div>
+            
+            <div style="flex: 1; overflow-y: auto; padding: 0 4px;">
+                <p class="compact-modal-desc" style="text-align: left; margin-bottom: 16px;">
+                    ${t('moveEntryDescription').replace('$1', `<strong>${entry.comment || t('untitledEntry')}</strong>`)}
+                </p>
+                
+                <!-- 搜尋框 -->
+                <input type="text" 
+                       id="move-search-input" 
+                       class="field-input msize-input"
+                       placeholder="${t('searchWorldBooks')}"
+                       style="margin-bottom: 12px; font-size: 0.9em; padding: 12px 16px;"
+                       oninput="filterMoveOptions(this.value)">
+                
+                <!-- 目標列表 -->
+                <div id="move-options-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-color); padding: 8px;">
+                    ${optionsHTML || `<div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">${t('noOtherWorldBooks')}</div>`}
+                </div>
+                
+                <!-- 已選擇提示 -->
+                <div id="move-selected-display" style="margin-top: 12px; padding: 12px; background: var(--surface-color); border-radius: 6px; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9em; min-height: 48px; display: flex; align-items: center;">
+                    ${t('pleaseSelectTarget')}
+                </div>
+            </div>
+
+            <div class="compact-modal-footer" style="justify-content: center; margin-top: 16px;">
+                <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">
+                    ${t('cancel')}
+                </button>
+                <button id="confirm-move-btn" class="overview-btn btn-primary" disabled 
+                        onclick="confirmMoveEntry('${sourceWorldBookId}', '${sourceVersionId}', '${entryId}', '${entry.comment || t('untitledEntry')}')">
+                    ${t('confirmMove')}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    ModalManager.create({
+        title: '',
+        content: content,
+        footer: '',
+        maxWidth: '600px'
+    });
+    
+    // 儲存選擇狀態到全域變數
+    window.moveEntryTarget = null;
+}
+
+// 選擇移動目標
+function selectMoveTarget(worldBookId, versionId, worldBookName, versionName) {
+    // 更新選擇狀態
+    window.moveEntryTarget = {
+        worldBookId: worldBookId,
+        versionId: versionId,
+        worldBookName: worldBookName,
+        versionName: versionName
+    };
+    
+    // 更新 UI 選中狀態
+    document.querySelectorAll('.move-option').forEach(option => {
+        if (option.dataset.worldbookId === worldBookId && option.dataset.versionId === versionId) {
+            option.style.background = 'var(--primary-color)';
+            option.style.borderColor = 'var(--primary-color)';
+            option.style.color = 'white';
+            option.querySelectorAll('div').forEach(div => {
+                div.style.color = 'white';
+            });
+        } else {
+            option.style.background = 'transparent';
+            option.style.borderColor = 'transparent';
+            option.style.color = 'var(--text-color)';
+            option.querySelector('div:first-child').style.color = 'var(--text-color)';
+            option.querySelector('div:last-child').style.color = 'var(--text-muted)';
+        }
+    });
+    
+    // 更新已選擇提示
+    const display = document.getElementById('move-selected-display');
+    if (display) {
+        display.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                ${IconManager.check({width: 16, height: 16, style: 'color: var(--primary-color);'})}
+                <span style="color: var(--text-color); font-weight: 500;">
+                    ${t('selectedTarget')}: ${worldBookName} - ${versionName}
+                </span>
+            </div>
+        `;
+    }
+    
+    // 啟用確認按鈕
+    const confirmBtn = document.getElementById('confirm-move-btn');
+    if (confirmBtn) {
+        confirmBtn.disabled = false;
+    }
+}
+
+// 篩選移動選項
+function filterMoveOptions(searchText) {
+    const searchLower = searchText.toLowerCase();
+    const options = document.querySelectorAll('.move-option');
+    
+    let hasVisible = false;
+    options.forEach(option => {
+        const text = option.textContent.toLowerCase();
+        if (text.includes(searchLower)) {
+            option.style.display = 'block';
+            hasVisible = true;
+        } else {
+            option.style.display = 'none';
+        }
+    });
+    
+    // 如果沒有符合的結果
+    const container = document.getElementById('move-options-container');
+    if (!hasVisible && searchText.trim()) {
+        if (!container.querySelector('.no-results')) {
+            container.insertAdjacentHTML('beforeend', `
+                <div class="no-results" style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+                    ${t('noMatchingWorldBooks')}
+                </div>
+            `);
+        }
+    } else {
+        const noResults = container.querySelector('.no-results');
+        if (noResults) noResults.remove();
+    }
+}
+
+// 確認移動條目
+function confirmMoveEntry(sourceWorldBookId, sourceVersionId, entryId, entryName) {
+    if (!window.moveEntryTarget) {
+        NotificationManager.warning(t('pleaseSelectTarget'));
+        return;
+    }
+    
+    const { worldBookId: targetWorldBookId, versionId: targetVersionId, worldBookName, versionName } = window.moveEntryTarget;
+    
+    // 執行移動
+    const success = moveWorldBookEntry(sourceWorldBookId, sourceVersionId, targetWorldBookId, targetVersionId, entryId);
+    
+    if (success) {
+        // 關閉模態框
+        document.querySelector('.modal')?.remove();
+        
+        // 顯示成功提示
+        NotificationManager.success(
+            t('moveSuccess')
+                .replace('$1', entryName)
+                .replace('$2', `${worldBookName} - ${versionName}`)
+        );
+        
+        // 清理全域變數
+        window.moveEntryTarget = null;
+    } else {
+        alert(t('moveFailed'));
+    }
+}
+
+// 移動世界書條目
+function moveWorldBookEntry(sourceWorldBookId, sourceVersionId, targetWorldBookId, targetVersionId, entryId) {
+    // 獲取來源資料
+    const sourceWorldBook = worldBooks.find(wb => wb.id === sourceWorldBookId);
+    if (!sourceWorldBook) return false;
+    
+    const sourceVersion = sourceWorldBook.versions.find(v => v.id === sourceVersionId);
+    if (!sourceVersion) return false;
+    
+    const entryIndex = sourceVersion.entries.findIndex(e => e.id === entryId);
+    if (entryIndex === -1) return false;
+    
+    const entry = sourceVersion.entries[entryIndex];
+    
+    // 獲取目標資料
+    const targetWorldBook = worldBooks.find(wb => wb.id === targetWorldBookId);
+    if (!targetWorldBook) return false;
+    
+    const targetVersion = targetWorldBook.versions.find(v => v.id === targetVersionId);
+    if (!targetVersion) return false;
+    
+    // 計算新的 uid（目標版本的最大 uid + 1）
+    const maxUid = Math.max(-1, ...targetVersion.entries.map(e => e.uid || 0));
+    const newUid = maxUid + 1;
+    
+    // 創建新條目（深拷貝並更新 id 和 uid）
+    const newEntry = {
+        ...entry,
+        id: generateId(),
+        uid: newUid,
+        displayIndex: targetVersion.entries.length
+    };
+    
+    // 加入目標版本
+    targetVersion.entries.push(newEntry);
+    
+    // 從來源版本移除
+    sourceVersion.entries.splice(entryIndex, 1);
+    
+    // 重新計算來源版本的 displayIndex
+    sourceVersion.entries.forEach((e, index) => {
+        e.displayIndex = index;
+    });
+    
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('worldbook', sourceWorldBookId, sourceVersionId);
+    TimestampManager.updateVersionTimestamp('worldbook', targetWorldBookId, targetVersionId);
+    
+    // 標記為已變更
+    markAsChanged();
+    
+    // 重新渲染當前頁面
+    if (crossTypeCompareMode) {
+        if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
+            WorldBookRenderer.renderWorldBookEntriesList(sourceWorldBookId, sourceVersionId);
+        } else {
+            CrossTypeCompareManager.renderCrossTypeInterface();
+        }
+    } else {
+        renderWorldBookContent();
+    }
+    
+    return true;
 }
