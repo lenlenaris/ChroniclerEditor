@@ -549,6 +549,23 @@ window.ChroniclerTranslations['zh-TW'] = {
     cannotRemoveCorePrompt: '無法移除核心系統條目',
     cannotDeleteCorePrompt: '無法刪除核心系統條目',
 
+    presetBatchMode: '批量模式',
+    presetExitBatchMode: '退出批量模式',
+    presetSelectedCount: '已選擇 $1 個提示詞',
+    presetBatchCopy: '批量複製',
+    presetBatchMove: '批量移動',
+    presetBatchDelete: '批量刪除',
+    presetNoPromptsSelected: '請先選擇提示詞',
+    presetBatchDeleteConfirm: '確定要從列表中移除 $1 個提示詞嗎？\n\n⚠️ 這只會將它們從可見列表中移除，提示詞本身不會被刪除。',
+    presetBatchDeleteSuccess: '成功從列表中移除了 $1 個提示詞',
+    presetBatchMoveTitle: '批量移動提示詞',
+    presetBatchMoveDescription: '選擇要將 $1 個提示詞移動到哪個預設',
+    presetBatchMoveSuccess: '成功移動 $1 個提示詞到「$2」',
+    movePromptTitle: '移動提示詞',
+    movePromptDescription: '將提示詞 $1 移動至：',
+    searchPresets: '搜尋預設...',
+    noOtherPresets: '沒有其他預設可供選擇',
+
     // ========================================
     // 8. 版本控制
     // ========================================

@@ -20,6 +20,15 @@ static renderPresetVersionContent(preset, version) {
                         ${IconManager.collapseAll({width: 14, height: 14})}
                         <span>${t('collapseAll')}</span>
                     </button>
+
+                        <button class="version-panel-btn hover-primary" 
+            id="batch-mode-toggle-${preset.id}-${version.id}"
+            onclick="PresetRenderer.togglePresetBatchMode('${preset.id}', '${version.id}')" 
+            title="${t('presetBatchMode')}"
+            style="display: flex; align-items: center; gap: 6px;">
+        ${IconManager.selectAll({width: 14, height: 14})}
+        <span>${t('presetBatchMode')}</span>
+    </button>
                 </div>
 
                 <div class="controls-description" style="color: var(--text-muted); font-size: 0.85em; margin-top: 8px; padding-left: 2px;">
@@ -126,10 +135,26 @@ static renderPromptsList(preset, version, characterId) {
 <div class="entry-panel sortable-item preset-entry-panel ${!prompt.enabled ? 'preset-entry-disabled' : ''}" data-prompt-identifier="${prompt.identifier}">
 <!-- 條目標題列 - 展開前顯示：拖曳、展開按鈕、開關、名字、role、@深度 -->
 <div class="entry-header preset-entry-header">
-    <!-- 拖曳控制 -->
-    <div class="drag-handle custom-field-drag-handle">
-        ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
-    </div>
+${!cannotRemove ? `
+    <!-- Batch checkbox (hidden by default) -->
+    <label class="batch-checkbox" 
+           id="batch-checkbox-${prompt.identifier}"
+           style="display: none; cursor: pointer; margin-right: 8px;">
+        <input type="checkbox" 
+               class="batch-checkbox-input"
+               data-prompt-identifier="${prompt.identifier}"
+               onchange="PresetRenderer.updateBatchSelection('${presetId}', '${versionId}')">
+    </label>
+` : `
+    <!-- Placeholder for alignment (also hidden by default) -->
+    <div class="batch-placeholder" style="display: none; width: 28px; flex-shrink: 0;"></div>
+`}
+<!-- [添加] 結束 -->
+
+<!-- 拖曳控制 -->
+<div class="drag-handle custom-field-drag-handle">
+    ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+</div>
     
     <!-- 展開按鈕 -->
     <button class="entry-toggle-btn wb-toggle-btn" onclick="PresetRenderer.togglePromptContent('${prompt.identifier}', event)">
@@ -1335,6 +1360,352 @@ static generateUUID() {
     });
 }
 
+// ===== 批量編輯功能 =====
+
+// 切換批量模式
+static togglePresetBatchMode(presetId, versionId) {
+    const container = document.querySelector(`.prompts-entries-container[data-preset-id="${presetId}"][data-version-id="${versionId}"]`);
+    if (!container) return;
+
+    const isActive = container.classList.toggle('batch-mode-active');
+    const button = document.getElementById(`batch-mode-toggle-${presetId}-${versionId}`);
+
+// 顯示/隱藏所有勾選框和佔位符
+const checkboxes = container.querySelectorAll('.batch-checkbox');
+checkboxes.forEach(checkbox => {
+    checkbox.style.display = isActive ? 'flex' : 'none';
+});
+
+const placeholders = container.querySelectorAll('.batch-placeholder');
+placeholders.forEach(placeholder => {
+    placeholder.style.display = isActive ? 'block' : 'none';
+});
+
+    // 更新按鈕樣式
+    if (button) {
+        const iconSpan = button.querySelector('span');
+        if (isActive) {
+            button.style.background = 'var(--primary-color)';
+            button.style.color = 'white';
+            button.title = t('presetExitBatchMode');
+            if(iconSpan) iconSpan.textContent = t('presetExitBatchMode'); // 使用一個簡短的詞
+        } else {
+            button.style.background = '';
+            button.style.color = '';
+            button.title = t('presetBatchMode');
+            if(iconSpan) iconSpan.textContent = t('presetBatchMode');
+            // 取消所有選擇
+            container.querySelectorAll('.batch-checkbox-input').forEach(cb => cb.checked = false);
+        }
+    }
+
+    // 顯示/隱藏批量操作欄
+    if (isActive) {
+        this.showBatchToolbar(presetId, versionId);
+    } else {
+        this.hideBatchToolbar(presetId, versionId);
+    }
+}
+
+// 顯示批量操作工具列
+static showBatchToolbar(presetId, versionId) {
+    this.hideBatchToolbar(presetId, versionId); // 確保移除舊的
+
+    const container = document.querySelector(`.prompts-entries-container[data-preset-id="${presetId}"][data-version-id="${versionId}"]`);
+    if (!container) return;
+
+    const toolbar = document.createElement('div');
+    toolbar.id = `batch-toolbar-${presetId}-${versionId}`;
+    toolbar.className = 'batch-toolbar'; // 沿用世界書的CSS
+    toolbar.innerHTML = `
+        <div class="batch-toolbar-content">
+            <div class="batch-info">
+                <span class="batch-count">${t('presetSelectedCount').replace('$1', '0')}</span>
+            </div>
+            <div class="batch-actions">
+                <button class="overview-btn hover-primary batch-action-btn" 
+                        disabled
+                        onclick="PresetRenderer.batchMovePrompts('${presetId}', '${versionId}')"
+                        title="${t('presetBatchMove')}">
+                    ${IconManager.move({width: 14, height: 14})}
+                    ${t('moveEntry')}
+                </button>
+                <button class="overview-btn overview-danger-btn batch-action-btn" 
+                        disabled
+                        onclick="PresetRenderer.batchDeletePrompts('${presetId}', '${versionId}')"
+                        title="${t('presetBatchDelete')}">
+                    ${IconManager.linkOff({width: 14, height: 14})}
+                    ${t('removeFromList')}
+                </button>
+            </div>
+        </div>
+    `;
+
+    const versionPanel = container.closest('.version-panel');
+    if (versionPanel) {
+        versionPanel.appendChild(toolbar);
+    }
+}
+
+// 隱藏批量操作工具列
+static hideBatchToolbar(presetId, versionId) {
+    const toolbar = document.getElementById(`batch-toolbar-${presetId}-${versionId}`);
+    if (toolbar) {
+        toolbar.remove();
+    }
+}
+
+// 更新批量選擇狀態
+static updateBatchSelection(presetId, versionId) {
+    const container = document.querySelector(`.prompts-entries-container[data-preset-id="${presetId}"][data-version-id="${versionId}"]`);
+    if (!container) return;
+
+    const selectedCheckboxes = container.querySelectorAll('.batch-checkbox-input:checked');
+    const selectedCount = selectedCheckboxes.length;
+
+    const toolbar = document.getElementById(`batch-toolbar-${presetId}-${versionId}`);
+    if (toolbar) {
+        const countDisplay = toolbar.querySelector('.batch-count');
+        if (countDisplay) {
+            countDisplay.textContent = t('presetSelectedCount').replace('$1', selectedCount);
+        }
+
+        const actionButtons = toolbar.querySelectorAll('.batch-action-btn');
+        actionButtons.forEach(btn => {
+            btn.disabled = selectedCount === 0;
+        });
+    }
+}
+
+// 獲取選中的條目 Identifier
+static getSelectedPromptIdentifiers(presetId, versionId) {
+    const container = document.querySelector(`.prompts-entries-container[data-preset-id="${presetId}"][data-version-id="${versionId}"]`);
+    if (!container) return [];
+
+    const selectedCheckboxes = container.querySelectorAll('.batch-checkbox-input:checked');
+    return Array.from(selectedCheckboxes).map(cb => cb.dataset.promptIdentifier);
+}
+
+// [添加] (接在 getSelectedPromptIdentifiers 後面)
+
+// 批量從列表中移除提示詞
+static batchDeletePrompts(presetId, versionId) {
+    const identifiers = this.getSelectedPromptIdentifiers(presetId, versionId);
+    if (identifiers.length === 0) {
+        NotificationManager.warning(t('presetNoPromptsSelected'));
+        return;
+    }
+
+    if (!confirm(t('presetBatchDeleteConfirm').replace('$1', identifiers.length))) {
+        return;
+    }
+    
+    const preset = presets.find(p => p.id === presetId);
+    if (preset) {
+        const version = preset.versions.find(v => v.id === versionId);
+        if (version) {
+            const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
+            if (orderConfig) {
+                // 過濾掉選中的條目
+                orderConfig.order = orderConfig.order.filter(item => !identifiers.includes(item.identifier));
+                
+                TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+                markAsChanged();
+                
+                this.refreshPresetContent(presetId, versionId);
+                
+                setTimeout(() => {
+                    this.togglePresetBatchMode(presetId, versionId);
+                    this.togglePresetBatchMode(presetId, versionId);
+                }, 100);
+                
+                NotificationManager.success(t('presetBatchDeleteSuccess').replace('$1', identifiers.length));
+            }
+        }
+    }
+}
+
+// 批量移動提示詞
+static batchMovePrompts(presetId, versionId) {
+    const identifiers = this.getSelectedPromptIdentifiers(presetId, versionId);
+    if (identifiers.length === 0) {
+        NotificationManager.warning(t('presetNoPromptsSelected'));
+        return;
+    }
+    this.openBatchMoveDialog(presetId, versionId, identifiers);
+}
+
+// ===== 條目移動功能 (Adapted from WorldBook) =====
+
+// 開啟批量移動對話框
+static openBatchMoveDialog(sourcePresetId, sourceVersionId, identifiers) {
+    let optionsHTML = '';
+    presets.forEach(p => {
+        p.versions.forEach(v => {
+            if (p.id === sourcePresetId && v.id === sourceVersionId) return;
+            optionsHTML += `
+                <div class="tag-detail-item tag-item-hover move-option" 
+                     data-preset-id="${p.id}" 
+                     data-version-id="${v.id}"
+                     onclick="PresetRenderer.selectMoveTarget('${p.id}', '${v.id}', '${p.name}', '${v.name}')"
+                     style="padding: 12px 16px; margin-bottom: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 6px; transition: all 0.2s ease;">
+                    <div style="font-weight: 500; color: var(--text-color); font-size: 0.9em;">${p.name}</div>
+                    <div style="color: var(--text-muted); font-size: 0.85em; margin-top: 2px;">${v.name}</div>
+                </div>`;
+        });
+    });
+
+    const content = `
+        <div class="compact-modal-content" style="max-width: 600px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="compact-modal-header" style="justify-content: space-between;">
+                <div class="custom-field-right-controls">
+                    ${IconManager.move({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('presetBatchMoveTitle')}</h3>
+                </div>
+                <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
+            </div>
+            <div style="flex: 1; overflow-y: auto; padding: 0 4px;">
+                <p class="compact-modal-desc" style="text-align: left; margin-bottom: 16px;">
+                    ${t('presetBatchMoveDescription').replace('$1', `<strong>${identifiers.length}</strong>`)}
+                </p>
+                <input type="text" id="move-search-input" class="field-input msize-input"
+                       placeholder="${t('searchPresets')}"
+                       style="margin-bottom: 12px; font-size: 0.9em; padding: 12px 16px;"
+                       oninput="PresetRenderer.filterMoveOptions(this.value)">
+                <div id="move-options-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-color); padding: 8px;">
+                    ${optionsHTML || `<div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">${t('noOtherPresets')}</div>`}
+                </div>
+                <div id="move-selected-display" style="margin-top: 12px; padding: 12px; background: var(--surface-color); border-radius: 6px; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9em; min-height: 48px; display: flex; align-items: center;">
+                    ${t('pleaseSelectTarget')}
+                </div>
+            </div>
+            <div class="compact-modal-footer" style="justify-content: center; margin-top: 16px;">
+                <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">${t('cancel')}</button>
+                <button id="confirm-move-btn" class="overview-btn btn-primary" disabled 
+                        onclick="PresetRenderer.confirmBatchMovePrompts('${sourcePresetId}', '${sourceVersionId}', '${identifiers.join(',')}')">
+                    ${t('confirmMove')}
+                </button>
+            </div>
+        </div>`;
+    
+    ModalManager.create({ content: content, maxWidth: '600px' });
+    window.moveEntryTarget = null;
+}
+
+static selectMoveTarget(presetId, versionId, presetName, versionName) {
+    window.moveEntryTarget = { presetId, versionId, presetName, versionName };
+    document.querySelectorAll('.move-option').forEach(option => {
+        const isSelected = option.dataset.presetId === presetId && option.dataset.versionId === versionId;
+        option.style.background = isSelected ? 'var(--primary-color)' : 'transparent';
+        option.style.borderColor = isSelected ? 'var(--primary-color)' : 'transparent';
+        option.querySelectorAll('div').forEach(div => div.style.color = isSelected ? 'white' : '');
+    });
+    document.getElementById('move-selected-display').innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            ${IconManager.check({width: 16, height: 16, style: 'color: var(--primary-color);'})}
+            <span style="color: var(--text-color); font-weight: 500;">
+                ${t('selectedTarget')}: ${presetName} - ${versionName}
+            </span>
+        </div>`;
+    document.getElementById('confirm-move-btn').disabled = false;
+}
+
+static filterMoveOptions(searchText) {
+    const searchLower = searchText.toLowerCase();
+    const options = document.querySelectorAll('.move-option');
+    let hasVisible = false;
+    options.forEach(option => {
+        const isVisible = option.textContent.toLowerCase().includes(searchLower);
+        option.style.display = isVisible ? 'block' : 'none';
+        if (isVisible) hasVisible = true;
+    });
+
+    const container = document.getElementById('move-options-container');
+    let noResults = container.querySelector('.no-results');
+    if (!hasVisible && searchText.trim()) {
+        if (!noResults) {
+            container.insertAdjacentHTML('beforeend', `<div class="no-results" style="padding: 40px 20px; text-align: center; color: var(--text-muted);">${t('noMatchingItems')}</div>`);
+        }
+    } else if (noResults) {
+        noResults.remove();
+    }
+}
+
+static confirmBatchMovePrompts(sourcePresetId, sourceVersionId, identifiersStr) {
+    if (!window.moveEntryTarget) {
+        NotificationManager.warning(t('pleaseSelectTarget'));
+        return;
+    }
+    const identifiers = identifiersStr.split(',');
+    const { presetId: targetPresetId, versionId: targetVersionId, presetName, versionName } = window.moveEntryTarget;
+
+    let successCount = 0;
+    identifiers.forEach(identifier => {
+        if (this.movePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetVersionId, identifier)) {
+            successCount++;
+        }
+    });
+
+    if (successCount > 0) {
+        document.querySelector('.modal')?.remove();
+        NotificationManager.success(t('presetBatchMoveSuccess').replace('$1', successCount).replace('$2', `${presetName} - ${versionName}`));
+        window.moveEntryTarget = null;
+    } else {
+        NotificationManager.error(t('moveFailed'));
+    }
+}
+
+static movePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetVersionId, identifier) {
+    const sourcePreset = presets.find(p => p.id === sourcePresetId);
+    const targetPreset = presets.find(p => p.id === targetPresetId);
+    if (!sourcePreset || !targetPreset) return false;
+
+    const sourceVersion = sourcePreset.versions.find(v => v.id === sourceVersionId);
+    const targetVersion = targetPreset.versions.find(v => v.id === targetVersionId);
+    if (!sourceVersion || !targetVersion) return false;
+
+    const promptIndex = sourceVersion.prompts.findIndex(p => p.identifier === identifier);
+    if (promptIndex === -1) return false;
+
+    const promptToMove = { ...sourceVersion.prompts[promptIndex] };
+
+    // 檢查目標中是否已存在同名 prompt
+    if (targetVersion.prompts.some(p => p.identifier === identifier)) {
+        console.warn(`Prompt with identifier ${identifier} already exists in target. Skipping move.`);
+        return false; // Or handle merging/renaming
+    }
+
+    // 從來源的 order 中移除
+    const sourceOrderConfig = sourceVersion.prompt_order?.find(c => c.character_id === 100001);
+    if (sourceOrderConfig) {
+        sourceOrderConfig.order = sourceOrderConfig.order.filter(item => item.identifier !== identifier);
+    }
+    
+    // (可選) 決定是否從來源的 prompts 列表中移除，目前邏輯是保留，僅移動 order
+    // sourceVersion.prompts.splice(promptIndex, 1);
+
+    // 加入目標的 prompts 列表
+    if (!targetVersion.prompts) targetVersion.prompts = [];
+    targetVersion.prompts.push(promptToMove);
+    
+    // 加入目標的 order 列表
+    let targetOrderConfig = targetVersion.prompt_order?.find(c => c.character_id === 100001);
+    if (!targetOrderConfig) {
+        // 如果目標沒有可編輯的 order 配置，則創建一個
+        if (!targetVersion.prompt_order) targetVersion.prompt_order = [];
+        targetOrderConfig = { character_id: 100001, order: [] };
+        targetVersion.prompt_order.push(targetOrderConfig);
+    }
+    targetOrderConfig.order.push({ identifier: identifier, enabled: true });
+
+    TimestampManager.updateVersionTimestamp('preset', sourcePresetId, sourceVersionId);
+    TimestampManager.updateVersionTimestamp('preset', targetPresetId, targetVersionId);
+    markAsChanged();
+
+    // 重新渲染當前頁面
+    this.refreshPresetContent(sourcePresetId, sourceVersionId);
+    return true;
+}
 
 
 }

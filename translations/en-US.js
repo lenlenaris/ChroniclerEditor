@@ -547,6 +547,23 @@ window.ChroniclerTranslations['en-US'] = {
     promptCreated: 'Prompt created',
     cannotRemoveCorePrompt: 'Cannot remove core system prompt',
     cannotDeleteCorePrompt: 'Cannot delete core system prompt',
+
+    presetBatchMode: 'Batch Mode',
+    presetExitBatchMode: 'Exit Batch Mode',
+    presetSelectedCount: '$1 prompts selected',
+    presetBatchCopy: 'Batch Copy',
+    presetBatchMove: 'Batch Move',
+    presetBatchDelete: 'Batch Delete',
+    presetNoPromptsSelected: 'Please select prompts first',
+    presetBatchDeleteConfirm: 'Remove $1 prompts from the list?\n\n⚠️ This only removes them from the visible list, the prompts themselves will not be deleted.',
+    presetBatchDeleteSuccess: 'Successfully removed $1 prompts from the list',
+    presetBatchMoveTitle: 'Batch Move Prompts',
+    presetBatchMoveDescription: 'Select where to move the $1 selected prompts',
+    presetBatchMoveSuccess: 'Successfully moved $1 prompts to "$2"',
+    movePromptTitle: 'Move Prompt',
+    movePromptDescription: 'Select where to move prompt $1',
+    searchPresets: 'Search presets...',
+    noOtherPresets: 'No other presets available',
     
     // ========================================
     // 8. Version Control
