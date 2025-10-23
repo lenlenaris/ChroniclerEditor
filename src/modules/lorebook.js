@@ -309,13 +309,16 @@ function copyWorldBookEntry(worldBookId, versionId, entryId) {
                 version.entries.push(newEntry);
                 
                 if (crossTypeCompareMode) {
+                    // 在雙屏模式下，我們需要更智能的渲染，優先考慮局部渲染
                     if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
                         WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
                     } else {
+                        // 作為備援，刷新整個對比介面
                         CrossTypeCompareManager.renderCrossTypeInterface();
                     }
                 } else {
-                    renderAll();
+                    // 在單屏模式下，使用更精確的局部渲染，避免全局刷新
+                    renderWorldBookContent();
                 }
                 
                 markAsChanged();
@@ -1685,12 +1688,10 @@ function moveWorldBookEntry(sourceWorldBookId, sourceVersionId, targetWorldBookI
     
     // 重新渲染當前頁面
     if (crossTypeCompareMode) {
-        if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
-            WorldBookRenderer.renderWorldBookEntriesList(sourceWorldBookId, sourceVersionId);
-        } else {
-            CrossTypeCompareManager.renderCrossTypeInterface();
-        }
+        // 雙屏模式下，必須刷新整個對比介面，才能同時更新來源和目標
+        CrossTypeCompareManager.renderCrossTypeInterface();
     } else {
+        // 單版本模式，只需刷新當前內容
         renderWorldBookContent();
     }
     
@@ -1866,20 +1867,16 @@ function batchCopyEntries(worldBookId, versionId) {
         
         // 重新渲染
         if (crossTypeCompareMode) {
-            if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
-                WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
-            } else {
-                CrossTypeCompareManager.renderCrossTypeInterface();
-            }
+            // 雙屏模式下，直接刷新整個對比介面，確保兩側狀態都更新
+            CrossTypeCompareManager.renderCrossTypeInterface();
         } else {
+            // 單版本模式，重新渲染內容並恢復批量模式
             renderWorldBookContent();
+            setTimeout(() => {
+                toggleWorldBookBatchMode(worldBookId, versionId);
+                toggleWorldBookBatchMode(worldBookId, versionId); // 刷新批量模式UI
+            }, 100);
         }
-        
-        // 重新啟用批量模式
-        setTimeout(() => {
-            toggleWorldBookBatchMode(worldBookId, versionId);
-            toggleWorldBookBatchMode(worldBookId, versionId);
-        }, 100);
         
         NotificationManager.success(t('worldbookBatchCopySuccess').replace('$1', successCount));
     }
@@ -1930,20 +1927,16 @@ function batchDeleteEntries(worldBookId, versionId) {
             
             // 重新渲染
             if (crossTypeCompareMode) {
-                if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
-                    WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
-                } else {
-                    CrossTypeCompareManager.renderCrossTypeInterface();
-                }
+                // 雙屏模式下，直接刷新整個對比介面，確保兩側狀態都更新
+                CrossTypeCompareManager.renderCrossTypeInterface();
             } else {
+                // 單版本模式，重新渲染內容並恢復批量模式
                 renderWorldBookContent();
+                setTimeout(() => {
+                    toggleWorldBookBatchMode(worldBookId, versionId);
+                    toggleWorldBookBatchMode(worldBookId, versionId); // 刷新批量模式UI
+                }, 100);
             }
-            
-            // 重新啟用批量模式
-            setTimeout(() => {
-                toggleWorldBookBatchMode(worldBookId, versionId);
-                toggleWorldBookBatchMode(worldBookId, versionId);
-            }, 100);
             
             NotificationManager.success(t('worldbookBatchDeleteSuccess').replace('$1', entryIds.length));
         }
