@@ -3781,15 +3781,45 @@ function addCustomField(sectionId, versionId) {
             };
             version.fields.push(newField);
             
-            if ((crossTypeCompareMode || viewMode === 'compare') && typeof ContentRenderer.renderCustomFieldsList === 'function') {
-                // 如果在雙屏模式或對比模式且新函數存在，使用局部渲染
-                ContentRenderer.renderCustomFieldsList(sectionId, versionId);
-            } else {
-                // 否則使用原有的全量渲染（確保向後相容）
-                renderCustomContent();
-            }
+            // 🎯 找到正確的容器（支援單版本和對比模式）
+            const container = document.querySelector(`#custom-fields-${versionId}[data-section-id="${sectionId}"]`);
             
-            markAsChanged();
+            if (container) {
+                // 在容器末尾直接插入新欄位 HTML
+                const newFieldHTML = ContentRenderer.renderCustomField(sectionId, versionId, newField);
+                container.insertAdjacentHTML('beforeend', newFieldHTML);
+                
+                markAsChanged();
+                
+                // 🎯 初始化新欄位的功能
+                requestAnimationFrame(() => {
+                    // 初始化自動調整大小
+                    if (typeof initAutoResize === 'function') {
+                        initAutoResize();
+                    }
+                    
+                    // 更新統計
+                    if (typeof updateAllPageStats === 'function') {
+                        updateAllPageStats();
+                    }
+                    
+                    // 🎯 重新初始化拖曳排序
+                    setTimeout(() => {
+                        if (typeof DragSortManager !== 'undefined' && DragSortManager.enableCustomFieldsDragSort) {
+                            DragSortManager.enableCustomFieldsDragSort(sectionId, versionId);
+                        }
+                    }, 50);
+                });
+            } else {
+                // 🛡️ 找不到容器時的備用方案
+                console.warn('找不到筆記本容器，使用完整重新渲染');
+                if ((crossTypeCompareMode || viewMode === 'compare') && typeof ContentRenderer.renderCustomFieldsList === 'function') {
+                    ContentRenderer.renderCustomFieldsList(sectionId, versionId);
+                } else {
+                    renderCustomContent();
+                }
+                markAsChanged();
+            }
         }
     }
 }
@@ -3830,15 +3860,41 @@ function removeCustomField(sectionId, versionId, fieldId) {
         if (version && version.fields.length > 1) {
             version.fields = version.fields.filter(f => f.id !== fieldId);
             
-            if ((crossTypeCompareMode || viewMode === 'compare') && typeof ContentRenderer.renderCustomFieldsList === 'function') {
-                // 如果在雙屏模式或對比模式且新函數存在，使用局部渲染
-                ContentRenderer.renderCustomFieldsList(sectionId, versionId);
-            } else {
-                // 否則使用原有的全量渲染（確保向後相容）
-                renderCustomContent();
-            }
+            // 🎯 找到要刪除的欄位元素
+            const fieldElement = document.getElementById(`field-${fieldId}`);
             
-            markAsChanged();
+            if (fieldElement) {
+                // 淡出動畫
+                fieldElement.style.transition = 'opacity 0.15s ease';
+                fieldElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    fieldElement.remove();
+                    markAsChanged();
+                    
+                    // 🎯 重新初始化拖曳排序
+                    requestAnimationFrame(() => {
+                        if (typeof updateAllPageStats === 'function') {
+                            updateAllPageStats();
+                        }
+                        
+                        setTimeout(() => {
+                            if (typeof DragSortManager !== 'undefined' && DragSortManager.enableCustomFieldsDragSort) {
+                                DragSortManager.enableCustomFieldsDragSort(sectionId, versionId);
+                            }
+                        }, 50);
+                    });
+                }, 150);
+            } else {
+                // 🛡️ 找不到元素時的備用方案
+                console.warn('找不到欄位元素，使用完整重新渲染');
+                if ((crossTypeCompareMode || viewMode === 'compare') && typeof ContentRenderer.renderCustomFieldsList === 'function') {
+                    ContentRenderer.renderCustomFieldsList(sectionId, versionId);
+                } else {
+                    renderCustomContent();
+                }
+                markAsChanged();
+            }
         } else {
             alert(t('keepOneField'));
         }
