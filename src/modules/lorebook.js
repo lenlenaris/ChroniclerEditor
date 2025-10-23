@@ -290,40 +290,75 @@ function toggleEntryContent(entryId, event = null) {
 
 function copyWorldBookEntry(worldBookId, versionId, entryId) {
     const worldBook = worldBooks.find(wb => wb.id === worldBookId);
-    if (worldBook) {
-        const version = worldBook.versions.find(v => v.id === versionId);
-        if (version) {
-            const originalEntry = version.entries.find(e => e.id === entryId);
-            if (originalEntry) {
-                const maxUid = Math.max(-1, ...version.entries.map(e => e.uid || 0));
-                const newUid = maxUid + 1;
-                
-                const newEntry = {
-                    ...originalEntry,
-                    id: generateId(),
-                    uid: newUid, 
-                    displayIndex: version.entries.length,
-                    comment: (originalEntry.comment || '') + t('copyPrefix')
-                };
-                
-                version.entries.push(newEntry);
-                
-                if (crossTypeCompareMode) {
-                    // 在雙屏模式下，我們需要更智能的渲染，優先考慮局部渲染
-                    if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
-                        WorldBookRenderer.renderWorldBookEntriesList(worldBookId, versionId);
-                    } else {
-                        // 作為備援，刷新整個對比介面
-                        CrossTypeCompareManager.renderCrossTypeInterface();
-                    }
-                } else {
-                    // 在單屏模式下，使用更精確的局部渲染，避免全局刷新
-                    renderWorldBookContent();
-                }
-                
-                markAsChanged();
-            }
+    if (!worldBook) return;
+
+    const version = worldBook.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const originalEntryIndex = version.entries.findIndex(e => e.id === entryId);
+    if (originalEntryIndex === -1) return;
+
+    const originalEntry = version.entries[originalEntryIndex];
+    
+    // 1. 準備新條目數據
+    const maxUid = Math.max(-1, ...version.entries.map(e => e.uid || 0));
+    const newUid = maxUid + 1;
+    
+    const newEntry = {
+        ...originalEntry,
+        id: generateId(),
+        uid: newUid,
+        comment: (originalEntry.comment || '') + t('copyPrefix')
+        // displayIndex 會在稍後重新計算
+    };
+
+    // 2. 更新數據陣列：將新條目插入到原始條目之後
+    version.entries.splice(originalEntryIndex + 1, 0, newEntry);
+
+    // 3. 重新計算所有條目的 displayIndex 以確保連續性
+    version.entries.forEach((entry, index) => {
+        entry.displayIndex = index;
+    });
+
+    // 4. 高效能 DOM 更新 (不重新渲染整個列表)
+    //    精準找到目標容器
+    const container = document.querySelector(`.entries-container[data-world-book-id="${worldBookId}"][data-version-id="${versionId}"]`);
+    if (container) {
+        // 在容器內找到原始條目的 DOM 元素
+        const originalEntryElement = container.querySelector(`.entry-panel[data-entry-id="${entryId}"]`);
+        
+        if (originalEntryElement) {
+            // 只渲染新條目的 HTML
+            const newEntryHTML = WorldBookRenderer.renderWorldBookEntry(worldBookId, versionId, newEntry);
+            // 將新條目 HTML 插入到原始條目 DOM 元素的後面
+            originalEntryElement.insertAdjacentHTML('afterend', newEntryHTML);
+
+            markAsChanged();
+
+            // 只初始化新條目相關功能，並重新啟用拖曳
+            setTimeout(() => {
+                updateFieldStats(`worldbook-${worldBookId}-${versionId}-${newEntry.id}`);
+                initAutoResize();
+                enableWorldBookEntriesDragSort(worldBookId, versionId); // 重新綁定拖曳
+            }, 50);
+
+        } else {
+            console.warn('找不到原始條目元素，使用備用渲染方案');
+            fallbackRender();
         }
+    } else {
+        console.warn('找不到條目容器，使用備用渲染方案');
+        fallbackRender();
+    }
+
+    // 🛡️ 備用渲染方案 (以防萬一)
+    function fallbackRender() {
+        if (crossTypeCompareMode) {
+            CrossTypeCompareManager.renderCrossTypeInterface();
+        } else {
+            renderWorldBookContent();
+        }
+        markAsChanged();
     }
 }
 
