@@ -318,7 +318,7 @@ window.ChroniclerTranslations['en-US'] = {
     moveEntryDescription: 'Select where to move entry $1',
     searchWorldBooks: 'Search world books...',
     noOtherWorldBooks: 'No other world books available',
-    pleaseSelectTarget: 'Please select a target world book',
+    pleaseSelectTarget: 'Please select a destination',
     selectedTarget: 'Selected',
     confirmMove: 'Confirm Move',
     moveSuccess: 'Entry "$1" has been moved to "$2"',
@@ -555,8 +555,8 @@ window.ChroniclerTranslations['en-US'] = {
     presetBatchMove: 'Batch Move',
     presetBatchDelete: 'Batch Delete',
     presetNoPromptsSelected: 'Please select prompts first',
-    presetBatchDeleteConfirm: 'Remove $1 prompts from the list?\n\n⚠️ This only removes them from the visible list, the prompts themselves will not be deleted.',
-    presetBatchDeleteSuccess: 'Successfully removed $1 prompts from the list',
+    presetBatchDeleteConfirm: 'Are you sure you want to permanently delete $1 prompt(s)?\n\n⚠️ This action cannot be undone!',
+    presetBatchDeleteSuccess: 'Successfully deleted $1 prompt(s)',
     presetBatchMoveTitle: 'Batch Move Prompts',
     presetBatchMoveDescription: 'Select where to move the $1 selected prompts',
     presetBatchMoveSuccess: 'Successfully moved $1 prompts to "$2"',
@@ -564,6 +564,13 @@ window.ChroniclerTranslations['en-US'] = {
     movePromptDescription: 'Select where to move prompt $1',
     searchPresets: 'Search presets...',
     noOtherPresets: 'No other presets available',
+    presetBatchCopySuccess: 'Successfully copied $1 prompt(s)',
+    movePromptSuccess: 'Moved prompt "$1" to "$2"',
+    movePromptFailed: 'Failed to move prompt',
+    copyPrompt: 'Copy Prompt',
+    movePrompt: 'Move Prompt',
+    promptCopied: 'Prompt copied',
+    noMatchingPresets: 'No matching presets',
     
     // ========================================
     // 8. Version Control

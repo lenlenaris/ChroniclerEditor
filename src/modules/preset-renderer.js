@@ -200,13 +200,40 @@ ${!cannotRemove ? `
     </div>
 
     
-<!--  移除按鈕 (marker 和核心條目顯示但禁用) -->
-<button class="version-panel-btn ${cannotRemove ? 'hover-disabled' : 'hover-danger'}" 
+<!-- 複製提示詞按鈕 (marker 和核心條目顯示但禁用) -->
+<button class="copy-btn ${cannotRemove ? 'hover-disabled' : ''}" 
+        onclick="${cannotRemove ? 'return false;' : `PresetRenderer.copyPrompt('${presetId}', '${versionId}', '${prompt.identifier}', ${characterId})`}"
+        title="${cannotRemove ? t('cannotCopyCorePrompt') : t('copyPrompt')}"
+        style="${cannotRemove ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
+        ${cannotRemove ? 'disabled' : ''}>
+    ${IconManager.copy({width: 14, height: 14})}
+</button>
+
+<!-- 移動提示詞按鈕 (marker 和核心條目顯示但禁用) -->
+<button class="copy-btn ${cannotRemove ? 'hover-disabled' : ''}" 
+        onclick="${cannotRemove ? 'return false;' : `PresetRenderer.openMovePromptDialog('${presetId}', '${versionId}', '${prompt.identifier}', ${characterId})`}"
+        title="${cannotRemove ? t('cannotMoveCorePrompt') : t('movePrompt')}"
+        style="${cannotRemove ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
+        ${cannotRemove ? 'disabled' : ''}>
+    ${IconManager.move({width: 14, height: 14})}
+</button>
+
+<!-- 從列表移除按鈕 (marker 和核心條目顯示但禁用) -->
+<button class="copy-btn ${cannotRemove ? 'hover-disabled' : 'hover-danger'}" 
         onclick="${cannotRemove ? 'return false;' : `PresetRenderer.removePromptFromOrder('${presetId}', '${versionId}', '${prompt.identifier}', ${characterId})`}"
         title="${cannotRemove ? t('cannotRemoveCorePrompt') : t('removeFromList')}"
-        style="display: flex; align-items: center; padding: 4px 8px; ${cannotRemove ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
+        style="${cannotRemove ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
         ${cannotRemove ? 'disabled' : ''}>
     ${IconManager.linkOff({width: 14, height: 14})}
+</button>
+
+<!-- 刪除提示詞按鈕 (marker 和核心條目顯示但禁用) -->
+<button class="delete-btn ${cannotRemove ? 'hover-disabled' : ''}" 
+        onclick="${cannotRemove ? 'return false;' : `PresetRenderer.deletePromptPermanentlyFromEntry('${presetId}', '${versionId}', '${prompt.identifier}')`}"
+        title="${cannotRemove ? t('cannotDeleteCorePrompt') : t('deletePrompt')}"
+        style="${cannotRemove ? 'opacity: 0.4; cursor: not-allowed;' : ''}"
+        ${cannotRemove ? 'disabled' : ''}>
+    ${IconManager.delete({width: 14, height: 14})}
 </button>
     
 
@@ -1301,6 +1328,390 @@ static deletePromptPermanently(presetId, versionId) {
     NotificationManager.success(t('promptDeleted'));
 }
 
+// 從條目直接刪除提示詞（包裝函數）
+static deletePromptPermanentlyFromEntry(presetId, versionId, identifier) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    const promptIndex = version.prompts.findIndex(p => p.identifier === identifier);
+    if (promptIndex === -1) return;
+    
+    const prompt = version.prompts[promptIndex];
+    
+    // 檢查是否為 marker 條目或核心系統條目（不允許刪除）
+    const isCorePrompt = ['main', 'nsfw', 'jailbreak', 'enhanceDefinitions'].includes(identifier);
+    if (prompt.marker === true || isCorePrompt) {
+        NotificationManager.error(t('cannotDeleteCorePrompt'));
+        return;
+    }
+    
+    // 顯示確認對話框
+    const confirmMessage = t('confirmDeletePrompt').replace('$1', prompt.name || identifier);
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    // 從 prompts 陣列中完全刪除
+    version.prompts.splice(promptIndex, 1);
+    
+    // 同時確保它不在任何 order 陣列中
+    version.prompt_order?.forEach(orderConfig => {
+        const orderIndex = orderConfig.order.findIndex(item => item.identifier === identifier);
+        if (orderIndex !== -1) {
+            orderConfig.order.splice(orderIndex, 1);
+        }
+    });
+    
+    // 更新時間戳
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+    
+    // 重新渲染
+    this.refreshPresetContent(presetId, versionId);
+    
+    NotificationManager.success(t('promptDeleted'));
+}
+
+// 複製提示詞
+static copyPrompt(presetId, versionId, identifier, characterId) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    // 找到原始提示詞
+    const originalPrompt = version.prompts.find(p => p.identifier === identifier);
+    if (!originalPrompt) return;
+    
+    // 生成新的 UUID identifier
+    const newIdentifier = this.generateUUID();
+    
+    // 深拷貝並修改屬性
+    const newPrompt = {
+        ...originalPrompt,
+        identifier: newIdentifier,
+        name: (originalPrompt.name || '') + t('copyPrefix')
+    };
+    
+    // 添加到 prompts 陣列
+    version.prompts.push(newPrompt);
+    
+    // 找到可編輯條目的配置（character_id: 100001）
+    const orderConfig = version.prompt_order?.find(config => config.character_id === characterId);
+    if (orderConfig) {
+        // 找到原條目在 order 中的位置
+        const originalIndex = orderConfig.order.findIndex(item => item.identifier === identifier);
+        
+        // 在原條目後面插入新條目
+        const insertIndex = originalIndex !== -1 ? originalIndex + 1 : orderConfig.order.length;
+        orderConfig.order.splice(insertIndex, 0, {
+            identifier: newIdentifier,
+            enabled: true
+        });
+    }
+    
+    // 更新時間戳
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+    
+    // 重新渲染
+    this.refreshPresetContent(presetId, versionId);
+    
+    NotificationManager.success(t('promptCopied'));
+}
+
+// 開啟移動提示詞對話框
+static openMovePromptDialog(presetId, versionId, identifier, characterId) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt) return;
+    
+    // 生成目標選項列表
+    let optionsHTML = '';
+    presets.forEach(p => {
+        p.versions.forEach(v => {
+            // 排除來源本身
+            if (p.id === presetId && v.id === versionId) {
+                return;
+            }
+        optionsHTML += `
+            <div class="tag-detail-item tag-item-hover move-option" 
+                data-preset-id="${p.id}" 
+                data-version-id="${v.id}"
+                data-preset-name="${p.name.replace(/"/g, '&quot;')}"
+                data-version-name="${v.name.replace(/"/g, '&quot;')}"
+                onclick="PresetRenderer.selectMoveTargetFromData(this)"
+                     style="padding: 12px 16px; margin-bottom: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 6px; transition: all 0.2s ease;">
+                    <div style="font-weight: 500; color: var(--text-color); font-size: 0.9em;">
+                        ${p.name}
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.85em; margin-top: 2px;">
+                        ${v.name}
+                    </div>
+                </div>
+            `;
+        });
+    });
+    
+    const content = `
+        <div class="compact-modal-content" style="max-width: 600px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="compact-modal-header" style="justify-content: space-between;">
+                <div class="custom-field-right-controls">
+                    ${IconManager.move({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('movePromptTitle')}</h3>
+                </div>
+                <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
+            </div>
+            
+            <div style="flex: 1; overflow-y: auto; padding: 0 4px;">
+                <p class="compact-modal-desc" style="text-align: left; margin-bottom: 16px;">
+                    ${t('movePromptDescription').replace('$1', `<strong>${prompt.name || t('untitledPrompt')}</strong>`)}
+                </p>
+                
+                <!-- 搜尋框 -->
+                <input type="text" 
+                       id="move-search-input" 
+                       class="field-input msize-input"
+                       placeholder="${t('searchPresets')}"
+                       style="margin-bottom: 12px; font-size: 0.9em; padding: 12px 16px;"
+                       oninput="PresetRenderer.filterMoveOptions(this.value)">
+                
+                <!-- 目標列表 -->
+                <div id="move-options-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-color); padding: 8px;">
+                    ${optionsHTML || `<div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">${t('noOtherPresets')}</div>`}
+                </div>
+                
+                <!-- 已選擇提示 -->
+                <div id="move-selected-display" style="margin-top: 12px; padding: 12px; background: var(--surface-color); border-radius: 6px; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9em; min-height: 48px; display: flex; align-items: center;">
+                    ${t('pleaseSelectTarget')}
+                </div>
+            </div>
+
+            <div class="compact-modal-footer" style="justify-content: center; margin-top: 16px;">
+                <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">
+                    ${t('cancel')}
+                </button>
+                <button id="confirm-move-btn" class="overview-btn btn-primary" disabled 
+                        onclick="PresetRenderer.confirmMovePrompt('${presetId}', '${versionId}', '${identifier}', ${characterId}, '${prompt.name || t('untitledPrompt')}')">
+                    ${t('confirmMove')}
+                </button>
+            </div>
+        </div>
+    `;
+    
+    ModalManager.create({
+        title: '',
+        content: content,
+        footer: '',
+        maxWidth: '600px'
+    });
+    
+    // 儲存選擇狀態到全域變數
+    window.movePromptTarget = null;
+}
+
+// 從 data 屬性選擇移動目標（避免名稱中的特殊字元問題）
+static selectMoveTargetFromData(element) {
+    const presetId = element.dataset.presetId;
+    const versionId = element.dataset.versionId;
+    const presetName = element.dataset.presetName;
+    const versionName = element.dataset.versionName;
+    
+    this.selectMoveTarget(presetId, versionId, presetName, versionName);
+}
+
+// 選擇移動目標
+static selectMoveTarget(presetId, versionId, presetName, versionName) {
+    // 更新選擇狀態
+    window.movePromptTarget = {
+        presetId: presetId,
+        versionId: versionId,
+        presetName: presetName,
+        versionName: versionName
+    };
+    
+    // 更新 UI 選中狀態
+    document.querySelectorAll('.move-option').forEach(option => {
+        if (option.dataset.presetId === presetId && option.dataset.versionId === versionId) {
+            option.style.background = 'var(--primary-color)';
+            option.style.borderColor = 'var(--primary-color)';
+            option.style.color = 'white';
+            option.querySelectorAll('div').forEach(div => {
+                div.style.color = 'white';
+            });
+        } else {
+            option.style.background = 'transparent';
+            option.style.borderColor = 'transparent';
+            option.style.color = 'var(--text-color)';
+            option.querySelector('div:first-child').style.color = 'var(--text-color)';
+            option.querySelector('div:last-child').style.color = 'var(--text-muted)';
+        }
+    });
+    
+    // 更新已選擇提示
+    const display = document.getElementById('move-selected-display');
+    if (display) {
+        display.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                ${IconManager.check({width: 16, height: 16, style: 'color: var(--primary-color);'})}
+                <span style="color: var(--text-color); font-weight: 500;">
+                    ${t('selectedTarget')}: ${presetName} - ${versionName}
+                </span>
+            </div>
+        `;
+    }
+    
+    // 啟用確認按鈕
+    const confirmBtn = document.getElementById('confirm-move-btn');
+    if (confirmBtn) {
+        confirmBtn.disabled = false;
+    }
+}
+
+// 篩選移動選項
+static filterMoveOptions(searchText) {
+    const searchLower = searchText.toLowerCase();
+    const options = document.querySelectorAll('.move-option');
+    
+    let hasVisible = false;
+    options.forEach(option => {
+        const text = option.textContent.toLowerCase();
+        if (text.includes(searchLower)) {
+            option.style.display = 'block';
+            hasVisible = true;
+        } else {
+            option.style.display = 'none';
+        }
+    });
+    
+    // 如果沒有符合的結果
+    const container = document.getElementById('move-options-container');
+    if (!hasVisible && searchText.trim()) {
+        if (!container.querySelector('.no-results')) {
+            container.insertAdjacentHTML('beforeend', `
+                <div class="no-results" style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+                    ${t('noMatchingPresets')}
+                </div>
+            `);
+        }
+    } else {
+        const noResults = container.querySelector('.no-results');
+        if (noResults) noResults.remove();
+    }
+}
+
+// 確認移動提示詞
+static confirmMovePrompt(sourcePresetId, sourceVersionId, identifier, characterId, promptName) {
+    if (!window.movePromptTarget) {
+        NotificationManager.warning(t('pleaseSelectTarget'));
+        return;
+    }
+    
+    const { presetId: targetPresetId, versionId: targetVersionId, presetName, versionName } = window.movePromptTarget;
+    
+    // 執行移動
+    const success = this.moveSinglePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetVersionId, identifier, characterId);
+    
+    if (success) {
+        // 關閉模態框
+        document.querySelector('.modal')?.remove();
+        
+        // 顯示成功提示
+        NotificationManager.success(
+            t('movePromptSuccess')
+                .replace('$1', promptName)
+                .replace('$2', `${presetName} - ${versionName}`)
+        );
+        
+        // 清理全域變數
+        window.movePromptTarget = null;
+    } else {
+        NotificationManager.error(t('movePromptFailed'));
+    }
+}
+
+// 移動單個提示詞
+static moveSinglePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetVersionId, identifier, characterId) {
+    // 獲取來源資料
+    const sourcePreset = presets.find(p => p.id === sourcePresetId);
+    if (!sourcePreset) return false;
+    
+    const sourceVersion = sourcePreset.versions.find(v => v.id === sourceVersionId);
+    if (!sourceVersion) return false;
+    
+    const promptIndex = sourceVersion.prompts.findIndex(p => p.identifier === identifier);
+    if (promptIndex === -1) return false;
+    
+    const prompt = sourceVersion.prompts[promptIndex];
+    
+    // 獲取目標資料
+    const targetPreset = presets.find(p => p.id === targetPresetId);
+    if (!targetPreset) return false;
+    
+    const targetVersion = targetPreset.versions.find(v => v.id === targetVersionId);
+    if (!targetVersion) return false;
+    
+    // 檢查目標中是否已存在同 identifier 的 prompt
+    if (targetVersion.prompts.some(p => p.identifier === identifier)) {
+        console.warn(`Prompt with identifier ${identifier} already exists in target. Skipping move.`);
+        NotificationManager.warning(t('promptAlreadyExistsInTarget'));
+        return false;
+    }
+    
+    // 創建新條目（深拷貝）
+    const newPrompt = { ...prompt };
+    
+    // 從來源的 order 中移除
+    const sourceOrderConfig = sourceVersion.prompt_order?.find(config => config.character_id === characterId);
+    if (sourceOrderConfig) {
+        const orderIndex = sourceOrderConfig.order.findIndex(item => item.identifier === identifier);
+        if (orderIndex !== -1) {
+            sourceOrderConfig.order.splice(orderIndex, 1);
+        }
+    }
+    
+    // 從來源的 prompts 陣列中移除
+    sourceVersion.prompts.splice(promptIndex, 1);
+    
+    // 加入目標的 prompts 列表
+    if (!targetVersion.prompts) targetVersion.prompts = [];
+    targetVersion.prompts.push(newPrompt);
+    
+    // 加入目標的 order 列表（添加到最上方）
+    let targetOrderConfig = targetVersion.prompt_order?.find(config => config.character_id === characterId);
+    if (!targetOrderConfig) {
+        // 如果目標沒有可編輯的 order 配置，則創建一個
+        if (!targetVersion.prompt_order) targetVersion.prompt_order = [];
+        targetOrderConfig = { character_id: characterId, order: [] };
+        targetVersion.prompt_order.push(targetOrderConfig);
+    }
+    targetOrderConfig.order.unshift({
+        identifier: identifier,
+        enabled: true
+    });
+    
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('preset', sourcePresetId, sourceVersionId);
+    TimestampManager.updateVersionTimestamp('preset', targetPresetId, targetVersionId);
+    
+    // 標記為已變更
+    markAsChanged();
+    
+    // 重新渲染當前頁面
+    this.refreshPresetContent(sourcePresetId, sourceVersionId);
+    
+    return true;
+}
+
 // 創建新的條目
 static createNewPrompt(presetId, versionId) {
     const preset = presets.find(p => p.id === presetId);
@@ -1422,22 +1833,29 @@ static showBatchToolbar(presetId, versionId) {
             <div class="batch-info">
                 <span class="batch-count">${t('presetSelectedCount').replace('$1', '0')}</span>
             </div>
-            <div class="batch-actions">
-                <button class="overview-btn hover-primary batch-action-btn" 
-                        disabled
-                        onclick="PresetRenderer.batchMovePrompts('${presetId}', '${versionId}')"
-                        title="${t('presetBatchMove')}">
-                    ${IconManager.move({width: 14, height: 14})}
-                    ${t('moveEntry')}
-                </button>
-                <button class="overview-btn overview-danger-btn batch-action-btn" 
-                        disabled
-                        onclick="PresetRenderer.batchDeletePrompts('${presetId}', '${versionId}')"
-                        title="${t('presetBatchDelete')}">
-                    ${IconManager.linkOff({width: 14, height: 14})}
-                    ${t('removeFromList')}
-                </button>
-            </div>
+<div class="batch-actions">
+    <button class="overview-btn hover-primary batch-action-btn" 
+            disabled
+            onclick="PresetRenderer.batchCopyPrompts('${presetId}', '${versionId}')"
+            title="${t('presetBatchCopy')}">
+        ${IconManager.copy({width: 14, height: 14})}
+        ${t('copyPrompt')}
+    </button>
+    <button class="overview-btn hover-primary batch-action-btn" 
+            disabled
+            onclick="PresetRenderer.batchMovePrompts('${presetId}', '${versionId}')"
+            title="${t('presetBatchMove')}">
+        ${IconManager.move({width: 14, height: 14})}
+        ${t('movePrompt')}
+    </button>
+    <button class="overview-btn overview-danger-btn batch-action-btn" 
+            disabled
+            onclick="PresetRenderer.batchDeletePrompts('${presetId}', '${versionId}')"
+            title="${t('presetBatchDelete')}">
+        ${IconManager.delete({width: 14, height: 14})}
+        ${t('deletePrompt')}
+    </button>
+</div>
         </div>
     `;
 
@@ -1445,6 +1863,241 @@ static showBatchToolbar(presetId, versionId) {
     if (versionPanel) {
         versionPanel.appendChild(toolbar);
     }
+}
+
+// 批量複製提示詞
+static batchCopyPrompts(presetId, versionId) {
+    const identifiers = this.getSelectedPromptIdentifiers(presetId, versionId);
+    if (identifiers.length === 0) {
+        NotificationManager.warning(t('presetNoPromptsSelected'));
+        return;
+    }
+    
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+    
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
+    if (!orderConfig) return;
+    
+    let successCount = 0;
+    
+    // 從後往前遍歷，確保插入位置正確
+    for (let i = identifiers.length - 1; i >= 0; i--) {
+        const identifier = identifiers[i];
+        const originalPrompt = version.prompts.find(p => p.identifier === identifier);
+        if (!originalPrompt) continue;
+        
+        // 生成新的 UUID identifier
+        const newIdentifier = this.generateUUID();
+        
+        // 深拷貝並修改屬性
+        const newPrompt = {
+            ...originalPrompt,
+            identifier: newIdentifier,
+            name: (originalPrompt.name || '') + t('copyPrefix')
+        };
+        
+        // 添加到 prompts 陣列
+        version.prompts.push(newPrompt);
+        
+        // 找到原條目在 order 中的位置
+        const originalIndex = orderConfig.order.findIndex(item => item.identifier === identifier);
+        
+        // 在原條目後面插入新條目
+        const insertIndex = originalIndex !== -1 ? originalIndex + 1 : orderConfig.order.length;
+        orderConfig.order.splice(insertIndex, 0, {
+            identifier: newIdentifier,
+            enabled: true
+        });
+        
+        successCount++;
+    }
+    
+if (successCount > 0) {
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+    
+    // ✅ 先關閉批量模式再重新渲染
+    const container = document.querySelector(`.prompts-entries-container[data-preset-id="${presetId}"][data-version-id="${versionId}"]`);
+    if (container?.classList.contains('batch-mode-active')) {
+        this.togglePresetBatchMode(presetId, versionId);
+    }
+    
+    // é‡æ–°æ¸²æŸ"
+    this.refreshPresetContent(presetId, versionId);
+    
+    NotificationManager.success(t('presetBatchCopySuccess').replace('$1', successCount));
+}
+}
+
+// 批量刪除提示詞（永久刪除）
+static batchDeletePrompts(presetId, versionId) {
+    const identifiers = this.getSelectedPromptIdentifiers(presetId, versionId);
+    if (identifiers.length === 0) {
+        NotificationManager.warning(t('presetNoPromptsSelected'));
+        return;
+    }
+
+    if (!confirm(t('presetBatchDeleteConfirm').replace('$1', identifiers.length))) {
+        return;
+    }
+    
+    const preset = presets.find(p => p.id === presetId);
+    if (preset) {
+        const version = preset.versions.find(v => v.id === versionId);
+        if (version) {
+            // 從 prompts 陣列中完全刪除
+            version.prompts = version.prompts.filter(p => !identifiers.includes(p.identifier));
+            
+            // 同時從所有 order 陣列中移除
+            version.prompt_order?.forEach(orderConfig => {
+                orderConfig.order = orderConfig.order.filter(item => !identifiers.includes(item.identifier));
+            });
+            
+            TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+            markAsChanged();
+            
+const container = document.querySelector(`.prompts-entries-container[data-preset-id="${presetId}"][data-version-id="${versionId}"]`);
+if (container?.classList.contains('batch-mode-active')) {
+    this.togglePresetBatchMode(presetId, versionId);
+}
+
+// é‡æ–°æ¸²æŸ"
+this.refreshPresetContent(presetId, versionId);
+
+NotificationManager.success(t('presetBatchDeleteSuccess').replace('$1', identifiers.length));
+        }
+    }
+}
+
+// 批量移動提示詞（已存在，需要修改）
+static batchMovePrompts(presetId, versionId) {
+    const identifiers = this.getSelectedPromptIdentifiers(presetId, versionId);
+    if (identifiers.length === 0) {
+        NotificationManager.warning(t('presetNoPromptsSelected'));
+        return;
+    }
+    this.openBatchMovePromptsDialog(presetId, versionId, identifiers);
+}
+
+// 開啟批量移動對話框
+static openBatchMovePromptsDialog(sourcePresetId, sourceVersionId, identifiers) {
+    let optionsHTML = '';
+    presets.forEach(p => {
+        p.versions.forEach(v => {
+            if (p.id === sourcePresetId && v.id === sourceVersionId) return;
+ optionsHTML += `
+    <div class="tag-detail-item tag-item-hover move-option" 
+         data-preset-id="${p.id}" 
+         data-version-id="${v.id}"
+         data-preset-name="${p.name.replace(/"/g, '&quot;')}"
+         data-version-name="${v.name.replace(/"/g, '&quot;')}"
+         onclick="PresetRenderer.selectMoveTargetFromData(this)"
+                     style="padding: 12px 16px; margin-bottom: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 6px; transition: all 0.2s ease;">
+                    <div style="font-weight: 500; color: var(--text-color); font-size: 0.9em;">${p.name}</div>
+                    <div style="color: var(--text-muted); font-size: 0.85em; margin-top: 2px;">${v.name}</div>
+                </div>`;
+        });
+    });
+
+    const content = `
+        <div class="compact-modal-content" style="max-width: 600px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="compact-modal-header" style="justify-content: space-between;">
+                <div class="custom-field-right-controls">
+                    ${IconManager.move({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('presetBatchMoveTitle')}</h3>
+                </div>
+                <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
+            </div>
+            <div style="flex: 1; overflow-y: auto; padding: 0 4px;">
+                <p class="compact-modal-desc" style="text-align: left; margin-bottom: 16px;">
+                    ${t('presetBatchMoveDescription').replace('$1', `<strong>${identifiers.length}</strong>`)}
+                </p>
+                <input type="text" id="move-search-input" class="field-input msize-input"
+                       placeholder="${t('searchPresets')}"
+                       style="margin-bottom: 12px; font-size: 0.9em; padding: 12px 16px;"
+                       oninput="PresetRenderer.filterMoveOptions(this.value)">
+                <div id="move-options-container" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-color); padding: 8px;">
+                    ${optionsHTML || `<div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">${t('noOtherPresets')}</div>`}
+                </div>
+                <div id="move-selected-display" style="margin-top: 12px; padding: 12px; background: var(--surface-color); border-radius: 6px; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9em; min-height: 48px; display: flex; align-items: center;">
+                    ${t('pleaseSelectTarget')}
+                </div>
+            </div>
+            <div class="compact-modal-footer" style="justify-content: center; margin-top: 16px;">
+                <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">${t('cancel')}</button>
+                <button id="confirm-move-btn" class="overview-btn btn-primary" disabled 
+                        onclick="PresetRenderer.confirmBatchMovePrompts('${sourcePresetId}', '${sourceVersionId}', '${identifiers.join(',')}')">
+                    ${t('confirmMove')}
+                </button>
+            </div>
+        </div>`;
+    
+    ModalManager.create({ content: content, maxWidth: '600px' });
+    window.movePromptTarget = null;
+}
+
+// 確認批量移動
+static confirmBatchMovePrompts(sourcePresetId, sourceVersionId, identifiersStr) {
+    if (!window.movePromptTarget) {
+        NotificationManager.warning(t('pleaseSelectTarget'));
+        return;
+    }
+    
+    // 將逗號分隔的字串轉回陣列
+    const identifiers = identifiersStr.split(',');
+    
+    const { presetId: targetPresetId, versionId: targetVersionId, presetName, versionName } = window.movePromptTarget;
+    
+    let successCount = 0;
+    identifiers.forEach(identifier => {
+        const success = this.moveSinglePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetVersionId, identifier, 100001);
+        if (success) successCount++;
+    });
+    
+if (successCount > 0) {
+    document.querySelector('.modal')?.remove();
+    
+    NotificationManager.success(
+        t('presetBatchMoveSuccess')
+            .replace('$1', successCount)
+            .replace('$2', `${presetName} - ${versionName}`)
+    );
+    
+    window.movePromptTarget = null;
+    
+    // ✅ 強制退出批量模式
+    setTimeout(() => {
+        const container = document.querySelector(`.prompts-entries-container[data-preset-id="${sourcePresetId}"][data-version-id="${sourceVersionId}"]`);
+        const button = document.getElementById(`batch-mode-toggle-${sourcePresetId}-${sourceVersionId}`);
+        
+        if (container) {
+            // 移除批量模式標記
+            container.classList.remove('batch-mode-active');
+            
+            // 隱藏所有勾選框和占位符
+            container.querySelectorAll('.batch-checkbox').forEach(cb => cb.style.display = 'none');
+            container.querySelectorAll('.batch-placeholder').forEach(ph => ph.style.display = 'none');
+        }
+        
+        if (button) {
+            // 重置按鈕樣式
+            button.style.background = '';
+            button.style.color = '';
+            button.title = t('presetBatchMode');
+            const span = button.querySelector('span');
+            if (span) span.textContent = t('presetBatchMode');
+        }
+        
+        // 隱藏工具列
+        this.hideBatchToolbar(sourcePresetId, sourceVersionId);
+    }, 200);
+} else {
+    NotificationManager.error(t('movePromptFailed'));
+}
 }
 
 // 隱藏批量操作工具列
@@ -1484,45 +2137,6 @@ static getSelectedPromptIdentifiers(presetId, versionId) {
 
     const selectedCheckboxes = container.querySelectorAll('.batch-checkbox-input:checked');
     return Array.from(selectedCheckboxes).map(cb => cb.dataset.promptIdentifier);
-}
-
-// [添加] (接在 getSelectedPromptIdentifiers 後面)
-
-// 批量從列表中移除提示詞
-static batchDeletePrompts(presetId, versionId) {
-    const identifiers = this.getSelectedPromptIdentifiers(presetId, versionId);
-    if (identifiers.length === 0) {
-        NotificationManager.warning(t('presetNoPromptsSelected'));
-        return;
-    }
-
-    if (!confirm(t('presetBatchDeleteConfirm').replace('$1', identifiers.length))) {
-        return;
-    }
-    
-    const preset = presets.find(p => p.id === presetId);
-    if (preset) {
-        const version = preset.versions.find(v => v.id === versionId);
-        if (version) {
-            const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
-            if (orderConfig) {
-                // 過濾掉選中的條目
-                orderConfig.order = orderConfig.order.filter(item => !identifiers.includes(item.identifier));
-                
-                TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
-                markAsChanged();
-                
-                this.refreshPresetContent(presetId, versionId);
-                
-                setTimeout(() => {
-                    this.togglePresetBatchMode(presetId, versionId);
-                    this.togglePresetBatchMode(presetId, versionId);
-                }, 100);
-                
-                NotificationManager.success(t('presetBatchDeleteSuccess').replace('$1', identifiers.length));
-            }
-        }
-    }
 }
 
 // 批量移動提示詞
@@ -1589,71 +2203,9 @@ static openBatchMoveDialog(sourcePresetId, sourceVersionId, identifiers) {
         </div>`;
     
     ModalManager.create({ content: content, maxWidth: '600px' });
-    window.moveEntryTarget = null;
+    window.movePromptTarget = null;
 }
 
-static selectMoveTarget(presetId, versionId, presetName, versionName) {
-    window.moveEntryTarget = { presetId, versionId, presetName, versionName };
-    document.querySelectorAll('.move-option').forEach(option => {
-        const isSelected = option.dataset.presetId === presetId && option.dataset.versionId === versionId;
-        option.style.background = isSelected ? 'var(--primary-color)' : 'transparent';
-        option.style.borderColor = isSelected ? 'var(--primary-color)' : 'transparent';
-        option.querySelectorAll('div').forEach(div => div.style.color = isSelected ? 'white' : '');
-    });
-    document.getElementById('move-selected-display').innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-            ${IconManager.check({width: 16, height: 16, style: 'color: var(--primary-color);'})}
-            <span style="color: var(--text-color); font-weight: 500;">
-                ${t('selectedTarget')}: ${presetName} - ${versionName}
-            </span>
-        </div>`;
-    document.getElementById('confirm-move-btn').disabled = false;
-}
-
-static filterMoveOptions(searchText) {
-    const searchLower = searchText.toLowerCase();
-    const options = document.querySelectorAll('.move-option');
-    let hasVisible = false;
-    options.forEach(option => {
-        const isVisible = option.textContent.toLowerCase().includes(searchLower);
-        option.style.display = isVisible ? 'block' : 'none';
-        if (isVisible) hasVisible = true;
-    });
-
-    const container = document.getElementById('move-options-container');
-    let noResults = container.querySelector('.no-results');
-    if (!hasVisible && searchText.trim()) {
-        if (!noResults) {
-            container.insertAdjacentHTML('beforeend', `<div class="no-results" style="padding: 40px 20px; text-align: center; color: var(--text-muted);">${t('noMatchingItems')}</div>`);
-        }
-    } else if (noResults) {
-        noResults.remove();
-    }
-}
-
-static confirmBatchMovePrompts(sourcePresetId, sourceVersionId, identifiersStr) {
-    if (!window.moveEntryTarget) {
-        NotificationManager.warning(t('pleaseSelectTarget'));
-        return;
-    }
-    const identifiers = identifiersStr.split(',');
-    const { presetId: targetPresetId, versionId: targetVersionId, presetName, versionName } = window.moveEntryTarget;
-
-    let successCount = 0;
-    identifiers.forEach(identifier => {
-        if (this.movePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetVersionId, identifier)) {
-            successCount++;
-        }
-    });
-
-    if (successCount > 0) {
-        document.querySelector('.modal')?.remove();
-        NotificationManager.success(t('presetBatchMoveSuccess').replace('$1', successCount).replace('$2', `${presetName} - ${versionName}`));
-        window.moveEntryTarget = null;
-    } else {
-        NotificationManager.error(t('moveFailed'));
-    }
-}
 
 static movePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetVersionId, identifier) {
     const sourcePreset = presets.find(p => p.id === sourcePresetId);
