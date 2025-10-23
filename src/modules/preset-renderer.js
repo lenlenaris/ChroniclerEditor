@@ -647,44 +647,55 @@ static restorePromptCollapseStates(states) {
 static expandAllPrompts(versionId) {
     console.log('🔍 展開全部被觸發，versionId:', versionId);
     
-    // 修正選擇器：直接查找有該 versionId 的容器
-    const container = document.querySelector(`.prompts-entries-container[data-version-id="${versionId}"]`);
-    if (!container) {
-        console.warn('❌ 找不到容器，versionId:', versionId);
+    // 🎯 修正：找到所有匹配的容器（對比模式下可能有多個）
+    const containers = document.querySelectorAll(`.prompts-entries-container[data-version-id="${versionId}"]`);
+    
+    if (containers.length === 0) {
+        console.warn('⌛ 找不到容器，versionId:', versionId);
+        return;
     }
     
-    const entryPanels = container.querySelectorAll('.preset-entry-panel');
-    
-    entryPanels.forEach(panel => {
-        const identifier = panel.dataset.promptIdentifier;
-        const content = document.getElementById(`prompt-content-${identifier}`);
-        const toggleBtn = panel.querySelector('.entry-toggle-btn');
+    // 🎯 對每個容器都執行展開操作
+    containers.forEach(container => {
+        const entryPanels = container.querySelectorAll('.preset-entry-panel');
         
-        if (content && toggleBtn) {
-            content.style.display = 'block';
-            toggleBtn.innerHTML = '<span class="arrow-icon arrow-down"></span>';
-        }
+        entryPanels.forEach(panel => {
+            const identifier = panel.dataset.promptIdentifier;
+            const content = panel.querySelector(`#prompt-content-${identifier}`);
+            const toggleBtn = panel.querySelector('.entry-toggle-btn');
+            
+            if (content && toggleBtn) {
+                content.style.display = 'block';
+                toggleBtn.innerHTML = '<span class="arrow-icon arrow-down"></span>';
+            }
+        });
     });
 }
 
 // 摺疊所有提示詞條目
 static collapseAllPrompts(versionId) {
-    // 修正選擇器：直接查找有該 versionId 的容器
-    const container = document.querySelector(`.prompts-entries-container[data-version-id="${versionId}"]`);
-    if (!container) {
-        console.warn('❌ 找不到容器，versionId:', versionId);
+    // 🎯 修正：找到所有匹配的容器（對比模式下可能有多個）
+    const containers = document.querySelectorAll(`.prompts-entries-container[data-version-id="${versionId}"]`);
+    
+    if (containers.length === 0) {
+        console.warn('⌛ 找不到容器，versionId:', versionId);
         return;
     }
-    const entryPanels = container.querySelectorAll('.preset-entry-panel');
-    entryPanels.forEach(panel => {
-        const identifier = panel.dataset.promptIdentifier;
-        const content = document.getElementById(`prompt-content-${identifier}`);
-        const toggleBtn = panel.querySelector('.entry-toggle-btn');
+    
+    // 🎯 對每個容器都執行摺疊操作
+    containers.forEach(container => {
+        const entryPanels = container.querySelectorAll('.preset-entry-panel');
         
-        if (content && toggleBtn) {
-            content.style.display = 'none';
-            toggleBtn.innerHTML = '<span class="arrow-icon arrow-right"></span>';
-        }
+        entryPanels.forEach(panel => {
+            const identifier = panel.dataset.promptIdentifier;
+            const content = panel.querySelector(`#prompt-content-${identifier}`);
+            const toggleBtn = panel.querySelector('.entry-toggle-btn');
+            
+            if (content && toggleBtn) {
+                content.style.display = 'none';
+                toggleBtn.innerHTML = '<span class="arrow-icon arrow-right"></span>';
+            }
+        });
     });
 }
 
