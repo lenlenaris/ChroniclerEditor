@@ -400,6 +400,7 @@ static renderDetailedSettingsFields(character, version) {
             </div>
         `;
     }
+
 // 渲染附加資訊列表
 static renderAdditionalInfoList(character, version) {
     if (!version.additionalInfo || version.additionalInfo.length === 0) {
@@ -420,7 +421,7 @@ static renderAdditionalInfoList(character, version) {
              
             <!-- 可點擊的標題列（用於折疊） -->
             <div class="additional-info-header" 
-                 onclick="toggleAdditionalInfoCollapseLazy('${character.id}', '${version.id}', '${info.id}', ${index}, event)"
+                 onclick="toggleAdditionalInfoCollapseLazy(this, '${character.id}', '${version.id}', '${info.id}', ${index})"
                  style="
                      display: flex; 
                      justify-content: space-between; 
@@ -471,6 +472,7 @@ static renderAdditionalInfoList(character, version) {
         </div>
     `).join('');
 }
+
 // 渲染創作者事件欄位（第五大區）
 static renderCreatorEventsFields(character, version) {
     const creatorEvents = version.creatorEvents || [];
@@ -497,7 +499,7 @@ static renderCreatorEventsFields(character, version) {
                         
                        <!-- 可點擊的標題列（用於折疊） -->
 <div class="creator-event-header" 
-     onclick="toggleCreatorEventCollapseLazy('${character.id}', '${version.id}', '${event.id}', ${index}, event)"
+     onclick="toggleCreatorEventCollapseLazy(this, '${character.id}', '${version.id}', '${event.id}', ${index})"
      style="
          display: flex; 
          justify-content: space-between; 
@@ -588,32 +590,6 @@ static renderCreatorEventsFields(character, version) {
     `;
 }
 
-// 自動啟用拖曳
-static initializeCreatorEventsDragSort(characterId, versionId) {
-    setTimeout(() => {
-        if (typeof enableCreatorEventsDragSort === 'function') {
-            enableCreatorEventsDragSort(characterId, versionId);
-        }
-    }, 100);
-}
-
-// 生成事件預覽文字
-static generateEventPreview(event) {
-    const timePlace = event.timeAndPlace || '';
-    const title = event.title || '';
-    
-    if (timePlace && title) {
-        return `${timePlace} - ${title}`;
-    } else if (timePlace) {
-        return timePlace;
-    } else if (title) {
-        return title;
-    } else {
-        return '（尚無內容）';
-    }
-}
-
-    
     // 折疊展開功能  
 static toggleSection(sectionName, event = null) {
     let section;
@@ -1720,13 +1696,14 @@ function restoreAdditionalInfoCollapseStates(states) {
     if (!states) return;
     
     Object.keys(states).forEach(infoId => {
+        // 檢查狀態是否為「需要折疊」
         if (states[infoId]) {
-            //  查找所有匹配的元素（對比模式下可能有多個）
+            // 使用 querySelectorAll 找到所有匹配的元素（對比模式下可能有多個）
             const allContentElements = document.querySelectorAll(`#content-${infoId}`);
             const allTitleExpanded = document.querySelectorAll(`#title-expanded-${infoId}`);
             const allTitleCollapsed = document.querySelectorAll(`#title-collapsed-${infoId}`);
             
-            //  對每個匹配的元素都應用折疊狀態
+            // 對每個匹配的元素都應用折疊狀態
             allContentElements.forEach(content => {
                 if (content) content.style.display = 'none';
             });
@@ -1747,13 +1724,14 @@ function restoreCreatorEventCollapseStates(states) {
     if (!states) return;
     
     Object.keys(states).forEach(eventId => {
+        // 檢查狀態是否為「需要折疊」
         if (states[eventId]) {
-            //  查找所有匹配的元素（對比模式下可能有多個）
+            // 使用 querySelectorAll 找到所有匹配的元素（對比模式下可能有多個）
             const allContentElements = document.querySelectorAll(`#content-${eventId}`);
             const allTitleExpanded = document.querySelectorAll(`#title-expanded-${eventId}`);
             const allTitleCollapsed = document.querySelectorAll(`#title-collapsed-${eventId}`);
             
-            //  對每個匹配的元素都應用折疊狀態
+            // 對每個匹配的元素都應用折疊狀態
             allContentElements.forEach(content => {
                 if (content) content.style.display = 'none';
             });
@@ -1769,62 +1747,46 @@ function restoreCreatorEventCollapseStates(states) {
     });
 }
 
-function toggleAdditionalInfoCollapseLazy(characterId, versionId, infoId, index = null, event = null) {
-    let content, titleExpanded, titleCollapsed;
-    
-    if (event) {
-        const versionContainer = event.target.closest('.version-content');
-        if (versionContainer) {
-            content = versionContainer.querySelector(`#content-${infoId}`);
-            titleExpanded = versionContainer.querySelector(`#title-expanded-${infoId}`);
-            titleCollapsed = versionContainer.querySelector(`#title-collapsed-${infoId}`);
-        }
-    }
-    
-    if (!content) {
-        content = document.getElementById(`content-${infoId}`);
-        titleExpanded = document.getElementById(`title-expanded-${infoId}`);
-        titleCollapsed = document.getElementById(`title-collapsed-${infoId}`);
-    }
-    
+
+function toggleAdditionalInfoCollapseLazy(clickedElement, characterId, versionId, infoId, index = null) {
+    const itemContainer = clickedElement.closest('.additional-info-item');
+    if (!itemContainer) return;
+
+    const content = itemContainer.querySelector(`#content-${infoId}`);
+    const titleExpanded = itemContainer.querySelector(`#title-expanded-${infoId}`);
+    const titleCollapsed = itemContainer.querySelector(`#title-collapsed-${infoId}`);
+
     if (!content || !titleExpanded || !titleCollapsed) return;
-    
+
     const isExpanded = content.style.display !== 'none';
-    
+
     if (isExpanded) {
-        // 折疊：隱藏內容
         content.style.display = 'none';
         titleExpanded.style.display = 'none';
         titleCollapsed.style.display = 'flex';
-        
-        // 立即更新折疊標題以反映最新內容
         updateAdditionalInfoCollapsedTitle(infoId);
     } else {
-        // 展開：檢查是否需要載入內容
         if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
-            // 🔧 改善：動態計算 index，而不是依賴參數
             const character = loveyDoveyCharacters.find(c => c.id === characterId);
             if (character) {
                 const version = character.versions.find(v => v.id === versionId);
                 if (version && version.additionalInfo) {
                     const realIndex = version.additionalInfo.findIndex(info => info.id === infoId);
                     if (realIndex !== -1) {
-                        loadAdditionalInfoContent(characterId, versionId, infoId, realIndex);
+                        // 🆕 關鍵修改：將 content 這個 div 元素直接傳遞給載入函數
+                        loadAdditionalInfoContent(content, characterId, versionId, infoId, realIndex);
                     }
                 }
             }
         }
-        
-        // 顯示內容
         content.style.display = 'block';
         titleExpanded.style.display = 'block';
         titleCollapsed.style.display = 'none';
     }
 }
 
-// 載入附加資料詳細內容
-function loadAdditionalInfoContent(characterId, versionId, infoId, index) {
-    // 找到對應的附加資料
+
+function loadAdditionalInfoContent(contentDiv, characterId, versionId, infoId, index) {
     const character = loveyDoveyCharacters.find(c => c.id === characterId);
     if (!character) return;
     
@@ -1834,35 +1796,28 @@ function loadAdditionalInfoContent(characterId, versionId, infoId, index) {
     const info = version.additionalInfo.find(i => i.id === infoId);
     if (!info) return;
     
-    // 生成詳細內容HTML
     const detailHTML = generateAdditionalInfoDetailContent(characterId, versionId, info, index);
     
-    // 插入到對應的內容區域
-    const contentDiv = document.getElementById(`content-${infoId}`);
+    // 🆕 關鍵修改：直接使用傳入的 contentDiv，不再使用 getElementById
     if (contentDiv) {
         contentDiv.innerHTML = detailHTML;
         
-        // 重新初始化相關功能
-setTimeout(() => {
-    updateAllPageStats();
-    initAutoResize();
-    
-    const container = document.getElementById(`content-${infoId}`);
-    if (container) {
-        const inputs = container.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            if (input.id && input.oninput) {
-                // 觸發一次 oninput 來初始化字數統計
-                const event = new Event('input', { bubbles: true });
-                input.dispatchEvent(event);
+        setTimeout(() => {
+            updateAllPageStats();
+            initAutoResize();
+            
+            const inputs = contentDiv.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                if (input.id && input.oninput) {
+                    const event = new Event('input', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
+            });
+            
+            if (typeof ScrollbarManager !== 'undefined') {
+                ScrollbarManager.initializeAll();
             }
-        });
-    }
-    
-    if (typeof ScrollbarManager !== 'undefined') {
-        ScrollbarManager.initializeAll();
-    }
-}, 50);
+        }, 50);
     }
 }
 
@@ -1915,58 +1870,44 @@ function generateAdditionalInfoDetailContent(characterId, versionId, info, index
     `;
 }
 
-function toggleCreatorEventCollapseLazy(characterId, versionId, eventId, index = null, event = null) {
-    let content, titleExpanded, titleCollapsed;
-    
-    if (event) {
-        const versionContainer = event.target.closest('.version-content');
-        if (versionContainer) {
-            content = versionContainer.querySelector(`#content-${eventId}`);
-            titleExpanded = versionContainer.querySelector(`#title-expanded-${eventId}`);
-            titleCollapsed = versionContainer.querySelector(`#title-collapsed-${eventId}`);
-        }
-    }
-    
-    if (!content) {
-        content = document.getElementById(`content-${eventId}`);
-        titleExpanded = document.getElementById(`title-expanded-${eventId}`);
-        titleCollapsed = document.getElementById(`title-collapsed-${eventId}`);
-    }
-    
+
+function toggleCreatorEventCollapseLazy(clickedElement, characterId, versionId, eventId, index = null) {
+    const itemContainer = clickedElement.closest('.creator-event-item');
+    if (!itemContainer) return;
+
+    const content = itemContainer.querySelector(`#content-${eventId}`);
+    const titleExpanded = itemContainer.querySelector(`#title-expanded-${eventId}`);
+    const titleCollapsed = itemContainer.querySelector(`#title-collapsed-${eventId}`);
+
     if (!content || !titleExpanded || !titleCollapsed) return;
-    
+
     const isExpanded = content.style.display !== 'none';
-    
+
     if (isExpanded) {
-        // 折疊：隱藏內容
         content.style.display = 'none';
         titleExpanded.style.display = 'none';
         titleCollapsed.style.display = 'flex';
     } else {
-        // 展開：檢查是否需要載入內容
         if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
-            // 🔧 改善：動態計算 index，而不是依賴參數
             const character = loveyDoveyCharacters.find(c => c.id === characterId);
             if (character) {
                 const version = character.versions.find(v => v.id === versionId);
                 if (version && version.creatorEvents) {
                     const realIndex = version.creatorEvents.findIndex(event => event.id === eventId);
                     if (realIndex !== -1) {
-                        loadCreatorEventContent(characterId, versionId, eventId, realIndex);
+                        // 🆕 關鍵修改：將 content 這個 div 元素直接傳遞給載入函數
+                        loadCreatorEventContent(content, characterId, versionId, eventId, realIndex);
                     }
                 }
             }
         }
-        
-        // 顯示內容
         content.style.display = 'block';
         titleExpanded.style.display = 'block';
         titleCollapsed.style.display = 'none';
     }
 }
 
-// 載入創作者事件詳細內容
-function loadCreatorEventContent(characterId, versionId, eventId, index) {
+function loadCreatorEventContent(contentDiv, characterId, versionId, eventId, index) {
     const character = loveyDoveyCharacters.find(c => c.id === characterId);
     if (!character) return;
     
@@ -1976,35 +1917,28 @@ function loadCreatorEventContent(characterId, versionId, eventId, index) {
     const event = version.creatorEvents.find(e => e.id === eventId);
     if (!event) return;
     
-    // 生成詳細內容HTML
     const detailHTML = generateCreatorEventDetailContent(characterId, versionId, event, index);
     
-    // 插入到對應的內容區域
-    const contentDiv = document.getElementById(`content-${eventId}`);
+    // 🆕 關鍵修改：直接使用傳入的 contentDiv，不再使用 getElementById
     if (contentDiv) {
         contentDiv.innerHTML = detailHTML;
         
-        // 重新初始化相關功能
-setTimeout(() => {
-    updateAllPageStats();
-    initAutoResize();
-    
-    const container = document.getElementById(`content-${eventId}`);
-    if (container) {
-        const inputs = container.querySelectorAll('input, textarea');
-        inputs.forEach(input => {
-            if (input.id && input.oninput) {
-                // 觸發一次 oninput 來初始化字數統計
-                const event = new Event('input', { bubbles: true });
-                input.dispatchEvent(event);
+        setTimeout(() => {
+            updateAllPageStats();
+            initAutoResize();
+            
+            const inputs = contentDiv.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                if (input.id && input.oninput) {
+                    const event = new Event('input', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
+            });
+            
+            if (typeof ScrollbarManager !== 'undefined') {
+                ScrollbarManager.initializeAll();
             }
-        });
-    }
-    
-    if (typeof ScrollbarManager !== 'undefined') {
-        ScrollbarManager.initializeAll();
-    }
-}, 50);
+        }, 50);
     }
 }
 
