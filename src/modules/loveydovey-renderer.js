@@ -745,6 +745,8 @@ ImageCropper.show(file, '1:1', async (croppedDataUrl) => {
 
 function updateLoveyDoveyField(itemType, itemId, versionId, fieldName, value, maxLength = 0) {
     updateField(itemType, itemId, versionId, fieldName, value, 'programmatic');
+    
+    handleFieldUpdateComplete(itemType, itemId, versionId);
 
     if (maxLength > 0) {
         updateLoveyDoveyCharCount(itemId, versionId, fieldName, value, maxLength);
