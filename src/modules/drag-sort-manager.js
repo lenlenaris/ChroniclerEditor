@@ -475,7 +475,7 @@ static enableAdditionalInfoDragSort(characterId, versionId) {
     return sortable;
 }
 
-// 🔄 處理附加資訊重新排序
+// 處理附加資訊重新排序
 static handleAdditionalInfoReorder(characterId, versionId, oldIndex, newIndex) {
     const character = loveyDoveyCharacters.find(c => c.id === characterId);
     if (!character) return;
@@ -483,7 +483,8 @@ static handleAdditionalInfoReorder(characterId, versionId, oldIndex, newIndex) {
     const version = character.versions.find(v => v.id === versionId);
     if (!version || !version.additionalInfo) return;
     
-    
+    // 🔧 保存當前的折疊狀態（拖曳前）
+    const currentStates = getCurrentAdditionalInfoCollapseStates();
     
     // 重新排序陣列
     const additionalInfo = version.additionalInfo;
@@ -494,10 +495,20 @@ static handleAdditionalInfoReorder(characterId, versionId, oldIndex, newIndex) {
     TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
     markAsChanged();
     
-    // 更新編號，不重新渲染整個容器
-    updateAdditionalInfoNumbers(version, versionId);
-    
-    
+    // 🔧 關鍵修復：完整重新渲染列表 HTML，而不只是更新編號
+    const container = document.getElementById(`additional-info-list-${versionId}`);
+    if (container && typeof LoveyDoveyRenderer !== 'undefined') {
+        // 重新生成 HTML
+        container.innerHTML = LoveyDoveyRenderer.renderAdditionalInfoList(character, version);
+        
+        // 恢復折疊狀態
+        setTimeout(() => {
+            restoreAdditionalInfoCollapseStates(currentStates);
+            
+            // 重新啟用拖曳
+            this.enableAdditionalInfoDragSort(characterId, versionId);
+        }, 50);
+    }
 }
 
     // 💾 應用新排序到數據

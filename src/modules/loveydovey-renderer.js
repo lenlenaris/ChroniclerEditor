@@ -997,6 +997,83 @@ function updateAdditionalInfoField(characterId, versionId, fieldPath, value, max
     updateAllPageStats();
 }
 
+// 使用 infoId 動態查找並更新附加資訊欄位
+function updateAdditionalInfoFieldById(characterId, versionId, infoId, field, value, maxLength = 0) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+    
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version.additionalInfo) return;
+    
+    // 🔧 動態查找當前 index
+    const index = version.additionalInfo.findIndex(info => info.id === infoId);
+    if (index === -1) return;
+    
+    // 更新欄位值
+    version.additionalInfo[index][field] = value;
+    
+    // 如果是標題欄位，同步更新折疊標題
+    if (field === 'title') {
+        updateAdditionalInfoCollapsedTitle(infoId);
+    }
+    
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+    updateAllPageStats();
+    
+    // 更新字數統計
+    if (maxLength > 0) {
+        const inputId = field === 'title' ? `additionalTitle-${infoId}` : `additionalContent-${infoId}`;
+        updateLoveyDoveyCharCount(characterId, versionId, `additionalInfo.${index}.${field}`, value, maxLength);
+    }
+}
+
+// 使用 eventId 動態查找並更新創作者事件欄位
+function updateCreatorEventFieldById(characterId, versionId, eventId, field, value, maxLength = 0) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+    
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version.creatorEvents) return;
+    
+    // 🔧 動態查找當前 index
+    const index = version.creatorEvents.findIndex(event => event.id === eventId);
+    if (index === -1) return;
+    
+    // 更新欄位值
+    version.creatorEvents[index][field] = value;
+    
+    // 如果是標題或時間地點欄位，同步更新折疊標題
+    if (field === 'title' || field === 'timeAndPlace') {
+        updateEventCollapsedTitle(eventId);
+    }
+    
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+    updateAllPageStats();
+    
+    // 更新字數統計
+    if (maxLength > 0) {
+        let inputId;
+        switch(field) {
+            case 'timeAndPlace':
+                inputId = `eventTimeAndPlace-${eventId}`;
+                break;
+            case 'title':
+                inputId = `eventTitle-${eventId}`;
+                break;
+            case 'content':
+                inputId = `eventContent-${eventId}`;
+                break;
+        }
+        if (inputId) {
+            updateLoveyDoveyCharCount(characterId, versionId, `creatorEvents.${index}.${field}`, value, maxLength);
+        }
+    }
+}
+
 function renderAdditionalInfoList(characterId, versionId) {
     const character = loveyDoveyCharacters.find(c => c.id === characterId);
     if (!character) return;
@@ -1415,7 +1492,8 @@ function enableCreatorEventsDragSort(characterId, versionId) {
     
     
 }
-// 重新排序創作者事件
+
+
 function reorderCreatorEvents(characterId, versionId, oldIndex, newIndex) {
     const character = loveyDoveyCharacters.find(c => c.id === characterId);
     if (!character) return;
@@ -1431,9 +1509,7 @@ function reorderCreatorEvents(characterId, versionId, oldIndex, newIndex) {
     TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
     markAsChanged();
     
-    
-    
-    // 更新編號，不重新渲染
+    // 🔧 改善：更新編號
     updateCreatorEventNumbers(version, versionId);
 }
 
@@ -1511,25 +1587,29 @@ function toggleAdditionalInfoCollapse(infoId, event = null) {
     saveCollapseStates();
 }
 
-// 更新摺疊時的標題顯示
+// 更新折疊時的標題顯示
 function updateAdditionalInfoCollapsedTitle(infoId) {
     const titleCollapsed = document.getElementById(`title-collapsed-${infoId}`);
     if (!titleCollapsed) return;
     
-    // 直接通過ID查找標題輸入框
+    // 直接從輸入框獲取最新值
     const titleInput = document.getElementById(`additionalTitle-${infoId}`);
     if (!titleInput) return;
     
     const title = titleInput.value || '';
     
+    // 找到當前附加資訊的索引（動態計算）
+    const container = titleCollapsed.closest('.additional-info-item');
+    if (!container) return;
+    
+    const listContainer = container.parentElement;
+    const allItems = Array.from(listContainer.querySelectorAll('.additional-info-item'));
+    const currentIndex = allItems.findIndex(item => item.dataset.infoId === infoId) + 1;
+    
     // 更新標題顯示
     const titleElement = titleCollapsed.querySelector('div:first-child');
     if (titleElement) {
-        // 找到當前附加資訊的索引
-        const allInfoItems = Array.from(document.querySelectorAll('.additional-info-item'));
-        const currentIndex = allInfoItems.findIndex(item => item.dataset.infoId === infoId) + 1;
-        
-        titleElement.textContent = `${t('additionalInfo')} ${currentIndex} ： ${title || t('noTitle')}`;
+        titleElement.textContent = `${t('additionalInfo')} ${currentIndex}：${title || t('noTitle')}`;
     }
 }
 
@@ -1689,8 +1769,7 @@ function restoreCreatorEventCollapseStates(states) {
     });
 }
 
-// 🔧 添加：附加資料延遲載入函數
-function toggleAdditionalInfoCollapseLazy(characterId, versionId, infoId, index, event = null) {
+function toggleAdditionalInfoCollapseLazy(characterId, versionId, infoId, index = null, event = null) {
     let content, titleExpanded, titleCollapsed;
     
     if (event) {
@@ -1712,26 +1791,35 @@ function toggleAdditionalInfoCollapseLazy(characterId, versionId, infoId, index,
     
     const isExpanded = content.style.display !== 'none';
     
-   if (isExpanded) {
-    // 摺疊：隱藏內容
-    content.style.display = 'none';
-    titleExpanded.style.display = 'none';
-    titleCollapsed.style.display = 'flex';
-    
-    // 立即更新摺疊標題以反映最新內容
-    updateAdditionalInfoCollapsedTitle(infoId);
-} else {
-    // 展開：檢查是否需要載入內容
-    if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
-        // 第一次展開，需要載入內容
-        loadAdditionalInfoContent(characterId, versionId, infoId, index);
+    if (isExpanded) {
+        // 折疊：隱藏內容
+        content.style.display = 'none';
+        titleExpanded.style.display = 'none';
+        titleCollapsed.style.display = 'flex';
+        
+        // 立即更新折疊標題以反映最新內容
+        updateAdditionalInfoCollapsedTitle(infoId);
+    } else {
+        // 展開：檢查是否需要載入內容
+        if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
+            // 🔧 改善：動態計算 index，而不是依賴參數
+            const character = loveyDoveyCharacters.find(c => c.id === characterId);
+            if (character) {
+                const version = character.versions.find(v => v.id === versionId);
+                if (version && version.additionalInfo) {
+                    const realIndex = version.additionalInfo.findIndex(info => info.id === infoId);
+                    if (realIndex !== -1) {
+                        loadAdditionalInfoContent(characterId, versionId, infoId, realIndex);
+                    }
+                }
+            }
+        }
+        
+        // 顯示內容
+        content.style.display = 'block';
+        titleExpanded.style.display = 'block';
+        titleCollapsed.style.display = 'none';
     }
-    
-    // 顯示內容
-    content.style.display = 'block';
-    titleExpanded.style.display = 'block';
-    titleCollapsed.style.display = 'none';
-}
 }
 
 // 載入附加資料詳細內容
@@ -1787,10 +1875,11 @@ function generateAdditionalInfoDetailContent(characterId, versionId, info, index
             <input type="text" 
                    class="field-input" 
                    id="additionalTitle-${info.id}" 
+                   data-info-id="${info.id}"
                    placeholder="${t('additionalTitlePlaceholder')}"
                    style="width: 100%; ${(info.title || '').length > 30 ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : ''}"
                    value="${info.title || ''}"
-                   oninput="updateLoveyDoveyFieldWithPath('loveydovey', '${characterId}', '${versionId}', 'additionalInfo.${index}.title', this.value, 30); updateAdditionalInfoCollapsedTitle('${info.id}')">
+                   oninput="updateAdditionalInfoFieldById('${characterId}', '${versionId}', '${info.id}', 'title', this.value, 30)">
             <div class="char-count-display" data-target="additionalTitle-${info.id}" 
                  style="text-align: right; font-size: 0.75em; ${(info.title || '').length > 30 ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'} margin-top: 4px;">
                 ${(info.title || '').length}/30 ${t('chars')}
@@ -1801,10 +1890,11 @@ function generateAdditionalInfoDetailContent(characterId, versionId, info, index
         <div style="margin-bottom: 12px;">
             <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('additionalContent')}</label>
             <textarea class="field-input" 
-                      id="additionalContent-${info.id}" 
+                      id="additionalContent-${info.id}"
+                      data-info-id="${info.id}" 
                       placeholder="${t('additionalContentPlaceholder')}"
                       style="width: 100%; height: 100px; resize: vertical; ${(info.content || '').length > 500 ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : ''}"
-                      oninput="updateLoveyDoveyFieldWithPath('loveydovey', '${characterId}', '${versionId}', 'additionalInfo.${index}.content', this.value, 500); autoResizeTextarea(this);"
+                      oninput="updateAdditionalInfoFieldById('${characterId}', '${versionId}', '${info.id}', 'content', this.value, 500); autoResizeTextarea(this);"
                       onfocus="showAdditionalFullscreenBtn(this);"
                       onblur="hideAdditionalFullscreenBtn(this);">${info.content || ''}</textarea>
             
@@ -1825,8 +1915,7 @@ function generateAdditionalInfoDetailContent(characterId, versionId, info, index
     `;
 }
 
-// 🔧 添加：創作者事件延遲載入函數
-function toggleCreatorEventCollapseLazy(characterId, versionId, eventId, index, event = null) {
+function toggleCreatorEventCollapseLazy(characterId, versionId, eventId, index = null, event = null) {
     let content, titleExpanded, titleCollapsed;
     
     if (event) {
@@ -1849,15 +1938,24 @@ function toggleCreatorEventCollapseLazy(characterId, versionId, eventId, index, 
     const isExpanded = content.style.display !== 'none';
     
     if (isExpanded) {
-        // 摺疊：隱藏內容
+        // 折疊：隱藏內容
         content.style.display = 'none';
         titleExpanded.style.display = 'none';
         titleCollapsed.style.display = 'flex';
     } else {
         // 展開：檢查是否需要載入內容
         if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
-            // 第一次展開，需要載入內容
-            loadCreatorEventContent(characterId, versionId, eventId, index);
+            // 🔧 改善：動態計算 index，而不是依賴參數
+            const character = loveyDoveyCharacters.find(c => c.id === characterId);
+            if (character) {
+                const version = character.versions.find(v => v.id === versionId);
+                if (version && version.creatorEvents) {
+                    const realIndex = version.creatorEvents.findIndex(event => event.id === eventId);
+                    if (realIndex !== -1) {
+                        loadCreatorEventContent(characterId, versionId, eventId, realIndex);
+                    }
+                }
+            }
         }
         
         // 顯示內容
@@ -1919,10 +2017,11 @@ function generateCreatorEventDetailContent(characterId, versionId, event, index)
             <input type="text" 
                    class="field-input" 
                    id="eventTimeAndPlace-${event.id}"
+                   data-event-id="${event.id}"
                    placeholder="${t('timeAndPlacePlaceholder')}"
                    style="width: 100%; ${(event.timeAndPlace || '').length > 30 ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : ''}"
                    value="${event.timeAndPlace || ''}"
-                   oninput="updateLoveyDoveyFieldWithPath('loveydovey', '${characterId}', '${versionId}', 'creatorEvents.${index}.timeAndPlace', this.value, 30); updateEventCollapsedTitle('${event.id}')">
+                   oninput="updateCreatorEventFieldById('${characterId}', '${versionId}', '${event.id}', 'timeAndPlace', this.value, 30)">
             <div class="char-count-display" data-target="eventTimeAndPlace-${event.id}" 
                  style="text-align: right; font-size: 0.75em; ${(event.timeAndPlace || '').length > 30 ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'} margin-top: 4px;">
                 ${(event.timeAndPlace || '').length} / 30 ${t('chars')}
@@ -1931,14 +2030,15 @@ function generateCreatorEventDetailContent(characterId, versionId, event, index)
 
         <!-- 標題欄位 -->
         <div style="margin-bottom: 0px;">
-            <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('additionalContent')}</label>
+            <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('eventTitle')}</label>
             <input type="text" 
                    class="field-input" 
                    id="eventTitle-${event.id}"
+                   data-event-id="${event.id}"
                    placeholder="${t('eventTitlePlaceholder')}"
                    style="width: 100%; ${(event.title || '').length > 30 ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : ''}"
                    value="${event.title || ''}"
-                   oninput="updateLoveyDoveyFieldWithPath('loveydovey', '${characterId}', '${versionId}', 'creatorEvents.${index}.title', this.value, 30); updateEventCollapsedTitle('${event.id}')">
+                   oninput="updateCreatorEventFieldById('${characterId}', '${versionId}', '${event.id}', 'title', this.value, 30)">
             <div class="char-count-display" data-target="eventTitle-${event.id}" 
                  style="text-align: right; font-size: 0.75em; ${(event.title || '').length > 30 ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'} margin-top: 4px;">
                 ${(event.title || '').length} / 30 ${t('chars')}
@@ -1947,19 +2047,20 @@ function generateCreatorEventDetailContent(characterId, versionId, event, index)
 
         <!-- 內容欄位 -->
         <div style="margin-bottom: 0px;">
-            <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('additionalContent')}</label>
+            <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('eventContent')}</label>
             <textarea class="field-input" 
                       id="eventContent-${event.id}"
+                      data-event-id="${event.id}"
                       placeholder="${t('eventContentPlaceholder')}"
                       style="width: 100%; height: 120px; resize: vertical; ${(event.content || '').length > 2000 ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : ''}"
-                      oninput="updateLoveyDoveyFieldWithPath('loveydovey', '${characterId}', '${versionId}', 'creatorEvents.${index}.content', this.value, 2000); autoResizeTextarea(this);"
+                      oninput="updateCreatorEventFieldById('${characterId}', '${versionId}', '${event.id}', 'content', this.value, 2000); autoResizeTextarea(this);"
                       onfocus="showAdditionalFullscreenBtn(this);"
                       onblur="hideAdditionalFullscreenBtn(this);">${event.content || ''}</textarea>
             
             <!-- 底部工具列：全螢幕按鈕 + 字數統計 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
                 <button class="fullscreen-btn-base fullscreen-btn-toolbar" 
-                        onclick="openFullscreenEditor('eventContent-${event.id}', 'Creator Event Content')" 
+                        onclick="openFullscreenEditor('eventContent-${event.id}', '${t('creatorEvent')} ${index + 1}')" 
                         title="${t('fullscreenEdit')}">
                     ⛶
                 </button>
