@@ -1332,13 +1332,7 @@ function renderAlternateGreetingsModalContent(character, version) {
     const alternateGreetings = version.alternateGreetings || [];
     
     return `
-        <div class="alternate-greetings-add-container">
-            <button class="loveydovey-add-btn" onclick="addAlternateGreetingInModal('${character.id}', '${version.id}')">
-                ${IconManager.plus({width: 16, height: 16})}
-                ${t('addAlternateGreeting')}
-            </button>
-        </div>
-        
+        <!-- 📍 列表區域移到最上方 -->
         <div id="alternate-greetings-list-${version.id}">
             ${alternateGreetings.length === 0 ? `
                 <div class="alternate-greetings-empty">
@@ -1390,6 +1384,14 @@ function renderAlternateGreetingsModalContent(character, version) {
                     </div>
                 </div>
             `).join('')}
+        </div>
+        
+        <!-- 📍 新增按鈕移到最下方 -->
+        <div class="alternate-greetings-add-container">
+            <button class="loveydovey-add-btn" onclick="addAlternateGreetingInModal('${character.id}', '${version.id}')">
+                ${IconManager.plus({width: 16, height: 16})}
+                ${t('addAlternateGreeting')}
+            </button>
         </div>
     `;
 }
