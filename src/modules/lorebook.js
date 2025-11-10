@@ -529,7 +529,7 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
                   <!-- Depth -->
                   <div class="field-group wb-field-no-margin wb-field-margin-right wb-numeric-field-mobile">
                       <span class="wb-mobile-label">${t('insertDepth')}:</span>
-                      <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.depth || 4}" min="0" max="999" style="${entry.position !== 4 ? 'opacity: 0;' : ''}"
+                      <input type="number" class="field-input compact-input wb-input-width-60" value="${entry.depth !== undefined ? entry.depth : 4}" min="0" max="999" style="${entry.position !== 4 ? 'opacity: 0;' : ''}"
                           id="depth-${entry.id}"
                           title="${t('insertDepth')}"
                           ${entry.position !== 4 ? 'disabled' : ''}
