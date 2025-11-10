@@ -1,3 +1,16 @@
+// ===== HTML 轉義工具函數 =====
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return text.replace(/[&<>"']/g, char => map[char]);
+}
+
 // ===== 世界書處理函數 =====
 function addWorldBookEntry(worldBookId, versionId) {
     const worldBook = worldBooks.find(wb => wb.id === worldBookId);
@@ -494,11 +507,11 @@ static renderWorldBookEntry(worldBookId, versionId, entry) {
               <div class="wb-entry-col-main">
                   <!-- Comment -->
                   <div class="field-group wb-field-no-margin wb-field-flex">
-                      <input type="text" class="field-input compact-input wb-input-bold" 
-                          placeholder="${t('entryTitle')}"
-                          value="${entry.comment || ''}"
-                          oninput="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'comment', this.value)">
-                  </div>
+                    <input type="text" class="field-input compact-input wb-input-bold" 
+                        placeholder="${t('entryTitle')}"
+                        value="${escapeHtml(entry.comment || '')}"
+                        oninput="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'comment', this.value)">
+                </div>
                   
                   <!-- Trigger mode -->
                   <div class="field-group wb-field-no-margin wb-field-margin-right">
@@ -656,7 +669,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
         <label class="field-label wb-detail-label">${t('primaryKeywords')}</label>
         <input type="text" class="field-input compact-input" 
             placeholder="${t('keywordsPlaceholder')}"
-            value="${entry.key.join(', ')}"
+            value="${escapeHtml(entry.key.join(', '))}"
             onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'key', this.value)">
     </div>
     <div class="field-group no-bottom-margin">
@@ -676,7 +689,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
                 <label class="field-label wb-detail-label">${t('secondaryFilters')}</label>
                 <input type="text" class="field-input compact-input" 
                     placeholder="${t('secondaryKeysPlaceholder')}"
-                    value="${entry.keysecondary.join(', ')}"
+                    value="${escapeHtml(entry.keysecondary.join(', '))}"
                     onchange="updateWorldBookEntry('${worldBookId}', '${versionId}', '${entry.id}', 'keysecondary', this.value)">
             </div>
             
@@ -1488,10 +1501,11 @@ function openMoveEntryDialog(sourceWorldBookId, sourceVersionId, entryId) {
             }
             optionsHTML += `
                 <div class="tag-detail-item tag-item-hover move-option" 
-                     data-worldbook-id="${wb.id}" 
-                     data-version-id="${v.id}"
-                     onclick="selectMoveTarget('${wb.id}', '${v.id}', '${wb.name}', '${v.name}')"
-                     style="padding: 12px 16px; margin-bottom: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 6px; transition: all 0.2s ease;">
+                    data-worldbook-id="${wb.id}" 
+                    data-version-id="${v.id}"
+                    data-worldbook-name="${wb.name}"
+                    data-version-name="${v.name}"
+                    style="padding: 12px 16px; margin-bottom: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 6px; transition: all 0.2s ease;">
                     <div style="font-weight: 500; color: var(--text-color); font-size: 0.9em;">
                         ${wb.name}
                     </div>
@@ -1541,23 +1555,60 @@ function openMoveEntryDialog(sourceWorldBookId, sourceVersionId, entryId) {
                 <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">
                     ${t('cancel')}
                 </button>
-                <button id="confirm-move-btn" class="overview-btn btn-primary" disabled 
-                        onclick="confirmMoveEntry('${sourceWorldBookId}', '${sourceVersionId}', '${entryId}', '${entry.comment || t('untitledEntry')}')">
+                <button id="confirm-move-btn" 
+                        class="overview-btn btn-primary" 
+                        disabled>
                     ${t('confirmMove')}
                 </button>
             </div>
         </div>
     `;
     
-    ModalManager.create({
-        title: '',
-        content: content,
-        footer: '',
-        maxWidth: '600px'
+ModalManager.create({
+    title: '',
+    content: content,
+    footer: '',
+    maxWidth: '600px'
+});
+
+
+window.moveEntryTarget = null;
+
+// 🎯 綁定移動選項的點擊事件
+setTimeout(() => {
+    document.querySelectorAll('.move-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const worldBookId = this.dataset.worldbookId;
+            const versionId = this.dataset.versionId;
+            const worldBookName = this.dataset.worldbookName;
+            const versionName = this.dataset.versionName;
+            selectMoveTarget(worldBookId, versionId, worldBookName, versionName);
+        });
     });
     
-    // 儲存選擇狀態到全域變數
-    window.moveEntryTarget = null;
+    // 🎯 綁定確認按鈕的點擊事件
+    const confirmBtn = document.getElementById('confirm-move-btn');
+    if (confirmBtn) {
+        // 🔑 使用 setAttribute 安全地設置包含特殊字符的數據
+        confirmBtn.setAttribute('data-source-worldbook-id', sourceWorldBookId);
+        confirmBtn.setAttribute('data-source-version-id', sourceVersionId);
+        confirmBtn.setAttribute('data-entry-id', entryId);
+        
+        confirmBtn.addEventListener('click', function() {
+            const sourceWorldBookId = this.dataset.sourceWorldbookId;
+            const sourceVersionId = this.dataset.sourceVersionId;
+            const entryId = this.dataset.entryId;
+            
+            // 從實際數據中獲取 entryName
+            const sourceWorldBook = worldBooks.find(wb => wb.id === sourceWorldBookId);
+            const sourceVersion = sourceWorldBook?.versions.find(v => v.id === sourceVersionId);
+            const entry = sourceVersion?.entries.find(e => e.id === entryId);
+            const entryName = entry?.comment || t('untitledEntry');
+            
+            confirmMoveEntry(sourceWorldBookId, sourceVersionId, entryId, entryName);
+        });
+    }
+}, 50);
 }
 
 // 選擇移動目標
@@ -1990,10 +2041,11 @@ function openBatchMoveDialog(sourceWorldBookId, sourceVersionId, entryIds) {
             }
             optionsHTML += `
                 <div class="tag-detail-item tag-item-hover move-option" 
-                     data-worldbook-id="${wb.id}" 
-                     data-version-id="${v.id}"
-                     onclick="selectMoveTarget('${wb.id}', '${v.id}', '${wb.name}', '${v.name}')"
-                     style="padding: 12px 16px; margin-bottom: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 6px; transition: all 0.2s ease;">
+                    data-worldbook-id="${wb.id}" 
+                    data-version-id="${v.id}"
+                    data-worldbook-name="${wb.name}"
+                    data-version-name="${v.name}"
+                    style="padding: 12px 16px; margin-bottom: 4px; cursor: pointer; background: transparent; border: 1px solid transparent; border-radius: 6px; transition: all 0.2s ease;">
                     <div style="font-weight: 500; color: var(--text-color); font-size: 0.9em;">
                         ${wb.name}
                     </div>
@@ -2043,23 +2095,52 @@ function openBatchMoveDialog(sourceWorldBookId, sourceVersionId, entryIds) {
                 <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">
                     ${t('cancel')}
                 </button>
-                <button id="confirm-move-btn" class="overview-btn btn-primary" disabled 
-                        onclick="confirmBatchMoveEntries('${sourceWorldBookId}', '${sourceVersionId}', '${entryIds.join(',')}')">
+                <button id="confirm-move-btn" 
+                        class="overview-btn btn-primary" 
+                        disabled>
                     ${t('confirmMove')}
                 </button>
             </div>
         </div>
     `;
     
-    ModalManager.create({
-        title: '',
-        content: content,
-        footer: '',
-        maxWidth: '600px'
+ModalManager.create({
+    title: '',
+    content: content,
+    footer: '',
+    maxWidth: '600px'
+});
+
+window.moveEntryTarget = null;
+
+// 🎯 綁定移動選項的點擊事件
+setTimeout(() => {
+    document.querySelectorAll('.move-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const worldBookId = this.dataset.worldbookId;
+            const versionId = this.dataset.versionId;
+            const worldBookName = this.dataset.worldbookName;
+            const versionName = this.dataset.versionName;
+            selectMoveTarget(worldBookId, versionId, worldBookName, versionName);
+        });
     });
     
-    // 儲存選擇狀態到全域變數
-    window.moveEntryTarget = null;
+    // 🎯 綁定確認按鈕的點擊事件
+    const confirmBtn = document.getElementById('confirm-move-btn');
+    if (confirmBtn) {
+        // 🔑 使用 setAttribute 安全地設置包含特殊字符的數據
+        confirmBtn.setAttribute('data-source-worldbook-id', sourceWorldBookId);
+        confirmBtn.setAttribute('data-source-version-id', sourceVersionId);
+        confirmBtn.setAttribute('data-entry-ids', entryIds.join(','));
+        
+        confirmBtn.addEventListener('click', function() {
+            const sourceWorldBookId = this.dataset.sourceWorldbookId;
+            const sourceVersionId = this.dataset.sourceVersionId;
+            const entryIdsStr = this.dataset.entryIds;
+            confirmBatchMoveEntries(sourceWorldBookId, sourceVersionId, entryIdsStr);
+        });
+    }
+}, 50);
 }
 
 // 確認批量移動
