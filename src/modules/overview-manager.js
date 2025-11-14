@@ -146,12 +146,12 @@ static renderOverview(type, options = {}) {
                     }, 500);
                 }
                 
-            } else if (type === 'worldbook' || type === 'custom') {
-                // 列表頁拖曳功能
-                if (typeof DragSortManager !== 'undefined') {
-                    DragSortManager.initializeListPageDragSort(type);
+                } else if (type === 'worldbook' || type === 'custom' || type === 'preset') {
+                    // 列表頁拖曳功能
+                    if (typeof DragSortManager !== 'undefined') {
+                        DragSortManager.initializeListPageDragSort(type);
+                    }
                 }
-            }
             
             // 同步下拉選單值
             this.syncDropdownValue();

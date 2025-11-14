@@ -170,9 +170,7 @@ async function loadData() {
         TimestampManager.migrateOldData();
 
 // 恢復所有項目的版本排序 
-        try {
-            console.log('🔄 開始恢復版本排序...');
-            
+        try {          
             [
                 { type: 'character', items: characters },
                 { type: 'userpersona', items: userPersonas },
@@ -191,8 +189,6 @@ async function loadData() {
                     }
                 });
             });
-            
-            console.log('✅ 版本排序恢復完成');
         } catch (error) {
             console.error('❌ 恢復版本排序失敗:', error);
         }

@@ -1197,7 +1197,8 @@ function renderSidebar() {
             { type: 'loveydovey', items: loveyDoveyCharacters },
             { type: 'userpersona', items: userPersonas },
             { type: 'worldbook', items: worldBooks },
-            { type: 'custom', items: customSections }
+            { type: 'custom', items: customSections },
+            { type: 'preset', items: presets }
         ].forEach(({ type, items }) => {
             items.forEach(item => {
                 const versionsList = document.getElementById(`${type}-versions-${item.id}`);

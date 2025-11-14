@@ -151,14 +151,18 @@ static syncSidebarOrder(type = 'character') {
         'character': 'sidebarContent',
         'userpersona': 'userPersonaContent',
         'worldbook': 'worldBookContent', 
-        'custom': 'customSectionContent'
+        'custom': 'customSectionContent',
+        'loveydovey': 'loveyDoveyContent',
+        'preset': 'presetContent'
     };
     
     const dataMap = {
         'character': characters,
         'userpersona': userPersonas, 
         'worldbook': worldBooks,
-        'custom': customSections
+        'custom': customSections,
+        'loveydovey': loveyDoveyCharacters,
+        'preset': presets 
     };
     
     const containerId = containerMap[type];
@@ -412,6 +416,20 @@ static extractItemData(item, type) {
                 }
                 else if (onClickAttr.includes('toggleItemVersions')) {
                     const match = onClickAttr.match(/'([^']+)'/);
+                    return { id: match ? match[1] : null, element: item };
+                }
+            }
+            break;
+
+        case 'preset':
+            const presetOnClick = item.getAttribute('onclick');
+            if (presetOnClick) {
+                if (presetOnClick.includes('selectItem(\'preset\'')) {
+                    const match = presetOnClick.match(/selectItem\('preset',\s*'([^']+)'/);
+                    return { id: match ? match[1] : null, element: item };
+                }
+                else if (presetOnClick.includes('toggleItemVersions')) {
+                    const match = presetOnClick.match(/'([^']+)'/);
                     return { id: match ? match[1] : null, element: item };
                 }
             }
@@ -677,14 +695,14 @@ static clearCustomOrder(type) {
             }
 
            // 世界書列表拖曳（側邊欄）
-if (document.querySelector('#worldBookContent')) {
-    this.enableDragSort({
-        containerSelector: '#worldBookContent',
-        itemSelector: '.character-item',
-        type: 'worldbook',
-        mode: 'list'
-    });
-}
+            if (document.querySelector('#worldBookContent')) {
+                this.enableDragSort({
+                    containerSelector: '#worldBookContent',
+                    itemSelector: '.character-item',
+                    type: 'worldbook',
+                    mode: 'list'
+                });
+            }
 
             // 自定義筆記列表拖曳
             if (document.querySelector('#customSectionContent')) {
@@ -692,6 +710,16 @@ if (document.querySelector('#worldBookContent')) {
                     containerSelector: '#customSectionContent',
                     itemSelector: '.character-item',
                     type: 'custom',
+                    mode: 'list'
+                });
+            }
+
+            // 🆕 預設列表拖曳(側邊欄)
+            if (document.querySelector('#presetContent')) {
+                this.enableDragSort({
+                    containerSelector: '#presetContent',
+                    itemSelector: '.character-item',
+                    type: 'preset',
                     mode: 'list'
                 });
             }
