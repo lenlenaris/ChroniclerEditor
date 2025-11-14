@@ -1065,7 +1065,7 @@ window.ChroniclerTranslations['en-US'] = {
     '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">Other Function Descriptions</h4>' +
     '• Folders currently do not support custom drag sorting functionality.<br>' +
     '• Lorebooks default to "Custom Sort" mode. Entry order will be recorded in JSON files and synchronized when imported to SillyTavern.<br>' +
-    '• The "LoveyDovey" AI platform character editing feature can be enabled in "Other Settings" under the gear menu at the bottom of the sidebar.',
+    '• The "LoveyDovey" AI platform character editing feature can be unenabled in "Other Settings" under the gear menu at the bottom of the sidebar.',
 
     // ========================================
     // 19. Contact & Feedback
