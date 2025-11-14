@@ -920,7 +920,8 @@ class DataOperations {
                     additionalInfo: JSON.parse(JSON.stringify(originalVersion.additionalInfo || [])),
                     
                     // 第五大區：創作者事件
-                    creatorEvents: JSON.parse(JSON.stringify(originalVersion.creatorEvents || []))
+                    creatorEvents: JSON.parse(JSON.stringify(originalVersion.creatorEvents || [])),
+                    privateStories: JSON.parse(JSON.stringify(originalVersion.privateStories || []))
                 };
                 
             case 'worldbook':

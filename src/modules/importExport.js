@@ -1316,15 +1316,15 @@ content += `- **${t('exportTime')}**：${new Date().toLocaleString()}\n`;
 
         // === 第三大區：第一次聊天場景 ===
         if (version.scenarioScript?.trim()) {
-    content += `${t('scenarioScript')}：\n${version.scenarioScript.trim()}\n\n`;
+            content += `${t('scenarioScript')}：\n${version.scenarioScript.trim()}\n\n`;
         }
         if (version.characterDialogue?.trim()) {
             content += `${t('characterDialogue')}：\n${version.characterDialogue.trim()}\n\n`;
         }
 
         // === 第四大區：角色詳細設定 ===
-if (version.likes?.trim()) content += `${t('likes')}：${version.likes.trim()}\n`;
-if (version.dislikes?.trim()) content += `${t('dislikes')}：${version.dislikes.trim()}\n`;
+        if (version.likes?.trim()) content += `${t('likes')}：${version.likes.trim()}\n`;
+        if (version.dislikes?.trim()) content += `${t('dislikes')}：${version.dislikes.trim()}\n`;
         if (version.likes?.trim() || version.dislikes?.trim()) content += `\n`;
 
         if (version.additionalInfo?.length > 0) {
@@ -1355,21 +1355,37 @@ if (version.dislikes?.trim()) content += `${t('dislikes')}：${version.dislikes.
                 });
             }
         }
+        
+        // === 第六大區：私密物語 ===
+        if (version.privateStories?.length > 0) {
+            const validStories = version.privateStories.filter(story => story.title?.trim() || story.content?.trim() || story.unlockPrompt?.trim());
+            if (validStories.length > 0) {
+                content += `${t('privateStories')}：\n`;
+                validStories.forEach((story, index) => {
+                    const affectionText = getAffectionIcon(story.affectionLevel) + ' ' + getAffectionText(story.affectionLevel);
+                    content += `${index + 1}. ${story.title || t('unnamedEvent')} (${affectionText})\n`;
+                    if (story.unlockPrompt?.trim()) content += `   ${t('unlockPrompt')}：${story.unlockPrompt.trim()}\n`;
+                    if (story.content?.trim()) content += `   ${story.content.trim()}\n`;
+                    content += `\n`;
+                });
+            }
+        }
 
         // === 統計資訊 ===
         const allText = [
             version.publicDescription, version.basicInfo, version.personality,
             version.speakingStyle, version.scenarioScript, version.characterDialogue,
             ...(version.additionalInfo || []).map(info => info.content),
-            ...(version.creatorEvents || []).map(event => event.content)
+            ...(version.creatorEvents || []).map(event => event.content),
+            ...(version.privateStories || []).map(story => story.content) // 也要加入統計
         ].filter(Boolean).join(' ');
         
         const chars = allText.length;
         const tokens = countTokens(allText);
-content += `${t('statisticsInfo')}：\n`;
-content += `${t('charCount')}：${chars}\n`;
-content += `${t('tokenCount')}：${tokens}\n`;
-content += `${t('exportTime')}：${new Date().toLocaleString()}\n`;
+        content += `${t('statisticsInfo')}：\n`;
+        content += `${t('charCount')}：${chars}\n`;
+        content += `${t('tokenCount')}：${tokens}\n`;
+        content += `${t('exportTime')}：${new Date().toLocaleString()}\n`;
 
         return content;
     }
@@ -1380,16 +1396,16 @@ static createLoveyDoveyMarkdownContent(character, version) {
 
     // === 第一大區：個人資料 ===
     let personalProfileContent = '';
-    if (version.characterName?.trim()) personalProfileContent += `${t('characterName')}：${version.characterName.trim()}\n`;
-    if (version.age?.trim()) personalProfileContent += `${t('age')}：${version.age.trim()}\n`;
-    if (version.occupation?.trim()) personalProfileContent += `${t('occupation')}：${version.occupation.trim()}\n`;
+    if (version.characterName?.trim()) personalProfileContent += `**${t('characterName')}**：${version.characterName.trim()}\n`;
+    if (version.age?.trim()) personalProfileContent += `**${t('age')}**：${version.age.trim()}\n`;
+    if (version.occupation?.trim()) personalProfileContent += `**${t('occupation')}**：${version.occupation.trim()}\n`;
 
     if (personalProfileContent) {
         content += `## ${t('profileSection')}\n\n${personalProfileContent}\n`;
     }
 
     if (version.characterQuote?.trim()) {
-        content += `## ${t('characterQuote')}\n\n${version.characterQuote.trim()}\n\n`;
+        content += `### ${t('characterQuote')}\n\n> ${version.characterQuote.trim()}\n\n`;
     }
     if (version.publicDescription?.trim()) {
         content += `## ${t('publicDescription')}\n\n${version.publicDescription.trim()}\n\n`;
@@ -1397,7 +1413,7 @@ static createLoveyDoveyMarkdownContent(character, version) {
     if (version.tags?.trim()) {
         const tags = version.tags.split(',').map(tag => tag.trim()).filter(Boolean);
         if (tags.length > 0) {
-            content += `## ${t('tags')}\n\n${tags.join(', ')}\n\n`;
+            content += `## ${t('tags')}\n\n${tags.map(tag => `\`${tag}\``).join(' ')}\n\n`;
         }
     }
     
@@ -1406,13 +1422,10 @@ static createLoveyDoveyMarkdownContent(character, version) {
     }
 
     // === 第二大區：角色基本設定 ===
-    let basicSettingsContent = '';
+    content += `## ${t('basicSettingsSection')}\n\n`;
     if (version.gender && version.gender !== 'unset') {
         const genderText = version.gender === 'male' ? t('male') : t('female');
-        basicSettingsContent += `${t('gender')}：${genderText}\n\n`;
-    }
-    if (basicSettingsContent) {
-         content += `## ${t('basicSettingsSection')}\n\n${basicSettingsContent}`;
+        content += `**${t('gender')}**：${genderText}\n\n`;
     }
     if (version.basicInfo?.trim()) {
         content += `### ${t('basicInfo')}\n\n${version.basicInfo.trim()}\n\n`;
@@ -1433,11 +1446,11 @@ static createLoveyDoveyMarkdownContent(character, version) {
     
     // === 第四大區：角色詳細設定 ===
     let detailedSettingsContent = '';
-    if (version.likes?.trim()) detailedSettingsContent += `${t('likes')}：${version.likes.trim()}\n`;
-    if (version.dislikes?.trim()) detailedSettingsContent += `${t('dislikes')}：${version.dislikes.trim()}\n`;
+    if (version.likes?.trim()) detailedSettingsContent += `**${t('likes')}**：${version.likes.trim()}\n`;
+    if (version.dislikes?.trim()) detailedSettingsContent += `**${t('dislikes')}**：${version.dislikes.trim()}\n`;
     
-    if(detailedSettingsContent) {
-        content += `## ${t('detailSettingsSection')}\n\n${detailedSettingsContent}\n`;
+    if(detailedSettingsContent || (version.additionalInfo && version.additionalInfo.length > 0)) {
+        content += `## ${t('detailedSettings')}\n\n${detailedSettingsContent}\n`;
     }
 
     if (version.additionalInfo?.length > 0) {
@@ -1445,7 +1458,7 @@ static createLoveyDoveyMarkdownContent(character, version) {
         if (validInfo.length > 0) {
             content += `### ${t('additionalInfo')}\n\n`;
             validInfo.forEach((info) => {
-                content += `**${info.title || t('unnamedItem')}**\n\n`;
+                content += `#### ${info.title || t('unnamedItem')}\n\n`;
                 if (info.content?.trim()) content += `${info.content.trim()}\n\n`;
             });
         }
@@ -1455,7 +1468,7 @@ static createLoveyDoveyMarkdownContent(character, version) {
     if (version.creatorEvents?.length > 0) {
         const validEvents = version.creatorEvents.filter(event => event.title?.trim() || event.content?.trim() || event.timeAndPlace?.trim());
         if (validEvents.length > 0) {
-            content += `## ${t('creatorEventsSection')}\n\n`;
+            content += `## ${t('creatorEvents')}\n\n`;
             validEvents.forEach((event) => {
                 const secretMark = event.isSecret ? ' 🔒' : '';
                 content += `### ${event.title || t('unnamedEvent')}${secretMark}\n\n`;
@@ -1465,12 +1478,27 @@ static createLoveyDoveyMarkdownContent(character, version) {
         }
     }
 
+    // === 第六大區：私密物語 ===
+    if (version.privateStories?.length > 0) {
+        const validStories = version.privateStories.filter(story => story.title?.trim() || story.content?.trim() || story.unlockPrompt?.trim());
+        if (validStories.length > 0) {
+            content += `## ${t('privateStories')}\n\n`;
+            validStories.forEach((story) => {
+                const affectionText = getAffectionIcon(story.affectionLevel) + ' ' + getAffectionText(story.affectionLevel);
+                content += `### ${story.title || t('unnamedEvent')} (${affectionText})\n\n`;
+                if (story.unlockPrompt?.trim()) content += `**${t('unlockPrompt')}**：*${story.unlockPrompt.trim()}*\n\n`;
+                if (story.content?.trim()) content += `${story.content.trim()}\n\n`;
+            });
+        }
+    }
+
     // === 統計資訊 ===
     const allText = [
         version.publicDescription, version.basicInfo, version.personality,
         version.speakingStyle, version.scenarioScript, version.characterDialogue,
         ...(version.additionalInfo || []).map(info => info.content),
-        ...(version.creatorEvents || []).map(event => event.content)
+        ...(version.creatorEvents || []).map(event => event.content),
+        ...(version.privateStories || []).map(story => story.content) // 也要加入統計
     ].filter(Boolean).join(' ');
     
     const chars = allText.length;
