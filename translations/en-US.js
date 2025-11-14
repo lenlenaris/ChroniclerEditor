@@ -436,6 +436,18 @@ window.ChroniclerTranslations['en-US'] = {
     collapseEvent: 'Collapse',
     noTitle: '(No Title)',
     unnamedEvent: 'Unnamed Event',
+
+    privateStories: 'Private Stories',
+    addPrivateStory: 'Add Private Story',
+    privateStory: 'Private Story',
+    unlockPrompt: 'Unlock Prompt',
+    unlockPromptPlaceholder: 'e.g., When affection reaches a certain level...',
+    affectionLevel: 'Affection Level',
+    acquaintance: 'Acquaintance',
+    friend: 'Friend',
+    crush: 'Crush',
+    love: 'Love',
+    married: 'Married',
     
     // Lovey-Dovey Placeholders
     characterNamePlaceholder: 'Enter character\'s name',

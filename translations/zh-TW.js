@@ -437,6 +437,18 @@ window.ChroniclerTranslations['zh-TW'] = {
     collapseEvent: '折疊事件',
     noTitle: '（無標題）',
     unnamedEvent: '未命名事件',
+
+    privateStories: '私密物語',
+    addPrivateStory: '新增私密物語',
+    privateStory: '私密物語',
+    unlockPrompt: '解鎖故事時的提示語',
+    unlockPromptPlaceholder: '例如：想聽聽這個故事嗎？',
+    affectionLevel: '好感度階段',
+    acquaintance: '熟人',
+    friend: '朋友',
+    crush: '心動',
+    love: '戀人',
+    married: '結婚',
     
     // 卿卿我我佔位符
     characterNamePlaceholder: '請輸入角色姓名',
@@ -455,7 +467,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     additionalContentPlaceholder: '詳細描述這項附加資訊...',
     timeAndPlacePlaceholder: '事件發生的時間、地點...',
     eventTitlePlaceholder: '事件的標題或名稱...',
-    eventContentPlaceholder: '詳細描述這個創作者事件的內容、背景、影響等...',
+    eventContentPlaceholder: '請輸入內容...',
     
     // ========================================
     // 預設

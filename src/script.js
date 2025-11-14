@@ -381,7 +381,8 @@ class DataOperations {
                         additionalInfo: [],
                         
                         // 第五大區：創作者事件
-                        creatorEvents: []
+                        creatorEvents: [],
+                        privateStories: []
                     }]
                 };
                 
@@ -659,7 +660,8 @@ class DataOperations {
                     additionalInfo: [],
                     
                     // 第五大區：創作者事件
-                    creatorEvents: []
+                    creatorEvents: [],
+                    privateStories: []
                 };
                 
             case 'worldbook':

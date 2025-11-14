@@ -85,6 +85,21 @@ static renderVersionContent(character, version) {
                             ${this.renderCreatorEventsFields(character, version)}
                         </div>
                     </div>
+
+                    <!-- 🆕 第六大塊：私密物語（可折疊） -->
+                    <div class="field-section collapsible-section" data-section="private-stories">
+                        <div class="section-header collapsible-header ld-section-header" onclick="LoveyDoveyRenderer.toggleSection('private-stories', event)">
+                            <span class="collapse-icon">
+                                <span class="arrow-icon arrow-down" style="width: 8px; height: 8px; color: var(--accent-color);"></span>
+                            </span>
+                            <h3 style="margin: 0; font-size: 1.1em; font-weight: 600; color: var(--text-color);">
+                                ${t('privateStories')}
+                            </h3>
+                        </div>
+                        <div class="section-content collapsible-content">
+                            ${this.renderPrivateStoriesFields(character, version)}
+                        </div>
+                    </div>
                     
                 </div>
             </div>
@@ -590,6 +605,119 @@ static renderCreatorEventsFields(character, version) {
     `;
 }
 
+// 渲染私密物語欄位（第六大塊）
+static renderPrivateStoriesFields(character, version) {
+    const privateStories = version.privateStories || [];
+    const count = privateStories.length;
+    
+    return `
+        <!-- 私密物語動態區域 -->
+        <div id="private-stories-container-${version.id}">
+            <!-- 私密物語列表 -->
+            <div id="private-stories-list-${version.id}" class="private-stories-sortable">
+                ${privateStories.length === 0 ? '' : privateStories.map((story, index) => `
+                    <div class="private-story-item sortable-item" data-story-id="${story.id}" 
+                    style="
+                        background: var(--header-bg);
+                        border: 1px solid var(--border-color);
+                        border-radius: 8px;
+                        padding: 12px 16px;
+                        margin-bottom: 16px;
+                        position: relative;
+                        transition: all 0.2s ease;
+                    ">
+                        
+                       <!-- 可點擊的標題列（用於折疊） -->
+<div class="private-story-header" 
+     onclick="togglePrivateStoryCollapseLazy(this, '${character.id}', '${version.id}', '${story.id}', ${index})"
+     style="
+         display: flex; 
+         justify-content: space-between; 
+         align-items: flex-start; 
+         cursor: pointer;
+         padding: 4px 0;
+         margin-bottom: 0px;
+         border-radius: 4px;
+         transition: all 0.2s ease;
+     "
+     onmouseover="this.style.backgroundColor='var(--bg-color)'"
+     onmouseout="this.style.backgroundColor='transparent'">
+    
+    <div style="display: flex; align-items: flex-start; gap: 8px; flex: 1;">
+        <!-- 拖曳控制柄 -->
+        <div class="drag-handle custom-field-drag-handle">
+            ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+        </div>
+        
+        <!-- 展開時：顯示「私密物語 N」-->
+        <div class="story-title-expanded" id="story-title-expanded-${story.id}" style="display: none;">
+            <h4 style="margin: 0; font-size: 0.95em; font-weight: 600; color: var(--text-color);">
+                ${getAffectionIcon(story.affectionLevel)} ${t('privateStory')} ${index + 1}
+            </h4>
+        </div>
+        
+        <!-- 折疊時：顯示好感度+標題+提示語 -->
+        <div class="story-title-collapsed" id="story-title-collapsed-${story.id}" style="display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            line-height: 1.3;
+        ">
+            <!-- 主標題 -->
+            <div style="
+                font-weight: 600; 
+                color: var(--text-color); 
+                font-size: 0.95em;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin: 0;
+                padding: 0;
+            ">
+                <span id="story-collapsed-title-text-${story.id}">${getAffectionIcon(story.affectionLevel)} ${t('privateStory')} ${index + 1}：${story.title || t('unnamedEvent')}</span>
+            </div>
+            <!-- 解鎖提示語 -->
+            <div id="story-collapsed-prompt-text-${story.id}" style="
+                font-size: 0.8em; 
+                color: var(--text-muted); 
+                font-style: italic;
+                margin: 0;
+                padding: 0;
+                line-height: 1.2;
+                ${!story.unlockPrompt ? 'display: none;' : ''}
+            ">
+                ${story.unlockPrompt}
+            </div>
+        </div>
+    </div>
+    
+    <!-- 刪除按鈕（使用 SVG 圖示） -->
+    <button class="delete-btn" 
+        onclick="event.stopPropagation(); deletePrivateStory('${character.id}', '${version.id}', '${story.id}')"
+        style="flex-shrink: 0;">
+        ${IconManager.delete()}
+    </button>
+</div>
+
+                        <!-- 可折疊的內容區域 -->
+                        <div class="private-story-content" id="private-content-${story.id}" style="display: none;">
+                            <!-- Content will be loaded lazily when expanded -->
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <!-- 添加按鈕 -->
+            <div style="margin-bottom: 16px;">
+                <button class="loveydovey-add-btn" onclick="addPrivateStory('${character.id}', '${version.id}')">
+                    ${IconManager.plus({width: 16, height: 16})}
+                    ${t('addPrivateStory')}
+                </button>
+            </div>
+        </div>
+    `;
+}
+
     // 折疊展開功能  
 static toggleSection(sectionName, event = null) {
     let section;
@@ -798,6 +926,32 @@ function updateLoveyDoveyField(itemType, itemId, versionId, fieldName, value, ma
             }
         }
     } 
+    // 處理私密物語欄位的 ID
+    else if (fieldName.startsWith('privateStories.')) {
+        const pathParts = fieldName.split('.');
+        const index = pathParts[1];
+        const field = pathParts[2];
+        
+        // 找到對應的 story ID
+        const character = loveyDoveyCharacters.find(c => c.id === itemId);
+        if (character) {
+            const version = character.versions.find(v => v.id === versionId);
+            if (version && version.privateStories && version.privateStories[index]) {
+                const storyId = version.privateStories[index].id;
+                switch (field) {
+                    case 'unlockPrompt':
+                        inputId = `storyUnlockPrompt-${storyId}`;
+                        break;
+                    case 'title':
+                        inputId = `storyTitle-${storyId}`;
+                        break;
+                    case 'content':
+                        inputId = `storyContent-${storyId}`;
+                        break;
+                }
+            }
+        }
+    }
     else {
         // 普通欄位
         inputId = `${fieldName}-${versionId}`;
@@ -1177,6 +1331,8 @@ function addCreatorEvent(characterId, versionId) {
     }, 50);
 }
 
+
+
 // 刪除創作者事件
 function deleteCreatorEvent(characterId, versionId, eventId) {
     const confirmDelete = confirm('確定要刪除此創作者事件嗎？\n\n⚠️ 刪除後無法復原！');
@@ -1471,6 +1627,50 @@ function enableCreatorEventsDragSort(characterId, versionId) {
     
 }
 
+// 啟用私密物語的拖曳排序
+function enablePrivateStoriesDragSort(characterId, versionId) {
+    const container = document.getElementById(`private-stories-list-${versionId}`);
+    if (!container || typeof Sortable === 'undefined') {
+        console.warn('無法啟用私密物語拖曳排序：容器不存在或 Sortable 未載入');
+        return;
+    }
+    
+    // 檢查是否已經啟用
+    if (container._sortable) {
+        container._sortable.destroy();
+    }
+    
+    let savedStates = {}; // 保存折疊狀態
+    
+    container._sortable = Sortable.create(container, {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+        
+        onStart: function(evt) {
+            document.body.style.cursor = 'grabbing';
+            
+            // 記錄當前折疊狀態
+            savedStates = getCurrentPrivateStoryCollapseStates();
+        },
+        
+        onEnd: function(evt) {
+            document.body.style.cursor = '';
+            
+            if (evt.oldIndex !== evt.newIndex) {
+                // 更新資料順序
+                reorderPrivateStories(characterId, versionId, evt.oldIndex, evt.newIndex);
+                
+                // 立即恢復折疊狀態
+                setTimeout(() => {
+                    restorePrivateStoryCollapseStates(savedStates);
+                }, 10);
+            }
+        }
+    });
+}
 
 function reorderCreatorEvents(characterId, versionId, oldIndex, newIndex) {
     const character = loveyDoveyCharacters.find(c => c.id === characterId);
@@ -1631,13 +1831,14 @@ function updateAdditionalInfoNumbers(version, versionId = null) {
 // ===== 折疊狀態管理 =====
 function saveCollapseStates() {
     try {
-        //  先讀取現有的狀態
+        // 先讀取現有的狀態
         const existingStates = loadCollapseStates();
         
-        //  合併策略：保留現有狀態，只更新當前頁面的狀態
+        // 合併策略：保留現有狀態，只更新當前頁面的狀態
         const newStates = {
             additionalInfo: { ...existingStates.additionalInfo, ...getCurrentAdditionalInfoCollapseStates() },
             creatorEvents: { ...existingStates.creatorEvents, ...getCurrentCreatorEventCollapseStates() },
+            privateStories: { ...existingStates.privateStories, ...getCurrentPrivateStoryCollapseStates() },
             worldBookEntries: { ...existingStates.worldBookEntries, ...getCurrentWorldBookEntryCollapseStates() },
             timestamp: Date.now()
         };
@@ -1664,7 +1865,7 @@ function loadCollapseStates() {
     } catch (error) {
         console.warn('載入折疊狀態失敗:', error);
     }
-    return { additionalInfo: {}, creatorEvents: {} };
+    return { additionalInfo: {}, creatorEvents: {}, privateStories: {} };
 }
 
 // 獲取當前附加資訊折疊狀態
@@ -2022,4 +2223,582 @@ function generateCreatorEventDetailContent(characterId, versionId, event, index)
             </label>
         </div>
     `;
+}
+
+// ===== 私密物語管理函數 =====
+
+// 新增私密物語
+function addPrivateStory(characterId, versionId) {
+    if (isAdding) return; // 防止重複觸發
+    isAdding = true;
+    
+    // 保存當前狀態
+    const currentStates = getCurrentPrivateStoryCollapseStates();
+    
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) {
+        isAdding = false;
+        return;
+    }
+    
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version) {
+        isAdding = false;
+        return;
+    }
+    
+    // 初始化 privateStories 陣列（如果不存在）
+    if (!version.privateStories) {
+        version.privateStories = [];
+    }
+    
+    // 創建新的私密物語
+    const newStory = {
+        id: generateId(),
+        unlockPrompt: '',
+        title: '',
+        content: '',
+        affectionLevel: 'acquaintance' // 預設：熟人
+    };
+    
+    version.privateStories.push(newStory);
+    
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+    
+    // 使用 requestAnimationFrame 減少閃爍
+    requestAnimationFrame(() => {
+        renderPrivateStoriesList(characterId, versionId);
+        
+        setTimeout(() => {
+            restorePrivateStoryCollapseStates(currentStates);
+            // 重新啟用拖曳功能
+            if (typeof DragSortManager !== 'undefined') {
+                enablePrivateStoriesDragSort(characterId, versionId);
+            }
+            
+            // 解除鎖定
+            isAdding = false;
+        }, 16);
+    });
+}
+
+// 好感度圖示映射
+function getAffectionIcon(level) {
+    const icons = {
+        'acquaintance': '👋',
+        'friend': '🤝',
+        'crush': '💗',
+        'love': '❤️',
+        'married': '💍'
+    };
+    return icons[level] || '👋';
+}
+
+// 好感度文字映射
+function getAffectionText(level) {
+    const texts = {
+        'acquaintance': t('acquaintance'),
+        'friend': t('friend'),
+        'crush': t('crush'),
+        'love': t('love'),
+        'married': t('married')
+    };
+    return texts[level] || t('acquaintance');
+}
+
+// 刪除私密物語
+function deletePrivateStory(characterId, versionId, storyId) {
+    const confirmDelete = confirm('確定要刪除此私密物語嗎？\n\n⚠️ 刪除後無法復原！');
+    
+    if (!confirmDelete) return;
+    
+    // 在刪除前先保存其他項目的折疊狀態
+    const currentStates = getCurrentPrivateStoryCollapseStates();
+    // 移除即將被刪除的項目狀態
+    delete currentStates[storyId];
+    
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+    
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version.privateStories) return;
+    
+    // 移除指定的私密物語
+    version.privateStories = version.privateStories.filter(story => story.id !== storyId);
+    
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+    
+    // 重新渲染私密物語列表
+    renderPrivateStoriesList(characterId, versionId);
+    
+    // 恢復其他項目的折疊狀態
+    setTimeout(() => {
+        restorePrivateStoryCollapseStates(currentStates);
+        // 重新啟用拖曳功能
+        if (typeof DragSortManager !== 'undefined') {
+            enablePrivateStoriesDragSort(characterId, versionId);
+        }
+    }, 50);
+}
+
+// 渲染私密物語列表
+function renderPrivateStoriesList(characterId, versionId) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+    
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version) return;
+    
+    const container = document.getElementById(`private-stories-container-${versionId}`);
+    if (!container) return;
+    
+    // 重新渲染整個容器（包括按鈕）
+    container.innerHTML = LoveyDoveyRenderer.renderPrivateStoriesFields(character, version);
+    
+    // 重新初始化功能
+    setTimeout(() => {
+        initAutoResize();
+        updateAllPageStats();
+        // 啟用私密物語拖曳排序
+        if (typeof DragSortManager !== 'undefined') {
+            enablePrivateStoriesDragSort(characterId, versionId);
+        }
+    }, 50);
+}
+
+// 使用 storyId 動態查找並更新私密物語欄位
+function updatePrivateStoryFieldById(characterId, versionId, storyId, field, value, maxLength = 0) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+    
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version.privateStories) return;
+    
+    // 🔧 動態查找當前 index
+    const index = version.privateStories.findIndex(story => story.id === storyId);
+    if (index === -1) return;
+    
+    // 更新欄位值
+    version.privateStories[index][field] = value;
+    
+    // 如果是標題或解鎖提示語欄位，同步更新折疊標題
+    if (field === 'title' || field === 'unlockPrompt') {
+        updatePrivateStoryCollapsedTitle(storyId);
+    }
+    
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+    updateAllPageStats();
+    
+    // 更新字數統計
+    if (maxLength > 0) {
+        let inputId;
+        switch(field) {
+            case 'unlockPrompt':
+                inputId = `storyUnlockPrompt-${storyId}`;
+                break;
+            case 'title':
+                inputId = `storyTitle-${storyId}`;
+                break;
+            case 'content':
+                inputId = `storyContent-${storyId}`;
+                break;
+        }
+        if (inputId) {
+            updateLoveyDoveyCharCount(characterId, versionId, `privateStories.${index}.${field}`, value, maxLength);
+        }
+    }
+}
+
+// 切換私密物語的好感度階段
+function togglePrivateStoryAffection(characterId, versionId, storyId, newLevel) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+    
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version.privateStories) return;
+    
+    const story = version.privateStories.find(s => s.id === storyId);
+    if (!story) return;
+    
+    // 更新好感度階段
+    story.affectionLevel = newLevel;
+    
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+    
+    // 直接更新 DOM，不重新渲染
+    updateAffectionIconsForStory(storyId, newLevel);
+}
+
+// 直接更新指定私密物語的好感度圖示
+function updateAffectionIconsForStory(storyId, affectionLevel) {
+    const icon = getAffectionIcon(affectionLevel);
+    
+    // 1. 更新展開狀態標題中的圖示
+    const titleExpanded = document.getElementById(`story-title-expanded-${storyId}`);
+    if (titleExpanded) {
+        const h4 = titleExpanded.querySelector('h4');
+        if (h4) {
+            // 🔧 修正：移除所有可能的 emoji，保留文字部分
+            const text = h4.textContent.replace(/^[👋🤝💗❤️💍\s]+/, '');
+            h4.textContent = `${icon} ${text}`;
+        }
+    }
+    
+    // 2. 更新折疊狀態標題中的圖示
+    const titleCollapsed = document.getElementById(`story-collapsed-title-text-${storyId}`);
+    if (titleCollapsed) {
+        // 🔧 修正：移除所有可能的 emoji，保留「私密物語 N：標題」部分
+        const text = titleCollapsed.textContent.replace(/^[👋🤝💗❤️💍\s]+/, '');
+        titleCollapsed.textContent = `${icon} ${text}`;
+    }
+}
+
+// 更新折疊時的標題顯示
+function updatePrivateStoryCollapsedTitle(storyId) {
+    const titleCollapsed = document.getElementById(`story-title-collapsed-${storyId}`);
+    if (!titleCollapsed) return;
+    
+    // 從對應的輸入框獲取最新值
+    const container = document.querySelector(`[data-story-id="${storyId}"]`);
+    if (!container) return;
+    
+    const unlockPrompt = container.querySelector('input[id^="storyUnlockPrompt-"]')?.value || '';
+    const title = container.querySelector('input[id^="storyTitle-"]')?.value || '';
+    const affectionSelect = container.querySelector('input[name^="affection-"]:checked');
+    const affectionLevel = affectionSelect?.value || 'acquaintance';
+    
+    // 找到當前私密物語的索引（動態計算）
+    const listContainer = container.parentElement;
+    const allItems = Array.from(listContainer.querySelectorAll('.private-story-item'));
+    const currentIndex = allItems.findIndex(item => item.dataset.storyId === storyId) + 1;
+    
+    // 更新主標題
+    const titleElement = document.getElementById(`story-collapsed-title-text-${storyId}`);
+    if (titleElement) {
+        const icon = getAffectionIcon(affectionLevel);
+        titleElement.textContent = `${icon} ${t('privateStory')} ${currentIndex}：${title || t('unnamedEvent')}`;
+    }
+    
+    // 更新解鎖提示語
+    const promptElement = document.getElementById(`story-collapsed-prompt-text-${storyId}`);
+    if (promptElement) {
+        if (unlockPrompt) {
+            promptElement.style.display = 'block';
+            promptElement.textContent = unlockPrompt;
+        } else {
+            promptElement.style.display = 'none';
+        }
+    }
+}
+
+// 獲取當前私密物語折疊狀態  
+function getCurrentPrivateStoryCollapseStates() {
+    const states = {};
+    document.querySelectorAll('.private-story-item').forEach(item => {
+        const storyId = item.dataset.storyId;
+        const content = document.getElementById(`private-content-${storyId}`);
+        if (content) {
+            states[storyId] = content.style.display === 'none';
+        }
+    });
+    return states;
+}
+
+// 恢復私密物語折疊狀態
+function restorePrivateStoryCollapseStates(states) {
+    if (!states) return;
+    
+    Object.keys(states).forEach(storyId => {
+        // 檢查狀態是否為「需要折疊」
+        if (states[storyId]) {
+            // 使用 querySelectorAll 找到所有匹配的元素（對比模式下可能有多個）
+            const allContentElements = document.querySelectorAll(`#private-content-${storyId}`);
+            const allTitleExpanded = document.querySelectorAll(`#story-title-expanded-${storyId}`);
+            const allTitleCollapsed = document.querySelectorAll(`#story-title-collapsed-${storyId}`);
+            
+            // 對每個匹配的元素都應用折疊狀態
+            allContentElements.forEach(content => {
+                if (content) content.style.display = 'none';
+            });
+            
+            allTitleExpanded.forEach(titleExpanded => {
+                if (titleExpanded) titleExpanded.style.display = 'none';
+            });
+            
+            allTitleCollapsed.forEach(titleCollapsed => {
+                if (titleCollapsed) titleCollapsed.style.display = 'flex';
+            });
+        }
+    });
+}
+
+// 切換私密物語的折疊狀態（懶加載版本）
+function togglePrivateStoryCollapseLazy(clickedElement, characterId, versionId, storyId, index = null) {
+    const itemContainer = clickedElement.closest('.private-story-item');
+    if (!itemContainer) return;
+
+    const content = itemContainer.querySelector(`#private-content-${storyId}`);
+    const titleExpanded = itemContainer.querySelector(`#story-title-expanded-${storyId}`);
+    const titleCollapsed = itemContainer.querySelector(`#story-title-collapsed-${storyId}`);
+
+    if (!content || !titleExpanded || !titleCollapsed) return;
+
+    const isExpanded = content.style.display !== 'none';
+
+    if (isExpanded) {
+        // 折疊
+        content.style.display = 'none';
+        titleExpanded.style.display = 'none';
+        titleCollapsed.style.display = 'flex';
+    } else {
+        // 展開 - 檢查是否需要懶加載內容
+        if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
+            const character = loveyDoveyCharacters.find(c => c.id === characterId);
+            if (character) {
+                const version = character.versions.find(v => v.id === versionId);
+                if (version && version.privateStories) {
+                    const realIndex = version.privateStories.findIndex(story => story.id === storyId);
+                    if (realIndex !== -1) {
+                        // 🆕 關鍵修改：將 content 這個 div 元素直接傳遞給載入函數
+                        loadPrivateStoryContent(content, characterId, versionId, storyId, realIndex);
+                    }
+                }
+            }
+        }
+        content.style.display = 'block';
+        titleExpanded.style.display = 'block';
+        titleCollapsed.style.display = 'none';
+    }
+}
+
+// 切換私密物語的折疊狀態（懶加載版本）
+function togglePrivateStoryCollapseLazy(clickedElement, characterId, versionId, storyId, index = null) {
+    const itemContainer = clickedElement.closest('.private-story-item');
+    if (!itemContainer) return;
+
+    const content = itemContainer.querySelector(`#private-content-${storyId}`);
+    const titleExpanded = itemContainer.querySelector(`#story-title-expanded-${storyId}`);
+    const titleCollapsed = itemContainer.querySelector(`#story-title-collapsed-${storyId}`);
+
+    if (!content || !titleExpanded || !titleCollapsed) return;
+
+    const isExpanded = content.style.display !== 'none';
+
+    if (isExpanded) {
+        // 折疊
+        content.style.display = 'none';
+        titleExpanded.style.display = 'none';
+        titleCollapsed.style.display = 'flex';
+    } else {
+        // 展開 - 檢查是否需要懶加載內容
+        if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
+            const character = loveyDoveyCharacters.find(c => c.id === characterId);
+            if (character) {
+                const version = character.versions.find(v => v.id === versionId);
+                if (version && version.privateStories) {
+                    const realIndex = version.privateStories.findIndex(story => story.id === storyId);
+                    if (realIndex !== -1) {
+                        // 🆕 關鍵修改：將 content 這個 div 元素直接傳遞給載入函數
+                        loadPrivateStoryContent(content, characterId, versionId, storyId, realIndex);
+                    }
+                }
+            }
+        }
+        content.style.display = 'block';
+        titleExpanded.style.display = 'block';
+        titleCollapsed.style.display = 'none';
+    }
+}
+
+// 載入私密物語詳細內容
+function loadPrivateStoryContent(contentDiv, characterId, versionId, storyId, index) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+    
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version.privateStories) return;
+    
+    const story = version.privateStories.find(s => s.id === storyId);
+    if (!story) return;
+    
+    const detailHTML = generatePrivateStoryDetailContent(characterId, versionId, story, index);
+    
+    // 🆕 關鍵修改：直接使用傳入的 contentDiv，不再使用 getElementById
+    if (contentDiv) {
+        contentDiv.innerHTML = detailHTML;
+        
+        setTimeout(() => {
+            updateAllPageStats();
+            initAutoResize();
+            
+            const inputs = contentDiv.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                if (input.id && input.oninput) {
+                    const event = new Event('input', { bubbles: true });
+                    input.dispatchEvent(event);
+                }
+            });
+            
+            if (typeof ScrollbarManager !== 'undefined') {
+                ScrollbarManager.initializeAll();
+            }
+        }, 50);
+    }
+}
+
+// 生成私密物語詳細內容
+function generatePrivateStoryDetailContent(characterId, versionId, story, index) {
+    return `
+<!-- 解鎖提示語欄位 -->
+<div style="margin-bottom: 0px;">
+    <label style="display: block; margin-bottom: 4px; margin-top: 5px; font-size: 0.85em; color: var(--text-color);">${t('unlockPrompt')}</label>
+    <input type="text" 
+           class="field-input" 
+           id="storyUnlockPrompt-${story.id}"
+           data-story-id="${story.id}"
+           placeholder="${t('unlockPromptPlaceholder')}"
+           style="width: 100%; ${(story.unlockPrompt || '').length > 60 ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : ''}"
+           value="${story.unlockPrompt || ''}"
+           oninput="updatePrivateStoryFieldById('${characterId}', '${versionId}', '${story.id}', 'unlockPrompt', this.value, 60)">
+    <div class="char-count-display" data-target="storyUnlockPrompt-${story.id}" 
+         style="text-align: right; font-size: 0.75em; ${(story.unlockPrompt || '').length > 60 ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'} margin-top: 4px;">
+        ${(story.unlockPrompt || '').length} / 60 ${t('chars')}
+    </div>
+</div>
+
+        <!-- 標題欄位 -->
+        <div style="margin-bottom: 0px;">
+            <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('eventTitle')}</label>
+            <input type="text" 
+                   class="field-input" 
+                   id="storyTitle-${story.id}"
+                   data-story-id="${story.id}"
+                   placeholder="${t('eventTitlePlaceholder')}"
+                   style="width: 100%; ${(story.title || '').length > 30 ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : ''}"
+                   value="${story.title || ''}"
+                   oninput="updatePrivateStoryFieldById('${characterId}', '${versionId}', '${story.id}', 'title', this.value, 30)">
+            <div class="char-count-display" data-target="storyTitle-${story.id}" 
+                 style="text-align: right; font-size: 0.75em; ${(story.title || '').length > 30 ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'} margin-top: 4px;">
+                ${(story.title || '').length} / 30 ${t('chars')}
+            </div>
+        </div>
+
+        <!-- 內容欄位 -->
+        <div style="margin-bottom: 0px;">
+            <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('eventContent')}</label>
+            <textarea class="field-input" 
+                      id="storyContent-${story.id}"
+                      data-story-id="${story.id}"
+                      placeholder="${t('eventContentPlaceholder')}"
+                      style="width: 100%; height: 120px; resize: vertical; ${(story.content || '').length > 2000 ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : ''}"
+                      oninput="updatePrivateStoryFieldById('${characterId}', '${versionId}', '${story.id}', 'content', this.value, 2000); autoResizeTextarea(this);"
+                      onfocus="showAdditionalFullscreenBtn(this);"
+                      onblur="hideAdditionalFullscreenBtn(this);">${story.content || ''}</textarea>
+            
+            <!-- 底部工具列：全螢幕按鈕 + 字數統計 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                <button class="fullscreen-btn-base fullscreen-btn-toolbar" 
+                        onclick="openFullscreenEditor('storyContent-${story.id}', '${t('privateStory')} ${index + 1}')" 
+                        title="${t('fullscreenEdit')}">
+                    ⛶
+                </button>
+                
+                <div class="char-count-display" data-target="storyContent-${story.id}" 
+                     style="font-size: 0.75em; ${(story.content || '').length > 2000 ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'}">
+                    ${(story.content || '').length} / 2000 ${t('chars')}
+                </div>
+            </div>
+        </div>
+
+<!-- 好感度階段設置欄位 -->
+<div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <label style="font-size: 0.9em; color: var(--text-color); white-space: nowrap; flex-shrink: 0;">
+            ${t('affectionLevel')}
+        </label>
+        <select class="field-input" 
+                style="max-width:100px; flex: 1; padding: 8px 12px;"
+                onchange="togglePrivateStoryAffection('${characterId}', '${versionId}', '${story.id}', this.value)">
+            <option value="acquaintance" ${story.affectionLevel === 'acquaintance' ? 'selected' : ''}>
+                👋 ${t('acquaintance')}
+            </option>
+            <option value="friend" ${story.affectionLevel === 'friend' ? 'selected' : ''}>
+                🤝 ${t('friend')}
+            </option>
+            <option value="crush" ${story.affectionLevel === 'crush' ? 'selected' : ''}>
+                💗 ${t('crush')}
+            </option>
+            <option value="love" ${story.affectionLevel === 'love' ? 'selected' : ''}>
+                ❤️ ${t('love')}
+            </option>
+            <option value="married" ${story.affectionLevel === 'married' ? 'selected' : ''}>
+                💍 ${t('married')}
+            </option>
+        </select>
+    </div>
+</div>
+    `;
+}
+
+
+// 重新排序私密物語
+function reorderPrivateStories(characterId, versionId, oldIndex, newIndex) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+    
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version.privateStories) return;
+    
+    // 執行陣列重排
+    const movedStory = version.privateStories.splice(oldIndex, 1)[0];
+    version.privateStories.splice(newIndex, 0, movedStory);
+    
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+    
+    // 🔧 改善：更新編號
+    updatePrivateStoryNumbers(version, versionId);
+}
+
+// 只更新私密物語的編號顯示（支援對比模式）
+function updatePrivateStoryNumbers(version, versionId = null) {
+    if (!version.privateStories) return;
+    
+    // 如果有 versionId，先找到對應的版本容器
+    let searchContainer = document;
+    if (versionId) {
+        const versionContainer = document.querySelector(`#private-stories-list-${versionId}`)?.closest('.version-content');
+        if (versionContainer) {
+            searchContainer = versionContainer;
+        }
+    }
+    
+    version.privateStories.forEach((story, index) => {
+        // 在指定容器內查找元素
+        const titleExpanded = searchContainer.querySelector(`#story-title-expanded-${story.id}`);
+        if (titleExpanded) {
+            const h4 = titleExpanded.querySelector('h4');
+            if (h4) {
+                const icon = getAffectionIcon(story.affectionLevel);
+                h4.innerHTML = `${icon} ${t('privateStory')} ${index + 1}`;
+            }
+        }
+        
+        // 更新折疊狀態的編號
+        const titleCollapsed = searchContainer.querySelector(`#story-collapsed-title-text-${story.id}`);
+        if (titleCollapsed) {
+            const icon = getAffectionIcon(story.affectionLevel);
+            const currentTitle = story.title || t('unnamedEvent');
+            titleCollapsed.textContent = `${icon} ${t('privateStory')} ${index + 1}：${currentTitle}`;
+        }
+    });
 }
