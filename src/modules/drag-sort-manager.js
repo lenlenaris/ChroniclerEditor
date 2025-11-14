@@ -285,18 +285,20 @@ static handleVersionReorder(type, itemId, container, evt) {
     const versionItems = Array.from(container.querySelectorAll('.version-item'));
     const newVersionOrder = [];
     
-    versionItems.forEach(item => {
-        const onClick = item.getAttribute('onclick');
-        if (onClick) {
-            // 提取版本ID
-            const match = onClick.match(/selectSidebarItem\([^,]+,\s*'[^']+',\s*'([^']+)'\)/);
-            if (match) {
-                newVersionOrder.push(match[1]);
-            }
-        }
-    });
-    
-    
+versionItems.forEach(item => {
+    const versionId = item.getAttribute('data-version-id');
+    if (versionId) {
+        newVersionOrder.push(versionId);
+    }
+});
+
+console.log(`📋 版本重新排序 [${type}/${itemId}]:`, newVersionOrder);
+
+// 驗證是否成功提取到版本ID
+if (newVersionOrder.length === 0) {
+    console.error('❌ 無法提取版本ID，排序失敗');
+    return;
+}
     
     // 立即應用新排序
     this.applyVersionOrder(type, itemId, newVersionOrder);

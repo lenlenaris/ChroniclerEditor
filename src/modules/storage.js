@@ -169,23 +169,32 @@ async function loadData() {
         // 遷移舊資料的時間戳
         TimestampManager.migrateOldData();
 
-        // 恢復所有項目的版本排序 
+// 恢復所有項目的版本排序 
         try {
+            console.log('🔄 開始恢復版本排序...');
+            
             [
                 { type: 'character', items: characters },
+                { type: 'userpersona', items: userPersonas },
                 { type: 'worldbook', items: worldBooks },
                 { type: 'custom', items: customSections },
-                { type: 'loveydovey', items: loveyDoveyCharacters } 
+                { type: 'loveydovey', items: loveyDoveyCharacters },
+                { type: 'preset', items: presets }
             ].forEach(({ type, items }) => {
+                if (!items || items.length === 0) return;
+                
                 items.forEach(item => {
                     const savedVersionOrder = DragSortManager.loadVersionOrder(type, item.id);
-                    if (savedVersionOrder) {
+                    if (savedVersionOrder && savedVersionOrder.length > 0) {
+                        console.log(`✅ 恢復 ${type} [${item.name}] 的版本排序:`, savedVersionOrder);
                         DragSortManager.applyVersionOrder(type, item.id, savedVersionOrder);
                     }
                 });
             });
+            
+            console.log('✅ 版本排序恢復完成');
         } catch (error) {
-            console.warn('恢復版本排序失敗:', error);
+            console.error('❌ 恢復版本排序失敗:', error);
         }
 
         // 恢復所有類型的自定義【項目】排序
