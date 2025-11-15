@@ -564,20 +564,23 @@ static rerenderVersionPanel(itemType, itemId, versionId) {
                 case 'character':
                     return this.renderCharacterVersionContent(item, version);
                 case 'loveydovey':
-            // 卿卿我我：先返回內容，然後初始化拖曳
-            const loveyDoveyHTML = LoveyDoveyRenderer.renderVersionContent(item, version);
-            setTimeout(() => {
-                // 初始化附加資訊拖曳
-                
-                if (typeof DragSortManager !== 'undefined') {
-                    DragSortManager.enableAdditionalInfoDragSort(item.id, version.id);
-                }
-                // 初始化創作者事件拖曳
-                if (typeof enableCreatorEventsDragSort === 'function') {
-                    enableCreatorEventsDragSort(item.id, version.id);
-                }
-            }, 200);
-            return loveyDoveyHTML;     
+                    // 卿卿我我:先返回內容,然後初始化拖曳
+                    const loveyDoveyHTML = LoveyDoveyRenderer.renderVersionContent(item, version);
+                    setTimeout(() => {
+                        // 初始化附加資訊拖曳
+                        if (typeof DragSortManager !== 'undefined') {
+                            DragSortManager.enableAdditionalInfoDragSort(item.id, version.id);
+                        }
+                        // 初始化創作者事件拖曳
+                        if (typeof enableCreatorEventsDragSort === 'function') {
+                            enableCreatorEventsDragSort(item.id, version.id);
+                        }
+                        // 初始化私密物語拖曳
+                        if (typeof enablePrivateStoriesDragSort === 'function') {
+                            enablePrivateStoriesDragSort(item.id, version.id);
+                        }
+                    }, 200);
+                    return loveyDoveyHTML;     
                 case 'userpersona':
                     return this.renderUserPersonaVersionContent(item, version);
                 case 'worldbook':

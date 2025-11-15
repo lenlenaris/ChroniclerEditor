@@ -2540,7 +2540,7 @@ function restorePrivateStoryCollapseStates(states) {
     });
 }
 
-// 切換私密物語的折疊狀態（懶加載版本）
+// 切換私密物語的折疊狀態(懶加載版本)
 function togglePrivateStoryCollapseLazy(clickedElement, characterId, versionId, storyId, index = null) {
     const itemContainer = clickedElement.closest('.private-story-item');
     if (!itemContainer) return;
@@ -2554,6 +2554,24 @@ function togglePrivateStoryCollapseLazy(clickedElement, characterId, versionId, 
     const isExpanded = content.style.display !== 'none';
 
     if (isExpanded) {
+        // 🔧 折疊前:先從資料源更新摺疊標題的 emoji
+        const character = loveyDoveyCharacters.find(c => c.id === characterId);
+        if (character) {
+            const version = character.versions.find(v => v.id === versionId);
+            if (version && version.privateStories) {
+                const story = version.privateStories.find(s => s.id === storyId);
+                if (story) {
+                    // 從資料源取得正確的好感度
+                    const correctIcon = getAffectionIcon(story.affectionLevel);
+                    const realIndex = version.privateStories.findIndex(s => s.id === storyId) + 1;
+                    const titleElement = document.getElementById(`story-collapsed-title-text-${storyId}`);
+                    if (titleElement) {
+                        titleElement.textContent = `${correctIcon} ${t('privateStory')} ${realIndex}:${story.title || t('unnamedEvent')}`;
+                    }
+                }
+            }
+        }
+        
         // 折疊
         content.style.display = 'none';
         titleExpanded.style.display = 'none';
@@ -2567,7 +2585,6 @@ function togglePrivateStoryCollapseLazy(clickedElement, characterId, versionId, 
                 if (version && version.privateStories) {
                     const realIndex = version.privateStories.findIndex(story => story.id === storyId);
                     if (realIndex !== -1) {
-                        // 🆕 關鍵修改：將 content 這個 div 元素直接傳遞給載入函數
                         loadPrivateStoryContent(content, characterId, versionId, storyId, realIndex);
                     }
                 }
@@ -2577,45 +2594,9 @@ function togglePrivateStoryCollapseLazy(clickedElement, characterId, versionId, 
         titleExpanded.style.display = 'block';
         titleCollapsed.style.display = 'none';
     }
-}
-
-// 切換私密物語的折疊狀態（懶加載版本）
-function togglePrivateStoryCollapseLazy(clickedElement, characterId, versionId, storyId, index = null) {
-    const itemContainer = clickedElement.closest('.private-story-item');
-    if (!itemContainer) return;
-
-    const content = itemContainer.querySelector(`#private-content-${storyId}`);
-    const titleExpanded = itemContainer.querySelector(`#story-title-expanded-${storyId}`);
-    const titleCollapsed = itemContainer.querySelector(`#story-title-collapsed-${storyId}`);
-
-    if (!content || !titleExpanded || !titleCollapsed) return;
-
-    const isExpanded = content.style.display !== 'none';
-
-    if (isExpanded) {
-        // 折疊
-        content.style.display = 'none';
-        titleExpanded.style.display = 'none';
-        titleCollapsed.style.display = 'flex';
-    } else {
-        // 展開 - 檢查是否需要懶加載內容
-        if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
-            const character = loveyDoveyCharacters.find(c => c.id === characterId);
-            if (character) {
-                const version = character.versions.find(v => v.id === versionId);
-                if (version && version.privateStories) {
-                    const realIndex = version.privateStories.findIndex(story => story.id === storyId);
-                    if (realIndex !== -1) {
-                        // 🆕 關鍵修改：將 content 這個 div 元素直接傳遞給載入函數
-                        loadPrivateStoryContent(content, characterId, versionId, storyId, realIndex);
-                    }
-                }
-            }
-        }
-        content.style.display = 'block';
-        titleExpanded.style.display = 'block';
-        titleCollapsed.style.display = 'none';
-    }
+    
+    // 保存折疊狀態
+    saveCollapseStates();
 }
 
 // 載入私密物語詳細內容
