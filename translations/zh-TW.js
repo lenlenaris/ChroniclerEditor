@@ -1075,7 +1075,22 @@ window.ChroniclerTranslations['zh-TW'] = {
 
     //聯絡
     contactTitle: 'Feedback',
-    contactMethodsContent: '若有使用建議或發現Bug，歡迎透過以下方式回報：<br><br>📋 <a href="https://github.com/lenlenaris/ChroniclerEditor/issues" target="_blank" style="color: var(--accent-color);">GitHub Issues</a><br>🍭 <a href="https://marshmallow-qa.com/wofpdrozz47jwkz?t=bTwcNR&utm_medium=url_text&utm_source=promotion" target="_blank" style="color: var(--accent-color);">匿名棉花糖</a><br><br><small style="color: var(--text-muted-color); opacity: 0.7;">Created by @lenlenaris with AI assistance (YES I LOVE Claude)</small>'
+    contactMethodsContent: '若有使用建議或發現Bug，歡迎透過以下方式回報：<br><br>📋 <a href="https://github.com/lenlenaris/ChroniclerEditor/issues" target="_blank" style="color: var(--accent-color);">GitHub Issues</a><br>🍭 <a href="https://marshmallow-qa.com/wofpdrozz47jwkz?t=bTwcNR&utm_medium=url_text&utm_source=promotion" target="_blank" style="color: var(--accent-color);">匿名棉花糖</a><br><br><small style="color: var(--text-muted-color); opacity: 0.7;">Created by @lenlenaris with AI assistance (YES I LOVE Claude)</small>',
 
+    // ========================================
+    // 搜尋取代功能（全螢幕編輯器）
+    // ========================================
+    searchTextPlaceholder: '搜尋文字...',
+    replacePlaceholder: '取代為...',
+    replace: '取代',
+    replaceAll: '全部取代',
+    previousMatch: '上一個',
+    nextMatch: '下一個',
+    noMatches: '無符合項目',
+    replacedCount: '已取代 $1 處',
+    searchAndReplace: '搜尋與取代',
+    insertChar: '插入 {{char}}',
+    insertUser: '插入 {{user}}',
+    wholeWord: '全字匹配'
 
 };

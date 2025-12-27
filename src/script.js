@@ -1458,30 +1458,83 @@ class FullscreenEditor {
                 0 ${t('chars')} / 0 tokens
             </div>
         `;
-        
+
         const content = document.createElement('div');
         content.className = 'fullscreen-editor-content';
-        
+
+        // 編輯器工具列
+        const editorToolbar = document.createElement('div');
+        editorToolbar.className = 'fullscreen-editor-toolbar';
+        editorToolbar.innerHTML = `
+            <div class="editor-toolbar-left">
+                <button class="editor-toolbar-btn" onclick="FullscreenEditor.toggleSearchPanel()" title="${t('searchAndReplace')}" id="search-toggle-btn">
+                    ${IconManager.search({ width: 16, height: 16 })}
+                </button>
+                <span class="toolbar-separator"></span>
+                <button class="editor-toolbar-btn" onclick="FullscreenEditor.insertText('{{char}}')" title="${t('insertChar')}">
+                    {{char}}
+                </button>
+                <button class="editor-toolbar-btn" onclick="FullscreenEditor.insertText('{{user}}')" title="${t('insertUser')}">
+                    {{user}}
+                </button>
+            </div>
+        `;
+
+        // 搜尋取代面板（預設隱藏）
+        const searchPanel = document.createElement('div');
+        searchPanel.className = 'fullscreen-search-panel';
+        searchPanel.id = 'fullscreen-search-panel';
+        searchPanel.style.display = 'none';
+        searchPanel.innerHTML = `
+            <div class="search-panel-row">
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-panel-input" id="fullscreen-search-input" placeholder="${t('searchTextPlaceholder')}">
+                </div>
+                <span class="search-match-count" id="search-match-count"></span>
+                <button class="search-panel-btn" onclick="FullscreenEditor.findPrev()" title="${t('previousMatch')}">▲</button>
+                <button class="search-panel-btn" onclick="FullscreenEditor.findNext()" title="${t('nextMatch')}">▼</button>
+            </div>
+            <div class="search-panel-row">
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-panel-input" id="fullscreen-replace-input" placeholder="${t('replacePlaceholder')}">
+                </div>
+                <button class="search-panel-btn replace-btn" onclick="FullscreenEditor.replaceCurrent()">${t('replace')}</button>
+                <button class="search-panel-btn replace-btn" onclick="FullscreenEditor.replaceAll()">${t('replaceAll')}</button>
+            </div>
+            <div class="search-panel-options">
+                <label class="search-option-label">
+                    <input type="checkbox" id="search-whole-word" onchange="FullscreenEditor.performSearch()">
+                    <span>${t('wholeWord')}</span>
+                </label>
+            </div>
+        `;
+
         const textarea = document.createElement('textarea');
         textarea.className = 'fullscreen-editor-textarea';
         textarea.id = 'fullscreen-textarea';
         textarea.placeholder = originalTextarea.placeholder;
         textarea.value = originalTextarea.value;
-        
+
+        content.appendChild(editorToolbar);
+        content.appendChild(searchPanel);
         content.appendChild(textarea);
-        
+
         const footer = document.createElement('div');
         footer.className = 'fullscreen-editor-footer';
         footer.innerHTML = `
             <button class="btn btn-secondary" onclick="FullscreenEditor.close()" style="padding: 6px 16px; font-size: 0.85em; min-height: auto;">${t('close')}</button>
         `;
-        
+
         container.appendChild(header);
         container.appendChild(content);
         container.appendChild(footer);
         overlay.appendChild(container);
-        
+
         document.body.appendChild(overlay);
+
+        // 設定搜尋工具列事件
+        this.setupSearchEvents();
+
         // 檢測並緩存卿卿我我欄位的字數限制
         const loveyDoveyInfo = this.detectLoveyDoveyField(originalTextarea);
 
@@ -1492,7 +1545,10 @@ class FullscreenEditor {
             //  緩存卿卿我我欄位資訊
             isLoveyDoveyField: loveyDoveyInfo.isLoveyDovey,
             maxLength: loveyDoveyInfo.maxLength,
-            fieldType: loveyDoveyInfo.isLoveyDovey ? 'loveydovey' : 'normal'
+            fieldType: loveyDoveyInfo.isLoveyDovey ? 'loveydovey' : 'normal',
+            // 搜尋取代狀態
+            searchMatches: [],
+            currentMatchIndex: -1
         };
         
         setTimeout(() => {
@@ -1521,6 +1577,11 @@ class FullscreenEditor {
 textarea.addEventListener('input', () => {
     this.syncToOriginal();
     this.updateStats();
+    // 如果有搜尋關鍵字，重新搜尋
+    const searchInput = document.getElementById('fullscreen-search-input');
+    if (searchInput?.value) {
+        this.performSearch();
+    }
     // 同時觸發主頁面統計更新（延遲，避免卡頓）
     setTimeout(() => {
         updateAllPageStats();
@@ -1609,15 +1670,36 @@ if (this.currentEditor.isLoveyDoveyField) {
     
     static handleKeydown = (e) => {
         if (e.key === 'Escape') {
-            FullscreenEditor.close();
+            // 如果搜尋框有內容，清除它；否則關閉全螢幕編輯器
+            const searchInput = document.getElementById('fullscreen-search-input');
+            if (searchInput && searchInput.value) {
+                FullscreenEditor.clearSearch();
+                FullscreenEditor.currentEditor?.fullscreenTextarea.focus();
+            } else {
+                FullscreenEditor.close();
+            }
         } else if (e.ctrlKey && e.key === 's') {
             e.preventDefault();
-            
+
             if (FullscreenEditor.currentEditor) {
                 FullscreenEditor.syncToOriginal();
             }
-            
+
             saveData();
+        } else if (e.ctrlKey && (e.key === 'f' || e.key === 'h')) {
+            // Ctrl+F 或 Ctrl+H 切換搜尋面板
+            e.preventDefault();
+            const searchPanel = document.getElementById('fullscreen-search-panel');
+            if (searchPanel && searchPanel.style.display === 'none') {
+                FullscreenEditor.toggleSearchPanel();
+            } else {
+                // 如果已開啟，聚焦到搜尋框
+                const searchInput = document.getElementById('fullscreen-search-input');
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
         }
     }
 
@@ -1687,6 +1769,296 @@ static detectLoveyDoveyField(originalTextarea) {
 
     return { isLoveyDovey: true, maxLength: maxLength };
 }
+
+    // ===== 搜尋取代功能 =====
+    static setupSearchEvents() {
+        const searchInput = document.getElementById('fullscreen-search-input');
+        const replaceInput = document.getElementById('fullscreen-replace-input');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', () => this.performSearch());
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        this.findPrev();
+                    } else {
+                        this.findNext();
+                    }
+                } else if (e.key === 'Escape') {
+                    e.stopPropagation(); // 防止觸發全域 Escape
+                    this.clearSearch();
+                    this.currentEditor?.fullscreenTextarea.focus();
+                }
+            });
+        }
+
+        if (replaceInput) {
+            replaceInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.replaceCurrent();
+                } else if (e.key === 'Escape') {
+                    e.stopPropagation();
+                    this.clearSearch();
+                    this.currentEditor?.fullscreenTextarea.focus();
+                }
+            });
+        }
+    }
+
+    static clearSearch() {
+        const searchInput = document.getElementById('fullscreen-search-input');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+
+        if (this.currentEditor) {
+            this.currentEditor.searchMatches = [];
+            this.currentEditor.currentMatchIndex = -1;
+        }
+
+        this.updateMatchCount();
+    }
+
+    static performSearch() {
+        if (!this.currentEditor) return;
+
+        const searchInput = document.getElementById('fullscreen-search-input');
+        const wholeWordCheckbox = document.getElementById('search-whole-word');
+        const searchText = searchInput?.value || '';
+        const wholeWord = wholeWordCheckbox?.checked || false;
+        const textarea = this.currentEditor.fullscreenTextarea;
+        const content = textarea.value;
+
+        this.currentEditor.searchMatches = [];
+        this.currentEditor.currentMatchIndex = -1;
+
+        if (searchText.length === 0) {
+            this.updateMatchCount();
+            return;
+        }
+
+        // 找出所有匹配位置（不區分大小寫）
+        const searchLower = searchText.toLowerCase();
+        const contentLower = content.toLowerCase();
+        let pos = 0;
+
+        // 判斷字元是否為單字邊界（非字母數字）
+        const isWordBoundary = (char) => {
+            if (!char) return true; // 字串開頭或結尾
+            return !/[a-zA-Z0-9\u4e00-\u9fff]/.test(char);
+        };
+
+        while (pos < contentLower.length) {
+            const index = contentLower.indexOf(searchLower, pos);
+            if (index === -1) break;
+
+            // 如果啟用全字匹配，檢查前後是否為單字邊界
+            if (wholeWord) {
+                const charBefore = content[index - 1];
+                const charAfter = content[index + searchText.length];
+
+                if (!isWordBoundary(charBefore) || !isWordBoundary(charAfter)) {
+                    pos = index + 1;
+                    continue; // 跳過非完整單字的匹配
+                }
+            }
+
+            this.currentEditor.searchMatches.push({
+                start: index,
+                end: index + searchText.length
+            });
+            pos = index + 1;
+        }
+
+        // 設定索引到第一個匹配（但不跳轉，讓用戶繼續輸入）
+        if (this.currentEditor.searchMatches.length > 0) {
+            this.currentEditor.currentMatchIndex = 0;
+        }
+
+        this.updateMatchCount();
+    }
+
+    static findNext() {
+        if (!this.currentEditor || this.currentEditor.searchMatches.length === 0) return;
+
+        let nextIndex = this.currentEditor.currentMatchIndex + 1;
+        if (nextIndex >= this.currentEditor.searchMatches.length) {
+            nextIndex = 0; // 循環到開頭
+        }
+
+        this.currentEditor.currentMatchIndex = nextIndex;
+        this.highlightMatch(nextIndex);
+        this.updateMatchCount();
+    }
+
+    static findPrev() {
+        if (!this.currentEditor || this.currentEditor.searchMatches.length === 0) return;
+
+        let prevIndex = this.currentEditor.currentMatchIndex - 1;
+        if (prevIndex < 0) {
+            prevIndex = this.currentEditor.searchMatches.length - 1; // 循環到結尾
+        }
+
+        this.currentEditor.currentMatchIndex = prevIndex;
+        this.highlightMatch(prevIndex);
+        this.updateMatchCount();
+    }
+
+    static highlightMatch(index) {
+        if (!this.currentEditor || index < 0 || index >= this.currentEditor.searchMatches.length) return;
+
+        const match = this.currentEditor.searchMatches[index];
+        const textarea = this.currentEditor.fullscreenTextarea;
+
+        // 先設定選取範圍，再 focus（這樣選取會被保留）
+        textarea.setSelectionRange(match.start, match.end);
+        textarea.focus();
+
+        // 捲動到選取位置
+        const lineHeight = parseInt(getComputedStyle(textarea).lineHeight) || 20;
+        const textBeforeMatch = textarea.value.substring(0, match.start);
+        const lineNumber = textBeforeMatch.split('\n').length;
+        const scrollPosition = (lineNumber - 3) * lineHeight;
+        textarea.scrollTop = Math.max(0, scrollPosition);
+    }
+
+    static toggleSearchPanel() {
+        const searchPanel = document.getElementById('fullscreen-search-panel');
+        const searchBtn = document.getElementById('search-toggle-btn');
+        if (searchPanel) {
+            const isVisible = searchPanel.style.display !== 'none';
+            searchPanel.style.display = isVisible ? 'none' : 'block';
+
+            // 更新按鈕狀態
+            if (searchBtn) {
+                searchBtn.classList.toggle('active', !isVisible);
+            }
+
+            // 如果展開，自動聚焦到搜尋框
+            if (!isVisible) {
+                setTimeout(() => {
+                    const searchInput = document.getElementById('fullscreen-search-input');
+                    if (searchInput) {
+                        searchInput.focus();
+                    }
+                }, 50);
+            } else {
+                // 收起時清除搜尋
+                this.clearSearch();
+            }
+        }
+    }
+
+    static insertText(text) {
+        if (!this.currentEditor) return;
+
+        const textarea = this.currentEditor.fullscreenTextarea;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const before = textarea.value.substring(0, start);
+        const after = textarea.value.substring(end);
+
+        textarea.value = before + text + after;
+
+        // 設定游標位置到插入文字之後
+        const newCursorPos = start + text.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+        textarea.focus();
+
+        // 同步到原始欄位
+        this.syncToOriginal();
+        this.updateStats();
+    }
+
+    static updateMatchCount() {
+        const countElement = document.getElementById('search-match-count');
+        if (!countElement) return;
+
+        if (!this.currentEditor || this.currentEditor.searchMatches.length === 0) {
+            const searchInput = document.getElementById('fullscreen-search-input');
+            if (searchInput?.value) {
+                countElement.textContent = t('noMatches');
+                countElement.style.color = 'var(--danger-color)';
+            } else {
+                countElement.textContent = '';
+            }
+        } else {
+            const current = this.currentEditor.currentMatchIndex + 1;
+            const total = this.currentEditor.searchMatches.length;
+            countElement.textContent = `${current} / ${total}`;
+            countElement.style.color = 'var(--text-muted)';
+        }
+    }
+
+    static replaceCurrent() {
+        if (!this.currentEditor || this.currentEditor.searchMatches.length === 0) return;
+        if (this.currentEditor.currentMatchIndex < 0) return;
+
+        const replaceInput = document.getElementById('fullscreen-replace-input');
+        const replaceText = replaceInput?.value || '';
+        const textarea = this.currentEditor.fullscreenTextarea;
+        const match = this.currentEditor.searchMatches[this.currentEditor.currentMatchIndex];
+
+        const before = textarea.value.substring(0, match.start);
+        const after = textarea.value.substring(match.end);
+        textarea.value = before + replaceText + after;
+
+        // 同步到原始欄位
+        this.syncToOriginal();
+        this.updateStats();
+
+        // 重新搜尋並定位到下一個
+        this.performSearch();
+
+        // 如果還有匹配，跳到當前位置（因為索引可能變了）
+        if (this.currentEditor.searchMatches.length > 0) {
+            const newIndex = Math.min(this.currentEditor.currentMatchIndex, this.currentEditor.searchMatches.length - 1);
+            this.currentEditor.currentMatchIndex = newIndex;
+            this.highlightMatch(newIndex);
+        }
+    }
+
+    static replaceAll() {
+        if (!this.currentEditor) return;
+
+        const searchInput = document.getElementById('fullscreen-search-input');
+        const replaceInput = document.getElementById('fullscreen-replace-input');
+        const wholeWordCheckbox = document.getElementById('search-whole-word');
+        const searchText = searchInput?.value || '';
+        const replaceText = replaceInput?.value || '';
+        const wholeWord = wholeWordCheckbox?.checked || false;
+
+        if (!searchText) return;
+
+        const textarea = this.currentEditor.fullscreenTextarea;
+        const originalLength = this.currentEditor.searchMatches.length;
+
+        // 使用正則表達式進行全部取代（不區分大小寫）
+        const escapedSearch = searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        // 如果啟用全字匹配，使用單字邊界
+        const pattern = wholeWord ? `\\b${escapedSearch}\\b` : escapedSearch;
+        const regex = new RegExp(pattern, 'gi');
+        textarea.value = textarea.value.replace(regex, replaceText);
+
+        // 同步到原始欄位
+        this.syncToOriginal();
+        this.updateStats();
+
+        // 重新搜尋（應該沒有匹配了）
+        this.performSearch();
+
+        // 顯示取代結果
+        if (originalLength > 0) {
+            const countElement = document.getElementById('search-match-count');
+            if (countElement) {
+                countElement.textContent = t('replacedCount', originalLength);
+                countElement.style.color = 'var(--success-color)';
+            }
+        }
+    }
 }
 
 // ===== 12. 通知管理器 =====

@@ -719,6 +719,7 @@ details summary::marker {
     background: var(--content-bg);
 }
 
+/* 全螢幕編輯器文字區域 */
 .fullscreen-editor-textarea {
     flex: 1;
     width: 100%;
@@ -736,6 +737,7 @@ details summary::marker {
     transition: border-color 0.2s ease;
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
+    box-sizing: border-box;
 }
 
 .fullscreen-editor-textarea:focus {
@@ -767,6 +769,165 @@ details summary::marker {
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
+}
+
+/* 全螢幕編輯器工具列 */
+.fullscreen-editor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    margin-bottom: 8px;
+}
+
+.editor-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.editor-toolbar-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--content-bg);
+    color: var(--text-color);
+    font-size: var(--font-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-height: 32px;
+}
+
+.editor-toolbar-btn:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.editor-toolbar-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.editor-toolbar-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--border-color);
+    margin: 0 8px;
+}
+
+/* 搜尋取代面板 */
+.fullscreen-search-panel {
+    padding: 12px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+}
+
+.search-panel-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-panel-row:not(:last-child) {
+    margin-bottom: 8px;
+}
+
+.search-input-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-panel-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--content-bg);
+    color: var(--text-color);
+    font-size: var(--font-sm);
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.search-panel-input:focus {
+    border-color: var(--primary-color);
+}
+
+.search-panel-input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-match-count {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    min-width: 60px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.search-panel-options {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.search-option-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    cursor: pointer;
+    user-select: none;
+}
+
+.search-option-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.search-panel-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--content-bg);
+    color: var(--text-color);
+    font-size: var(--font-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.search-panel-btn:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+}
+
+.search-panel-btn.replace-btn {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.search-panel-btn.replace-btn:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
 }
 
 .fullscreen-btn {

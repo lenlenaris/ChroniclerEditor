@@ -1071,6 +1071,22 @@ window.ChroniclerTranslations['en-US'] = {
     // 19. Contact & Feedback
     // ========================================
     contactTitle: 'Feedback',
-    contactMethodsContent: 'Found a bug or have suggestions? Please report via:<br><br>📋 <a href="https://github.com/lenlenaris/ChroniclerEditor/issues" target="_blank" style="color: var(--accent-color);">GitHub Issues</a><br>🍭 <a href="https://marshmallow-qa.com/wofpdrozz47jwkz?t=bTwcNR&utm_medium=url_text&utm_source=promotion" target="_blank" style="color: var(--accent-color);">Marshmallow</a><br><br><small style="color: var(--text-muted-color); opacity: 0.7;">Created by @lenlenaris with AI assistance (YES I LOVE Claude)</small>'
+    contactMethodsContent: 'Found a bug or have suggestions? Please report via:<br><br>📋 <a href="https://github.com/lenlenaris/ChroniclerEditor/issues" target="_blank" style="color: var(--accent-color);">GitHub Issues</a><br>🍭 <a href="https://marshmallow-qa.com/wofpdrozz47jwkz?t=bTwcNR&utm_medium=url_text&utm_source=promotion" target="_blank" style="color: var(--accent-color);">Marshmallow</a><br><br><small style="color: var(--text-muted-color); opacity: 0.7;">Created by @lenlenaris with AI assistance (YES I LOVE Claude)</small>',
+
+    // ========================================
+    // 20. Search & Replace (Fullscreen Editor)
+    // ========================================
+    searchTextPlaceholder: 'Search text...',
+    replacePlaceholder: 'Replace with...',
+    replace: 'Replace',
+    replaceAll: 'Replace All',
+    previousMatch: 'Previous',
+    nextMatch: 'Next',
+    noMatches: 'No matches',
+    replacedCount: 'Replaced $1 occurrences',
+    searchAndReplace: 'Search & Replace',
+    insertChar: 'Insert {{char}}',
+    insertUser: 'Insert {{user}}',
+    wholeWord: 'Whole word'
 
 };
