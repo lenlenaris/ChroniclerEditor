@@ -3956,10 +3956,54 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ===== 30. 應用程式初始化 =====
+// ===== 30. URL 參數處理 =====
+// 支援透過 URL 參數預設語言和卿卿我我功能
+// 範例: ?lang=zh&loveydovey=on 或 ?lang=en&loveydovey=off
+function applyUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let applied = { lang: false, loveydovey: false };
+
+    // 處理語言參數 (lang=zh 或 lang=en)
+    const langParam = urlParams.get('lang');
+    if (langParam) {
+        const normalizedLang = langParam.toLowerCase();
+        if (normalizedLang === 'zh' || normalizedLang === 'zh-tw' || normalizedLang === 'chinese') {
+            currentLang = 'zh';
+            localStorage.setItem('characterCreatorLang', 'zh');
+            applied.lang = 'zh';
+        } else if (normalizedLang === 'en' || normalizedLang === 'en-us' || normalizedLang === 'english') {
+            currentLang = 'en';
+            localStorage.setItem('characterCreatorLang', 'en');
+            applied.lang = 'en';
+        }
+    }
+
+    // 處理卿卿我我功能參數 (loveydovey=on/off 或 loveydovey=true/false 或 loveydovey=1/0)
+    const loveyDoveyParam = urlParams.get('loveydovey');
+    if (loveyDoveyParam !== null) {
+        const normalizedValue = loveyDoveyParam.toLowerCase();
+        const showLoveyDovey = ['on', 'true', '1', 'yes', 'show'].includes(normalizedValue);
+        const hideLoveyDovey = ['off', 'false', '0', 'no', 'hide'].includes(normalizedValue);
+
+        if (showLoveyDovey || hideLoveyDovey) {
+            // 直接更新 OtherSettings 的設定值
+            OtherSettings.settings.showLoveyDovey = showLoveyDovey;
+            OtherSettings.saveSettings();
+            applied.loveydovey = showLoveyDovey;
+        }
+    }
+
+    return applied;
+}
+
+// ===== 31. 應用程式初始化 =====
 async function initApp() {
     const startTime = performance.now();
     OtherSettings.initialize();
+
+    // 應用 URL 參數（會覆蓋 localStorage 的設定）
+    applyUrlParameters();
+
     OtherSettings.applyLoveyDoveyVisibility(OtherSettings.settings.showLoveyDovey);
     await initTranslations();
     await loadData();
@@ -3973,7 +4017,7 @@ async function initApp() {
     
 }
 
-// ===== 31. 應用程式啟動 =====
+// ===== 32. 應用程式啟動 =====
 document.addEventListener('DOMContentLoaded', async () => {
     await initApp();
 });
