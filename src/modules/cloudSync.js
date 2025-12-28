@@ -122,6 +122,13 @@ class GoogleCloudSync {
 
                 NotificationManager.success(t('googleLoginSuccess'));
 
+                // 登入成功後自動打開雲端同步頁面
+                setTimeout(() => {
+                    if (typeof showCloudSync === 'function') {
+                        showCloudSync();
+                    }
+                }, 500);
+
             } catch (error) {
                 console.error('解析 OAuth 回調資料失敗:', error);
             }
