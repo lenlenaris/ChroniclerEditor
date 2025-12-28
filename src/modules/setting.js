@@ -1,20 +1,22 @@
 // ===== ContentSearchManager - 內容搜尋管理器 =====
 class ContentSearchManager {
     static isSearchOpen = false;
+    static isReplaceMode = false;
     static searchTimeout = null;
     static currentResults = null;
-    
+
     // 開啟搜尋視窗
     static openSearchModal() {
     if (this.isSearchOpen) return;
-    
+    this.isReplaceMode = false;
+
     const modal = document.createElement('div');
     modal.className = 'modal show';
     modal.id = 'content-search-modal';
     modal.style.display = 'block';
-    
+
     modal.innerHTML = `
-    <div class="compact-modal-content" style="max-width: 700px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">   
+    <div class="compact-modal-content" style="max-width: 700px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
         <div class="compact-modal-header" style="justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
                 ${IconManager.search({width: 18, height: 18})}
@@ -22,17 +24,45 @@ class ContentSearchManager {
             </div>
             <button class="close-modal" onclick="ContentSearchManager.closeSearchModal()">×</button>
         </div>
-        
-        <div class="compact-section" style="padding: 0; background: transparent; margin-bottom: var(--spacing-lg);">
-            <input type="text" 
-                   id="content-search-input" 
-                   class="field-input msize-input"
-                   placeholder="${t('searchPlaceholderContent')}"
-                   style="font-size: 0.9em; padding: 12px 16px; width: 100%;"
-                   oninput="ContentSearchManager.handleSearchInput(this.value)"
-                   autofocus>
+
+        <div class="compact-section" style="padding: 0; background: transparent; margin-bottom: var(--spacing-md);">
+            <div style="display: flex; gap: var(--spacing-sm); align-items: stretch;">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <input type="text"
+                           id="content-search-input"
+                           class="field-input msize-input"
+                           placeholder="${t('searchPlaceholderContent')}"
+                           style="font-size: 0.9em; padding: 12px 16px; width: 100%;"
+                           oninput="ContentSearchManager.handleSearchInput(this.value)"
+                           autofocus>
+                    <div id="replace-row" style="display: none; flex-direction: column; gap: var(--spacing-sm);">
+                        <div style="display: flex; gap: var(--spacing-sm); align-items: stretch;">
+                            <input type="text"
+                                   id="content-replace-input"
+                                   class="field-input msize-input"
+                                   placeholder="${t('replacePlaceholder')}"
+                                   style="font-size: 0.9em; padding: 12px 16px; flex: 1;">
+                            <button class="overview-btn hover-primary"
+                                    onclick="ContentSearchManager.replaceAll()"
+                                    style="white-space: nowrap; padding: 0 16px; height: 40px;">
+                                ${t('replaceAll')}
+                            </button>
+                        </div>
+                        <div style="font-size: 0.8em; color: var(--text-muted); line-height: 1.4;">
+                            ${t('replaceTip')}
+                        </div>
+                    </div>
+                </div>
+                <button id="toggle-replace-btn"
+                        onclick="ContentSearchManager.toggleReplaceMode()"
+                        style="padding: 0 12px; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: color 0.2s;"
+                        onmouseover="this.style.color='var(--accent-color)'"
+                        onmouseout="this.style.color='var(--text-muted)'">
+                    <span class="arrow-icon arrow-left"></span>
+                </button>
+            </div>
         </div>
-        
+
         <div id="search-results-container" style="flex: 1; overflow-y: auto; background: var(--header-bg); border-radius: var(--radius-md); padding: var(--spacing-lg);">
             <div style="font-size: 0.9em; text-align: center; color: var(--text-muted); padding: 40px;">
                 ${t('searchEmptyState')}
@@ -76,7 +106,464 @@ class ContentSearchManager {
             ContentSearchManager.closeSearchModal();
         }
     }
-    
+
+    // 切換取代模式
+    static toggleReplaceMode() {
+        this.isReplaceMode = !this.isReplaceMode;
+        const replaceRow = document.getElementById('replace-row');
+        const toggleBtn = document.getElementById('toggle-replace-btn');
+
+        if (replaceRow) {
+            replaceRow.style.display = this.isReplaceMode ? 'flex' : 'none';
+        }
+        if (toggleBtn) {
+            const arrow = toggleBtn.querySelector('.arrow-icon');
+            if (arrow) {
+                arrow.classList.toggle('arrow-left', !this.isReplaceMode);
+                arrow.classList.toggle('arrow-down', this.isReplaceMode);
+            }
+        }
+
+        // 更新搜尋結果中的單筆取代按鈕顯示狀態
+        document.querySelectorAll('.single-replace-btn').forEach(btn => {
+            btn.style.display = this.isReplaceMode ? 'flex' : 'none';
+        });
+
+        // 如果開啟取代模式，聚焦到取代輸入框
+        if (this.isReplaceMode) {
+            setTimeout(() => {
+                document.getElementById('content-replace-input')?.focus();
+            }, 100);
+        }
+    }
+
+    // 全部取代功能
+    static replaceAll() {
+        const searchInput = document.getElementById('content-search-input');
+        const replaceInput = document.getElementById('content-replace-input');
+        const searchText = searchInput?.value?.trim() || '';
+        const replaceText = replaceInput?.value || '';
+
+        if (searchText.length < 2) {
+            alert(t('searchMinChars'));
+            return;
+        }
+
+        if (!this.currentResults) {
+            alert(t('searchNotFound').replace('$1', searchText));
+            return;
+        }
+
+        // 計算總共有多少筆結果
+        const allResults = [
+            ...this.currentResults.characters,
+            ...this.currentResults.userPersonas,
+            ...this.currentResults.worldbooks,
+            ...this.currentResults.customs,
+            ...this.currentResults.loveydovey,
+            ...this.currentResults.presets
+        ];
+
+        if (allResults.length === 0) {
+            alert(t('searchNotFound').replace('$1', searchText));
+            return;
+        }
+
+        // 顯示確認對話框
+        this.showReplaceConfirmation(searchText, replaceText, allResults);
+    }
+
+    // 單筆取代功能
+    static replaceSingle(resultJson) {
+        const searchInput = document.getElementById('content-search-input');
+        const replaceInput = document.getElementById('content-replace-input');
+        const searchText = searchInput?.value?.trim() || '';
+        const replaceText = replaceInput?.value || '';
+
+        if (searchText.length < 2) {
+            alert(t('searchMinChars'));
+            return;
+        }
+
+        // 解析結果物件
+        let result;
+        try {
+            result = JSON.parse(resultJson);
+        } catch (e) {
+            console.error('無法解析結果物件:', e);
+            return;
+        }
+
+        // 執行單筆取代
+        const regex = new RegExp(this.escapeRegex(searchText), 'g');
+        let replacedCount = 0;
+
+        switch (result.type) {
+            case 'character':
+                replacedCount = this.replaceInCharacter(result, regex, replaceText);
+                break;
+            case 'userpersona':
+                replacedCount = this.replaceInUserPersona(result, regex, replaceText);
+                break;
+            case 'worldbook':
+                replacedCount = this.replaceInWorldBook(result, regex, replaceText);
+                break;
+            case 'custom':
+                replacedCount = this.replaceInCustomSection(result, regex, replaceText);
+                break;
+            case 'loveydovey':
+                replacedCount = this.replaceInLoveyDovey(result, regex, replaceText);
+                break;
+            case 'preset':
+                replacedCount = this.replaceInPreset(result, regex, replaceText);
+                break;
+        }
+
+        if (replacedCount > 0) {
+            // 標記已變更
+            markAsChanged();
+
+            // 重新執行搜尋以更新結果
+            if (searchInput?.value) {
+                this.performSearch(searchInput.value);
+            }
+
+            // 顯示完成訊息
+            this.showReplaceResult(replacedCount);
+        }
+    }
+
+    // 顯示取代確認對話框
+    static showReplaceConfirmation(searchText, replaceText, results) {
+        // 按類型分組統計
+        const typeStats = {};
+        results.forEach(r => {
+            const typeName = this.getTypeName(r.type);
+            typeStats[typeName] = (typeStats[typeName] || 0) + 1;
+        });
+
+        const statsList = Object.entries(typeStats).map(([type, count]) =>
+            `${type}: ${count} ${t('itemCount')}`
+        );
+
+        ConfirmationRenderer.render({
+            icon: 'search',
+            title: t('replaceAll'),
+            description: `${t('replaceConfirmDesc').replace('$1', searchText).replace('$2', replaceText || t('emptyString'))}`,
+            listSection: {
+                title: t('affectedItems'),
+                icon: 'file',
+                items: statsList,
+                position: 'after-description'
+            },
+            cancelText: t('cancel'),
+            confirmText: t('replaceAll'),
+            confirmAction: `ContentSearchManager.executeReplaceAll('${this.escapeForAction(searchText)}', '${this.escapeForAction(replaceText)}')`,
+            maxWidth: '450px',
+            isDanger: true
+        });
+    }
+
+    // 執行全部取代
+    static executeReplaceAll(searchText, replaceText) {
+        // 關閉確認對話框
+        document.querySelector('.modal:last-of-type')?.remove();
+
+        if (!this.currentResults) return;
+
+        let replacedCount = 0;
+        const regex = new RegExp(this.escapeRegex(searchText), 'g');
+
+        // 取代角色卡
+        this.currentResults.characters.forEach(result => {
+            replacedCount += this.replaceInCharacter(result, regex, replaceText);
+        });
+
+        // 取代玩家角色
+        this.currentResults.userPersonas.forEach(result => {
+            replacedCount += this.replaceInUserPersona(result, regex, replaceText);
+        });
+
+        // 取代世界書
+        this.currentResults.worldbooks.forEach(result => {
+            replacedCount += this.replaceInWorldBook(result, regex, replaceText);
+        });
+
+        // 取代筆記本
+        this.currentResults.customs.forEach(result => {
+            replacedCount += this.replaceInCustomSection(result, regex, replaceText);
+        });
+
+        // 取代卿卿我我
+        this.currentResults.loveydovey.forEach(result => {
+            replacedCount += this.replaceInLoveyDovey(result, regex, replaceText);
+        });
+
+        // 取代預設提示詞
+        this.currentResults.presets.forEach(result => {
+            replacedCount += this.replaceInPreset(result, regex, replaceText);
+        });
+
+        // 標記已變更並儲存
+        markAsChanged();
+
+        // 重新執行搜尋以更新結果
+        const searchInput = document.getElementById('content-search-input');
+        if (searchInput?.value) {
+            this.performSearch(searchInput.value);
+        }
+
+        // 顯示完成訊息
+        this.showReplaceResult(replacedCount);
+    }
+
+    // 取代角色卡中的內容
+    static replaceInCharacter(result, regex, replaceText) {
+        const character = characters.find(c => c.id === result.itemId);
+        if (!character) return 0;
+
+        const version = character.versions.find(v => v.id === result.versionId);
+        if (!version) return 0;
+
+        const fieldMap = {
+            [t('description')]: 'description',
+            [t('personalityTraits')]: 'personality',
+            [t('plotSetting')]: 'scenario',
+            [t('dialogue')]: 'dialogue',
+            [t('firstMessageField')]: 'firstMessage',
+            [t('creatorNotes')]: 'creatorNotes'
+        };
+
+        const field = fieldMap[result.fieldName];
+        if (field && version[field]) {
+            const matches = version[field].match(regex);
+            if (matches) {
+                version[field] = version[field].replace(regex, replaceText);
+                return matches.length;
+            }
+        }
+        return 0;
+    }
+
+    // 取代玩家角色中的內容
+    static replaceInUserPersona(result, regex, replaceText) {
+        const persona = userPersonas.find(p => p.id === result.itemId);
+        if (!persona) return 0;
+
+        const version = persona.versions.find(v => v.id === result.versionId);
+        if (!version) return 0;
+
+        if (version.description) {
+            const matches = version.description.match(regex);
+            if (matches) {
+                version.description = version.description.replace(regex, replaceText);
+                return matches.length;
+            }
+        }
+        return 0;
+    }
+
+    // 取代世界書中的內容
+    static replaceInWorldBook(result, regex, replaceText) {
+        const worldbook = worldBooks.find(wb => wb.id === result.itemId);
+        if (!worldbook) return 0;
+
+        const version = worldbook.versions.find(v => v.id === result.versionId);
+        if (!version) return 0;
+
+        const entry = version.entries.find(e => e.id === result.entryId);
+        if (!entry) return 0;
+
+        const fieldMap = {
+            [t('entryContent')]: 'content',
+            [t('entryComment')]: 'comment'
+        };
+
+        const field = fieldMap[result.fieldName];
+        if (field && entry[field]) {
+            const matches = entry[field].match(regex);
+            if (matches) {
+                entry[field] = entry[field].replace(regex, replaceText);
+                return matches.length;
+            }
+        }
+        return 0;
+    }
+
+    // 取代筆記本中的內容
+    static replaceInCustomSection(result, regex, replaceText) {
+        const section = customSections.find(s => s.id === result.itemId);
+        if (!section) return 0;
+
+        const version = section.versions.find(v => v.id === result.versionId);
+        if (!version) return 0;
+
+        const field = version.fields?.find(f => f.name === result.fieldName);
+        if (field && field.content) {
+            const matches = field.content.match(regex);
+            if (matches) {
+                field.content = field.content.replace(regex, replaceText);
+                return matches.length;
+            }
+        }
+        return 0;
+    }
+
+    // 取代卿卿我我中的內容
+    static replaceInLoveyDovey(result, regex, replaceText) {
+        const character = loveyDoveyCharacters.find(c => c.id === result.itemId);
+        if (!character) return 0;
+
+        const version = character.versions.find(v => v.id === result.versionId);
+        if (!version) return 0;
+
+        // 基本欄位映射
+        const fieldMap = {
+            [t('characterName')]: 'characterName',
+            [t('age')]: 'age',
+            [t('occupation')]: 'occupation',
+            [t('characterQuote')]: 'characterQuote',
+            [t('publicDescription')]: 'publicDescription',
+            [t('basicInfo')]: 'basicInfo',
+            [t('personality')]: 'personality',
+            [t('speakingStyle')]: 'speakingStyle',
+            [t('scenarioScript')]: 'scenarioScript',
+            [t('characterDialogue')]: 'characterDialogue',
+            [t('likes')]: 'likes',
+            [t('dislikes')]: 'dislikes',
+            [t('tags')]: 'tags'
+        };
+
+        const field = fieldMap[result.fieldName];
+        if (field && version[field]) {
+            const matches = version[field].match(regex);
+            if (matches) {
+                version[field] = version[field].replace(regex, replaceText);
+                return matches.length;
+            }
+        }
+
+        // 處理附加資訊和創作者事件（如果欄位名稱包含這些關鍵字）
+        if (result.fieldName.includes(t('additionalInfo'))) {
+            return this.replaceInLoveyDoveyAdditional(version, result.fieldName, regex, replaceText);
+        }
+        if (result.fieldName.includes(t('creatorEvents'))) {
+            return this.replaceInLoveyDoveyEvents(version, result.fieldName, regex, replaceText);
+        }
+
+        return 0;
+    }
+
+    // 取代卿卿我我附加資訊
+    static replaceInLoveyDoveyAdditional(version, fieldName, regex, replaceText) {
+        if (!version.additionalInfo) return 0;
+
+        // 解析欄位名稱，例如 "附加資訊 1 標題"
+        const match = fieldName.match(/(\d+)/);
+        if (!match) return 0;
+
+        const index = parseInt(match[1]) - 1;
+        const info = version.additionalInfo[index];
+        if (!info) return 0;
+
+        if (fieldName.includes(t('additionalTitle')) && info.title) {
+            const matches = info.title.match(regex);
+            if (matches) {
+                info.title = info.title.replace(regex, replaceText);
+                return matches.length;
+            }
+        }
+        if (fieldName.includes(t('additionalContent')) && info.content) {
+            const matches = info.content.match(regex);
+            if (matches) {
+                info.content = info.content.replace(regex, replaceText);
+                return matches.length;
+            }
+        }
+        return 0;
+    }
+
+    // 取代卿卿我我創作者事件
+    static replaceInLoveyDoveyEvents(version, fieldName, regex, replaceText) {
+        if (!version.creatorEvents) return 0;
+
+        const match = fieldName.match(/(\d+)/);
+        if (!match) return 0;
+
+        const index = parseInt(match[1]) - 1;
+        const event = version.creatorEvents[index];
+        if (!event) return 0;
+
+        const eventFieldMap = {
+            [t('timeAndPlace')]: 'timeAndPlace',
+            [t('eventTitle')]: 'title',
+            [t('eventContent')]: 'content'
+        };
+
+        for (const [key, field] of Object.entries(eventFieldMap)) {
+            if (fieldName.includes(key) && event[field]) {
+                const matches = event[field].match(regex);
+                if (matches) {
+                    event[field] = event[field].replace(regex, replaceText);
+                    return matches.length;
+                }
+            }
+        }
+        return 0;
+    }
+
+    // 取代預設提示詞中的內容
+    static replaceInPreset(result, regex, replaceText) {
+        const preset = presets.find(p => p.id === result.itemId);
+        if (!preset) return 0;
+
+        const version = preset.versions.find(v => v.id === result.versionId);
+        if (!version) return 0;
+
+        const prompt = version.prompts?.find(p => p.identifier === result.promptIdentifier);
+        if (!prompt || !prompt.content) return 0;
+
+        const matches = prompt.content.match(regex);
+        if (matches) {
+            prompt.content = prompt.content.replace(regex, replaceText);
+            return matches.length;
+        }
+        return 0;
+    }
+
+    // 取得類型名稱
+    static getTypeName(type) {
+        const typeNames = {
+            'character': t('character'),
+            'userpersona': t('userPersona'),
+            'worldbook': t('worldBook'),
+            'custom': t('customFields'),
+            'loveydovey': t('loveyDovey'),
+            'preset': t('preset')
+        };
+        return typeNames[type] || type;
+    }
+
+    // 轉義用於 action 的字串
+    static escapeForAction(str) {
+        if (!str) return '';
+        return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    // 顯示取代結果
+    static showReplaceResult(count) {
+        const container = document.getElementById('search-results-container');
+        if (container && count > 0) {
+            const resultMsg = document.createElement('div');
+            resultMsg.style.cssText = 'background: color-mix(in srgb, var(--success-color) 15%, transparent); color: var(--success-color); padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: var(--spacing-md); text-align: center; border: 1px solid color-mix(in srgb, var(--success-color) 30%, transparent);';
+            resultMsg.textContent = t('replacedCount').replace('$1', count);
+            container.insertBefore(resultMsg, container.firstChild);
+
+            // 3秒後移除訊息
+            setTimeout(() => resultMsg.remove(), 3000);
+        }
+    }
+
     // 搜尋輸入處理（防抖）
     static handleSearchInput(value) {
         clearTimeout(this.searchTimeout);
@@ -106,30 +593,40 @@ class ContentSearchManager {
         this.displayResults(results, searchText);
     }
     
+    // 計算匹配數量
+    static countMatches(content, searchText) {
+        if (!content || !searchText) return 0;
+        const regex = new RegExp(this.escapeRegex(searchText), 'gi');
+        const matches = content.match(regex);
+        return matches ? matches.length : 0;
+    }
+
     // 搜尋角色卡
     static searchInCharacters(searchText) {
         const results = [];
         const searchLower = searchText.toLowerCase();
-        
+
         characters.forEach(character => {
             character.versions.forEach(version => {
                 const fields = {
                     [t('description')]: version.description,
                     [t('personalityTraits')]: version.personality,
-                    [t('plotSetting')]: version.scenario, 
-                    [t('dialogue')]: version.dialogue, 
+                    [t('plotSetting')]: version.scenario,
+                    [t('dialogue')]: version.dialogue,
                     [t('firstMessageField')]: version.firstMessage,
-                    [t('creatorNotes')]: version.creatorNotes 
+                    [t('creatorNotes')]: version.creatorNotes
                 };
-                
+
                 Object.entries(fields).forEach(([fieldName, content]) => {
                     if (content && content.toLowerCase().includes(searchLower)) {
                         const snippet = this.createSnippet(content, searchText);
+                        const matchCount = this.countMatches(content, searchText);
                         results.push({
                             itemName: character.name,
                             versionName: version.name,
                             fieldName: fieldName,
                             snippet: snippet,
+                            matchCount: matchCount,
                             itemId: character.id,
                             versionId: version.id,
                             type: 'character'
@@ -138,7 +635,7 @@ class ContentSearchManager {
                 });
             });
         });
-        
+
         return results;
     }
 
@@ -146,64 +643,70 @@ class ContentSearchManager {
     static searchInLoveyDovey(searchText) {
         const results = [];
         const searchLower = searchText.toLowerCase();
-        
+
         loveyDoveyCharacters.forEach(character => {
             character.versions.forEach(version => {
                 const fields = {
-                [t('characterName')]: version.characterName,
-                [t('age')]: version.age, 
-                [t('occupation')]: version.occupation, 
-                [t('characterQuote')]: version.characterQuote,
-                [t('publicDescription')]: version.publicDescription,
-                [t('basicInfo')]: version.basicInfo, 
-                [t('personality')]: version.personality, 
-                [t('speakingStyle')]: version.speakingStyle, 
-                [t('scenarioScript')]: version.scenarioScript, 
-                [t('characterDialogue')]: version.characterDialogue,
-                [t('likes')]: version.likes,  
-                [t('dislikes')]: version.dislikes, 
-                [t('tags')]: version.tags 
-            };
-                
+                    [t('characterName')]: version.characterName,
+                    [t('age')]: version.age,
+                    [t('occupation')]: version.occupation,
+                    [t('characterQuote')]: version.characterQuote,
+                    [t('publicDescription')]: version.publicDescription,
+                    [t('basicInfo')]: version.basicInfo,
+                    [t('personality')]: version.personality,
+                    [t('speakingStyle')]: version.speakingStyle,
+                    [t('scenarioScript')]: version.scenarioScript,
+                    [t('characterDialogue')]: version.characterDialogue,
+                    [t('likes')]: version.likes,
+                    [t('dislikes')]: version.dislikes,
+                    [t('tags')]: version.tags
+                };
+
                 // 搜尋基本欄位
                 Object.entries(fields).forEach(([fieldName, content]) => {
                     if (content && content.toLowerCase().includes(searchLower)) {
                         const snippet = this.createSnippet(content, searchText);
+                        const matchCount = this.countMatches(content, searchText);
                         results.push({
                             itemName: character.name,
                             versionName: version.name,
                             fieldName: fieldName,
                             snippet: snippet,
+                            matchCount: matchCount,
                             itemId: character.id,
                             versionId: version.id,
                             type: 'loveydovey'
                         });
                     }
                 });
-                
+
                 // 搜尋附加資訊
                 if (version.additionalInfo && Array.isArray(version.additionalInfo)) {
                     version.additionalInfo.forEach((info, index) => {
                         if (info.title && info.title.toLowerCase().includes(searchLower)) {
                             const snippet = this.createSnippet(info.title, searchText);
+                            const matchCount = this.countMatches(info.title, searchText);
                             results.push({
                                 itemName: character.name,
                                 versionName: version.name,
                                 fieldName: `${t('additionalInfo')} ${index + 1} ${t('additionalTitle')}`,
                                 snippet: snippet,
+                                matchCount: matchCount,
                                 itemId: character.id,
                                 versionId: version.id,
                                 type: 'loveydovey'
                             });
                         }
-                        
+
                         if (info.content && info.content.toLowerCase().includes(searchLower)) {
                             const snippet = this.createSnippet(info.content, searchText);
+                            const matchCount = this.countMatches(info.content, searchText);
                             results.push({
                                 itemName: character.name,
                                 versionName: version.name,
                                 fieldName: `${t('additionalInfo')} ${index + 1} ${t('additionalContent')}`,
                                 snippet: snippet,
+                                matchCount: matchCount,
                                 itemId: character.id,
                                 versionId: version.id,
                                 type: 'loveydovey'
@@ -211,7 +714,7 @@ class ContentSearchManager {
                         }
                     });
                 }
-                
+
                 // 搜尋創作者事件
                 if (version.creatorEvents && Array.isArray(version.creatorEvents)) {
                     version.creatorEvents.forEach((event, index) => {
@@ -220,15 +723,17 @@ class ContentSearchManager {
                             [t('eventTitle')]: event.title,
                             [t('eventContent')]: event.content
                         };
-                        
+
                         Object.entries(eventFields).forEach(([fieldName, content]) => {
                             if (content && content.toLowerCase().includes(searchLower)) {
                                 const snippet = this.createSnippet(content, searchText);
+                                const matchCount = this.countMatches(content, searchText);
                                 results.push({
                                     itemName: character.name,
                                     versionName: version.name,
                                     fieldName: `${t('creatorEvents')} ${index + 1} ${fieldName}`,
                                     snippet: snippet,
+                                    matchCount: matchCount,
                                     itemId: character.id,
                                     versionId: version.id,
                                     type: 'loveydovey'
@@ -243,20 +748,22 @@ class ContentSearchManager {
         return results;
     }
 
-        // 搜尋玩家角色
+    // 搜尋玩家角色
     static searchInUserPersonas(searchText) {
         const results = [];
         const searchLower = searchText.toLowerCase();
-        
+
         userPersonas.forEach(persona => {
             persona.versions.forEach(version => {
                 if (version.description && version.description.toLowerCase().includes(searchLower)) {
                     const snippet = this.createSnippet(version.description, searchText);
+                    const matchCount = this.countMatches(version.description, searchText);
                     results.push({
                         itemName: persona.name,
                         versionName: version.name,
                         fieldName: t('description'),
                         snippet: snippet,
+                        matchCount: matchCount,
                         itemId: persona.id,
                         versionId: version.id,
                         type: 'userpersona'
@@ -264,60 +771,64 @@ class ContentSearchManager {
                 }
             });
         });
-        
+
         return results;
     }
-    
-   // 搜尋世界書
-static searchInWorldBooks(searchText) {
-    const results = [];
-    const searchLower = searchText.toLowerCase();
-    
-    worldBooks.forEach(worldbook => {
-        worldbook.versions.forEach(version => {
-            version.entries.forEach(entry => {
-                const fields = {
-                    [t('entryContent')]: entry.content,
-                    [t('entryComment')]: entry.comment
-                };
-                
-                Object.entries(fields).forEach(([fieldName, content]) => {
-                    if (content && content.toLowerCase().includes(searchLower)) {
-                        const snippet = this.createSnippet(content, searchText);
-                        results.push({
-                            itemName: worldbook.name,
-                            versionName: version.name,
-                            fieldName: fieldName,
-                            snippet: snippet,
-                            itemId: worldbook.id,
-                            versionId: version.id,
-                            type: 'worldbook',
-                            entryId: entry.id
-                        });
-                    }
+
+    // 搜尋世界書
+    static searchInWorldBooks(searchText) {
+        const results = [];
+        const searchLower = searchText.toLowerCase();
+
+        worldBooks.forEach(worldbook => {
+            worldbook.versions.forEach(version => {
+                version.entries.forEach(entry => {
+                    const fields = {
+                        [t('entryContent')]: entry.content,
+                        [t('entryComment')]: entry.comment
+                    };
+
+                    Object.entries(fields).forEach(([fieldName, content]) => {
+                        if (content && content.toLowerCase().includes(searchLower)) {
+                            const snippet = this.createSnippet(content, searchText);
+                            const matchCount = this.countMatches(content, searchText);
+                            results.push({
+                                itemName: worldbook.name,
+                                versionName: version.name,
+                                fieldName: fieldName,
+                                snippet: snippet,
+                                matchCount: matchCount,
+                                itemId: worldbook.id,
+                                versionId: version.id,
+                                type: 'worldbook',
+                                entryId: entry.id
+                            });
+                        }
+                    });
                 });
             });
         });
-    });
-    
-    return results;
-}
-    
+
+        return results;
+    }
+
     // 搜尋筆記本
     static searchInCustomSections(searchText) {
         const results = [];
         const searchLower = searchText.toLowerCase();
-        
+
         customSections.forEach(section => {
             section.versions.forEach(version => {
                 version.fields.forEach(field => {
                     if (field.content && field.content.toLowerCase().includes(searchLower)) {
                         const snippet = this.createSnippet(field.content, searchText);
+                        const matchCount = this.countMatches(field.content, searchText);
                         results.push({
                             itemName: section.name,
                             versionName: version.name,
                             fieldName: field.name,
                             snippet: snippet,
+                            matchCount: matchCount,
                             itemId: section.id,
                             versionId: version.id,
                             type: 'custom'
@@ -330,7 +841,7 @@ static searchInWorldBooks(searchText) {
         return results;
     }
 
-        // 搜尋預設
+    // 搜尋預設
     static searchInPresets(searchText) {
         const results = [];
         const searchLower = searchText.toLowerCase();
@@ -344,11 +855,13 @@ static searchInWorldBooks(searchText) {
                         if (prompt.content && !prompt.marker) {
                             if (prompt.content.toLowerCase().includes(searchLower)) {
                                 const snippet = this.createSnippet(prompt.content, searchText);
+                                const matchCount = this.countMatches(prompt.content, searchText);
                                 results.push({
                                     itemName: preset.name,
                                     versionName: version.name,
-                                    fieldName: prompt.name || prompt.identifier, // 優先使用 name
+                                    fieldName: prompt.name || prompt.identifier,
                                     snippet: snippet,
+                                    matchCount: matchCount,
                                     itemId: preset.id,
                                     versionId: version.id,
                                     type: 'preset',
@@ -364,28 +877,41 @@ static searchInWorldBooks(searchText) {
         return results;
     }
     
-    // 創建摘要片段
-    static createSnippet(content, searchText, maxLength = 100) {
+    // 創建摘要片段（顯示所有匹配）
+    static createSnippet(content, searchText, maxLength = 50) {
         const searchLower = searchText.toLowerCase();
         const contentLower = content.toLowerCase();
-        const index = contentLower.indexOf(searchLower);
-        
-        if (index === -1) return content.substring(0, maxLength);
-        
-        const start = Math.max(0, index - 30);
-        const end = Math.min(content.length, index + searchText.length + 30);
-        
-        let snippet = content.substring(start, end);
-        
-        // 添加省略號
-        if (start > 0) snippet = '...' + snippet;
-        if (end < content.length) snippet = snippet + '...';
-        
-        // 高亮關鍵詞
-        const regex = new RegExp(`(${this.escapeRegex(searchText)})`, 'gi');
-        snippet = snippet.replace(regex, '<strong style="color: var(--accent-color); background: rgba(139, 115, 85, 0.2); padding: 1px 3px; border-radius: 3px;">$1</strong>');
-        
-        return snippet;
+        const regex = new RegExp(this.escapeRegex(searchText), 'gi');
+        const matches = [];
+        let match;
+
+        // 找出所有匹配的位置
+        while ((match = regex.exec(contentLower)) !== null) {
+            matches.push(match.index);
+        }
+
+        if (matches.length === 0) return content.substring(0, maxLength);
+
+        // 為每個匹配創建片段
+        const snippets = matches.map((index, i) => {
+            const start = Math.max(0, index - 25);
+            const end = Math.min(content.length, index + searchText.length + 25);
+
+            let snippet = content.substring(start, end);
+
+            // 添加省略號
+            if (start > 0) snippet = '...' + snippet;
+            if (end < content.length) snippet = snippet + '...';
+
+            // 高亮關鍵詞
+            const highlightRegex = new RegExp(`(${this.escapeRegex(searchText)})`, 'gi');
+            snippet = snippet.replace(highlightRegex, '<strong style="color: var(--accent-color); background: color-mix(in srgb, var(--accent-color) 20%, transparent); padding: 1px 3px; border-radius: 3px;">$1</strong>');
+
+            return snippet;
+        });
+
+        // 用分隔線連接所有片段
+        return snippets.join('<div style="border-top: 1px dashed var(--border-color); margin: 6px 0;"></div>');
     }
     
     // 轉義正則表達式特殊字符
@@ -419,38 +945,38 @@ static searchInWorldBooks(searchText) {
         
         // 角色卡結果
         if (results.characters.length > 0) {
-            html += this.renderResultSection(t('character'), results.characters, `${IconManager.user()}`);
+            html += this.renderResultSection(t('character'), results.characters, `${IconManager.user()}`, searchText);
         }
 
         // 卿卿我我結果
         if (results.loveydovey.length > 0) {
-            html += this.renderResultSection(t('loveydovey'), results.loveydovey, `${IconManager.heart()}`);
+            html += this.renderResultSection(t('loveydovey'), results.loveydovey, `${IconManager.heart()}`, searchText);
         }
 
         // 玩家角色結果
         if (results.userPersonas.length > 0) {
-            html += this.renderResultSection(t('userPersona'), results.userPersonas, `${IconManager.smile()}`);
+            html += this.renderResultSection(t('userPersona'), results.userPersonas, `${IconManager.smile()}`, searchText);
         }
 
         // 世界書結果
         if (results.worldbooks.length > 0) {
-            html += this.renderResultSection(t('worldBook'), results.worldbooks, `${IconManager.book()}`);
+            html += this.renderResultSection(t('worldBook'), results.worldbooks, `${IconManager.book()}`, searchText);
         }
 
         // 筆記本結果
         if (results.customs.length > 0) {
-            html += this.renderResultSection(t('customFields'), results.customs, `${IconManager.file()}`);
+            html += this.renderResultSection(t('customFields'), results.customs, `${IconManager.file()}`, searchText);
         }
 
         // 預設結果
         if (results.presets.length > 0) {
-            html += this.renderResultSection(t('preset'), results.presets, `${IconManager.settings()}`);
+            html += this.renderResultSection(t('preset'), results.presets, `${IconManager.settings()}`, searchText);
         }
         
         container.innerHTML = html;
     }
     // 渲染結果區塊
-static renderResultSection(sectionName, results, icon) {
+static renderResultSection(sectionName, results, icon, searchText) {
     let html = `
     <div style="margin-bottom: 24px;">
         <h4 style="color: var(--accent-color); font-size: 1em; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;">
@@ -458,42 +984,42 @@ static renderResultSection(sectionName, results, icon) {
             <span>${sectionName} (${results.length})</span>
         </h4>
 `;
-    
-    results.forEach(result => {
+
+    results.forEach((result, index) => {
         // 根據類型生成詳細的欄位描述
         let fieldDescription = result.fieldName;
-        
+
         if (result.type === 'worldbook' && result.entryId) {
-    // 為世界書條目顯示條目標題而非 UID
-    const worldbook = worldBooks.find(wb => wb.id === result.itemId);
-    if (worldbook) {
-        const version = worldbook.versions.find(v => v.id === result.versionId);
-        if (version) {
-            const entry = version.entries.find(e => e.id === result.entryId);
-            if (entry) {
-                // 優先顯示條目標題，如果沒有則顯示 UID
-                const entryTitle = entry.comment || `UID:${entry.uid || t('unsetValue')}`;
-                fieldDescription = `${entryTitle} - ${result.fieldName}`;
+            // 為世界書條目顯示條目標題而非 UID
+            const worldbook = worldBooks.find(wb => wb.id === result.itemId);
+            if (worldbook) {
+                const version = worldbook.versions.find(v => v.id === result.versionId);
+                if (version) {
+                    const entry = version.entries.find(e => e.id === result.entryId);
+                    if (entry) {
+                        // 優先顯示條目標題，如果沒有則顯示 UID
+                        const entryTitle = entry.comment || `UID:${entry.uid || t('unsetValue')}`;
+                        fieldDescription = `${entryTitle} - ${result.fieldName}`;
+                    }
+                }
             }
-        }
-    }
-} else if (result.type === 'custom') {
-    // 為筆記本添加欄位位置信息
-    const section = customSections.find(s => s.id === result.itemId);
-    if (section) {
-        const version = section.versions.find(v => v.id === result.versionId);
-        if (version) {
-            const fieldIndex = version.fields.findIndex(f => f.name === result.fieldName);
-            if (fieldIndex !== -1) {
-                fieldDescription = `${t('fieldPrefix')}${fieldIndex + 1}${t('fieldSuffix')} ${result.fieldName}`;
+        } else if (result.type === 'custom') {
+            // 為筆記本添加欄位位置信息
+            const section = customSections.find(s => s.id === result.itemId);
+            if (section) {
+                const version = section.versions.find(v => v.id === result.versionId);
+                if (version) {
+                    const fieldIndex = version.fields.findIndex(f => f.name === result.fieldName);
+                    if (fieldIndex !== -1) {
+                        fieldDescription = `${t('fieldPrefix')}${fieldIndex + 1}${t('fieldSuffix')} ${result.fieldName}`;
+                    }
+                }
             }
-        }
-    }
-} else if (result.type === 'preset') {
+        } else if (result.type === 'preset') {
             // 【新增】為預設結果提供更清晰的描述
             fieldDescription = `${t('prompt')} - ${result.fieldName}`;
         }
-        
+
         // 🧠 關鍵修改：根據類型傳遞不同的識別參數
         // - preset: 傳遞 promptIdentifier
         // - worldbook: 傳遞 entryId
@@ -508,37 +1034,53 @@ static renderResultSection(sectionName, results, icon) {
         }
         const jumpArgs = `'${result.type}', '${result.itemId}', '${result.versionId}', '${fieldIdentifierParam}', '${this.escapeForAttribute(this.escapeRegex(searchText))}', '${result.fieldName || ''}'`;
 
-        
+        // 建構單筆取代的結果物件 JSON
+        const resultJson = this.escapeForAttribute(JSON.stringify({
+            type: result.type,
+            itemId: result.itemId,
+            versionId: result.versionId,
+            fieldName: result.fieldName,
+            entryId: result.entryId || null,
+            promptIdentifier: result.promptIdentifier || null
+        }));
+
         html += `
-<div class="search-result-item tag-item-hover" 
-     onclick="ContentSearchManager.jumpToResult(${jumpArgs})"
+<div class="search-result-item tag-item-hover"
      style="
-         padding: 12px 16px; 
-         margin-bottom: 8px; 
-         background: var(--surface-color); 
-         border: 1px solid var(--border-color); 
-         border-radius: 6px; 
-         cursor: pointer; 
+         padding: 12px 16px;
+         margin-bottom: 8px;
+         background: var(--surface-color);
+         border: 1px solid var(--border-color);
+         border-radius: 6px;
          transition: all 0.2s ease;
      ">
-        
-        <div style="font-weight: 500; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-            ${IconManager.folder({width: 14, height: 14, style: 'color: var(--text-muted);'})}
-            ${result.itemName} > ${result.versionName}
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+        <div style="flex: 1; cursor: pointer;" onclick="ContentSearchManager.jumpToResult(${jumpArgs})">
+            <div style="font-weight: 500; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                ${IconManager.folder({width: 14, height: 14, style: 'color: var(--text-muted);'})}
+                ${result.itemName} > ${result.versionName}
+            </div>
+
+            <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                ${IconManager.file({width: 14, height: 14, style: 'color: var(--text-muted);'})}
+                ${fieldDescription}
+                ${result.matchCount > 1 ? `<span style="background: color-mix(in srgb, var(--text-muted) 20%, transparent); color: var(--text-muted); padding: 2px 8px; border-radius: 10px; font-size: 0.8em;">${result.matchCount} ${t('matchesFound')}</span>` : ''}
+            </div>
+
+            <div style="font-size: 0.9em; color: var(--text-color); line-height: 1.4;">
+                ${result.snippet}
+            </div>
         </div>
-        
-        <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-            ${IconManager.file({width: 14, height: 14, style: 'color: var(--text-muted);'})}
-            ${fieldDescription}
-        </div>
-        
-        <div style="font-size: 0.9em; color: var(--text-color); line-height: 1.4;">
-            ${result.snippet}
-        </div>
+        <button class="transparent-bg-btn hover-primary single-replace-btn"
+                onclick="event.stopPropagation(); ContentSearchManager.replaceSingle('${resultJson}')"
+                style="white-space: nowrap; display: ${ContentSearchManager.isReplaceMode ? 'flex' : 'none'}; border: 1px solid var(--border-color);">
+            ${result.matchCount > 1 ? t('replaceCount').replace('$1', result.matchCount) : t('replace')}
+        </button>
     </div>
+</div>
 `;
     });
-    
+
     html += '</div>';
     return html;
 }

@@ -1087,6 +1087,15 @@ window.ChroniclerTranslations['en-US'] = {
     searchAndReplace: 'Search & Replace',
     insertChar: 'Insert {{char}}',
     insertUser: 'Insert {{user}}',
-    wholeWord: 'Whole word'
+    wholeWord: 'Whole word',
+    wholeWordDesc: 'Match complete words only, not partial matches',
+    replaceConfirmDesc: 'Are you sure you want to replace all "$1" with "$2"?',
+    affectedItems: 'Affected Items',
+    emptyString: '(empty)',
+    showReplace: 'Show Replace',
+    hideReplace: 'Hide Replace',
+    matchesFound: 'matches',
+    replaceCount: 'Replace $1',
+    replaceTip: 'To replace specific occurrences only, click a result to go to that field and use the fullscreen editor\'s search & replace.'
 
 };

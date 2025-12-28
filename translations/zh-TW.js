@@ -1091,6 +1091,15 @@ window.ChroniclerTranslations['zh-TW'] = {
     searchAndReplace: '搜尋與取代',
     insertChar: '插入 {{char}}',
     insertUser: '插入 {{user}}',
-    wholeWord: '全字匹配'
+    wholeWord: '全字匹配',
+    wholeWordDesc: '僅匹配完整單詞，不匹配詞中片段',
+    replaceConfirmDesc: '確定要將「$1」全部取代為「$2」嗎？',
+    affectedItems: '影響的項目',
+    emptyString: '（空白）',
+    showReplace: '展開取代',
+    hideReplace: '收起取代',
+    matchesFound: '處',
+    replaceCount: '取代 $1 處',
+    replaceTip: '若只想取代單筆文字，請點擊搜尋結果前往該欄位，再使用全螢幕編輯器的搜尋取代功能。'
 
 };

@@ -1490,22 +1490,27 @@ class FullscreenEditor {
                 <div class="search-input-wrapper">
                     <input type="text" class="search-panel-input" id="fullscreen-search-input" placeholder="${t('searchTextPlaceholder')}">
                 </div>
-                <span class="search-match-count" id="search-match-count"></span>
-                <button class="search-panel-btn" onclick="FullscreenEditor.findPrev()" title="${t('previousMatch')}">▲</button>
-                <button class="search-panel-btn" onclick="FullscreenEditor.findNext()" title="${t('nextMatch')}">▼</button>
+                <div class="search-panel-controls" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="search-match-count" id="search-match-count">0/0</span>
+                    <button class="editor-toolbar-btn" onclick="FullscreenEditor.findPrev()" title="${t('previousMatch')}">▲</button>
+                    <button class="editor-toolbar-btn" onclick="FullscreenEditor.findNext()" title="${t('nextMatch')}">▼</button>
+                </div>
             </div>
             <div class="search-panel-row">
                 <div class="search-input-wrapper">
                     <input type="text" class="search-panel-input" id="fullscreen-replace-input" placeholder="${t('replacePlaceholder')}">
                 </div>
-                <button class="search-panel-btn replace-btn" onclick="FullscreenEditor.replaceCurrent()">${t('replace')}</button>
-                <button class="search-panel-btn replace-btn" onclick="FullscreenEditor.replaceAll()">${t('replaceAll')}</button>
+                <div class="search-panel-controls" style="display: flex; align-items: center; gap: 8px;">
+                    <button class="editor-toolbar-btn" onclick="FullscreenEditor.replaceCurrent()">${t('replace')}</button>
+                    <button class="editor-toolbar-btn" onclick="FullscreenEditor.replaceAll()">${t('replaceAll')}</button>
+                </div>
             </div>
             <div class="search-panel-options">
                 <label class="search-option-label">
                     <input type="checkbox" id="search-whole-word" onchange="FullscreenEditor.performSearch()">
                     <span>${t('wholeWord')}</span>
                 </label>
+                <div style="color: var(--text-muted); font-size: var(--font-sm); margin-top: 4px;">${t('wholeWordDesc')}</div>
             </div>
         `;
 
@@ -1982,12 +1987,13 @@ static detectLoveyDoveyField(originalTextarea) {
                 countElement.textContent = t('noMatches');
                 countElement.style.color = 'var(--danger-color)';
             } else {
-                countElement.textContent = '';
+                countElement.textContent = '0/0';
+                countElement.style.color = 'var(--text-muted)';
             }
         } else {
             const current = this.currentEditor.currentMatchIndex + 1;
             const total = this.currentEditor.searchMatches.length;
-            countElement.textContent = `${current} / ${total}`;
+            countElement.textContent = `${current}/${total}`;
             countElement.style.color = 'var(--text-muted)';
         }
     }
