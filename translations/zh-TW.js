@@ -1049,10 +1049,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     // ========================================
     // 說明
     helpTitle: '使用說明',
-    helpContent: '<h3 style="color: var(--text-color); margin: 0 0 12px 0; font-size: 1.1em;">主要功能</h3>' +
-    '這是一個專為 SillyTavern 設計的角色卡編輯器，支援版本迭代管理，並提供雙頁同步編輯功能，可同時編輯 <strong>角色卡＋世界書</strong>／<strong>角色卡A＋角色卡B</strong>／<strong>角色卡A＋筆記本</strong> 等任意組合。<br><br>' +
-    '本工具支援匯出角色卡（可綁定世界書）至 SillyTavern，也可讀取 SillyTavern 格式的角色卡與世界書檔案，實現無縫的匯入匯出與編輯管理。<br><br>' +
-    '<h3 style="color: var(--text-color); margin: 20px 0 12px 0; font-size: 1.1em;">免責聲明與注意事項</h3>' +
+    helpContent: '<h3 style="color: var(--text-color); margin: 0px 0 12px 0; font-size: 1.1em;">免責聲明與注意事項</h3>' +
     '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">🚧 本工具目前為 Beta 測試版，使用時請注意：</h4>' +
     '• <strong>請務必自行備份重要內容，本站不承擔任何資料遺失責任。</strong><br>' +
     '• 如遇到問題歡迎回報，但請理解測試版本可能存在不穩定情況。<br>' +

@@ -1043,10 +1043,7 @@ window.ChroniclerTranslations['en-US'] = {
 
 
     helpTitle: 'User Guide',
-    helpContent: '<h3 style="color: var(--text-color); margin: 0 0 12px 0; font-size: 1.1em;">Main Features</h3>' +
-    'This is a character card editor specifically designed for SillyTavern, supporting version iteration management and dual-pane synchronous editing for any combination such as <strong>Character+Lorebook</strong>／<strong>Character A+Character B</strong>／<strong>Character A+Notebook</strong>.<br><br>' +
-    'This tool supports exporting character cards (with optional lorebook binding) to SillyTavern, and importing SillyTavern format character cards and lorebook files for seamless editing and management.<br><br>' +
-    '<h3 style="color: var(--text-color); margin: 20px 0 12px 0; font-size: 1.1em;">Disclaimer & Important Notes</h3>' +
+    helpContent: '<h3 style="color: var(--text-color); margin: 0px 0 12px 0; font-size: 1.1em;">Disclaimer & Important Notes</h3>' +
     '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">🚧 This tool is currently in Beta version. Please note:</h4>' +
     '• <strong>Please backup important content yourself. This site assumes no responsibility for any data loss.</strong><br>' +
     '• Feel free to report issues, but please understand that the beta version may contain unstable elements.<br>' +

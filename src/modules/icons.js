@@ -772,9 +772,37 @@ static minus(options = {}) {
             className = '',
             style = ''
         } = options;
-        
+
         return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
             <polyline points="9,6 15,12 9,18"/>
+        </svg>`;
+    }
+
+    static chevronUp(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            strokeWidth = 2,
+            className = '',
+            style = ''
+        } = options;
+
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <polyline points="18,15 12,9 6,15"/>
+        </svg>`;
+    }
+
+    static chevronDown(options = {}) {
+        const {
+            width = 16,
+            height = 16,
+            strokeWidth = 2,
+            className = '',
+            style = ''
+        } = options;
+
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <polyline points="6,9 12,15 18,9"/>
         </svg>`;
     }
 

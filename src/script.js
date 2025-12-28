@@ -1492,8 +1492,8 @@ class FullscreenEditor {
                 </div>
                 <div class="search-panel-controls" style="display: flex; align-items: center; gap: 8px;">
                     <span class="search-match-count" id="search-match-count">0/0</span>
-                    <button class="editor-toolbar-btn" onclick="FullscreenEditor.findPrev()" title="${t('previousMatch')}">▲</button>
-                    <button class="editor-toolbar-btn" onclick="FullscreenEditor.findNext()" title="${t('nextMatch')}">▼</button>
+                    <button class="editor-toolbar-btn" onclick="FullscreenEditor.findPrev()" title="${t('previousMatch')}">${IconManager.chevronUp({width: 14, height: 14})}</button>
+                    <button class="editor-toolbar-btn" onclick="FullscreenEditor.findNext()" title="${t('nextMatch')}">${IconManager.chevronDown({width: 14, height: 14})}</button>
                 </div>
             </div>
             <div class="search-panel-row">
@@ -1510,7 +1510,6 @@ class FullscreenEditor {
                     <input type="checkbox" id="search-whole-word" onchange="FullscreenEditor.performSearch()">
                     <span>${t('wholeWord')}</span>
                 </label>
-                <div style="color: var(--text-muted); font-size: var(--font-sm); margin-top: 4px;">${t('wholeWordDesc')}</div>
             </div>
         `;
 
