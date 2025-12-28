@@ -184,8 +184,13 @@ async function handleCallback(request, env) {
         const tokens = await tokenResponse.json();
 
         if (tokens.error) {
+            console.error('Token exchange failed:', tokens);
             const errorUrl = new URL(frontendUrl);
-            errorUrl.searchParams.set('auth_error', tokens.error);
+            // 包含更詳細的錯誤訊息
+            const errorMsg = tokens.error_description
+                ? `${tokens.error}: ${tokens.error_description}`
+                : tokens.error;
+            errorUrl.searchParams.set('auth_error', errorMsg);
             return Response.redirect(errorUrl.toString(), 302);
         }
 
