@@ -40,271 +40,275 @@ class ButtonLocker {
     }
 }
 
-// ===== Google 雲端同步管理器（使用新的 Google Identity Services）=====
+// ===== Google 雲端同步管理器（使用 Cloudflare Worker OAuth 後端）=====
 class GoogleCloudSync {
     constructor() {
         this.isSignedIn = false;
         this.currentUser = null;
         this.accessToken = null;
+        this.refreshToken = null;
         this.tokenExpiresAt = null;
         this._tokenRefreshPromise = null;
-        this.CLIENT_ID = '601592669531-36o2ec8fbb8b103sc9agio8239dm33ll.apps.googleusercontent.com';
-        this.SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
+
+        // Cloudflare Worker URL
+        this.WORKER_URL = 'https://chronicler-oauth.chronicler.workers.dev';
+
         this.FOLDER_NAME = 'ChroniclerBackups';
         this.folderId = null;
         this.maxBackups = 5;
-        this.tokenClient = null;
     }
 
     async init() {
         try {
+            // 檢查 URL 是否有 OAuth 回調資料
+            await this._handleOAuthCallback();
+
+            // 從 localStorage 載入已儲存的 token
             const storedToken = localStorage.getItem('google_auth_token');
             if (storedToken) {
                 const tokenData = JSON.parse(storedToken);
-                if (tokenData.expiresAt && Date.now() < tokenData.expiresAt) {
-                    this.accessToken = tokenData.accessToken;
+                this.accessToken = tokenData.accessToken;
+                this.refreshToken = tokenData.refreshToken;
+                this.currentUser = tokenData.userProfile || null;
+                this.tokenExpiresAt = tokenData.expiresAt;
+
+                // 檢查 access token 是否過期，如果過期就嘗試使用 refresh token 續期
+                if (this.refreshToken && Date.now() >= this.tokenExpiresAt) {
+                    try {
+                        await this._refreshAccessToken();
+                    } catch (error) {
+                        console.warn('Token 續期失敗，需要重新登入:', error);
+                        this._clearAuthData();
+                    }
+                }
+
+                // 確認登入狀態
+                if (this.accessToken && this.refreshToken) {
                     this.isSignedIn = true;
-                    this.currentUser = tokenData.userProfile || null;
-                    this.tokenExpiresAt = tokenData.expiresAt;
-                } else {
-                    localStorage.removeItem('google_auth_token');
                 }
             }
 
-            await this.loadGoogleIdentityServices();
-            
-            this.tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: this.CLIENT_ID,
-                scope: this.SCOPES,
-                callback: (tokenResponse) => {
-                    this._handleTokenResponse(tokenResponse);
-                    if (!tokenResponse.error) {
-                         NotificationManager.success(t('googleAuthSuccess'));
-                    }
-                },
-            });
-            
             this.updateAuthStatus();
-            
+
         } catch (error) {
-            console.error('Google Identity Services 初始化失敗:', error);
+            console.error('Google OAuth 初始化失敗:', error);
             this.showError(t('googleServicesInitFailed'));
         }
     }
 
-    async _handleTokenResponse(tokenResponse) {
-        // 如果有正在等待的續期請求，先處理它
-        if (this._tokenRefreshPromise) {
-            if (tokenResponse.error) {
-                // 靜默續期失敗，只拒絕 promise，讓 ensureValidToken 接著處理
-                console.error(t('oauthError'), tokenResponse);
-                this._tokenRefreshPromise.reject(new Error(tokenResponse.error));
-            } else {
-                // 續期成功，將新的 token 傳回去
-                this._tokenRefreshPromise.resolve(tokenResponse.access_token);
+    /**
+     * 處理 OAuth 回調（從 URL fragment 解析 token）
+     */
+    async _handleOAuthCallback() {
+        const hash = window.location.hash;
+
+        if (hash.includes('auth_success=')) {
+            try {
+                const authDataStr = decodeURIComponent(hash.split('auth_success=')[1]);
+                const authData = JSON.parse(authDataStr);
+
+                // 儲存 token 資料
+                this.accessToken = authData.access_token;
+                this.refreshToken = authData.refresh_token;
+                this.currentUser = authData.user;
+                this.tokenExpiresAt = Date.now() + (authData.expires_in * 1000);
+                this.isSignedIn = true;
+
+                // 儲存到 localStorage
+                this._saveTokenData();
+
+                // 清除 URL 中的 token（安全考量）
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+
+                NotificationManager.success(t('googleLoginSuccess'));
+
+            } catch (error) {
+                console.error('解析 OAuth 回調資料失敗:', error);
             }
         }
 
-        if (tokenResponse.error) {
-            // 如果不是在續期中，或者續期也徹底失敗了，才顯示錯誤並重設狀態
-            // 這種情況通常發生在初次手動登入就失敗時
-            if (!this._tokenRefreshPromise) { 
-                this.showError(t('authFailed') + ': ' + tokenResponse.error);
-                localStorage.removeItem('google_auth_token');
-                this.isSignedIn = false;
-                this.accessToken = null;
-                this.currentUser = null;
-                this.tokenExpiresAt = null;
-                this.updateAuthStatus();
-            }
-            return;
+        // 處理錯誤回調
+        const urlParams = new URLSearchParams(window.location.search);
+        const authError = urlParams.get('auth_error');
+        if (authError) {
+            this.showError(t('authFailed') + ': ' + authError);
+            // 清除 URL 中的錯誤參數
+            urlParams.delete('auth_error');
+            const newUrl = urlParams.toString()
+                ? `${window.location.pathname}?${urlParams.toString()}`
+                : window.location.pathname;
+            history.replaceState(null, '', newUrl);
         }
-        
-        this.accessToken = tokenResponse.access_token;
-        this.isSignedIn = true;
+    }
 
-        // 只有在成功獲取 token 後才更新使用者資訊和儲存
-        await this.fetchUserProfile(); 
-        
-        const expiresAt = Date.now() + (parseInt(tokenResponse.expires_in, 10) * 1000);
-        this.tokenExpiresAt = expiresAt;
-
+    /**
+     * 儲存 token 資料到 localStorage
+     */
+    _saveTokenData() {
         const tokenData = {
             accessToken: this.accessToken,
-            expiresAt: expiresAt,
+            refreshToken: this.refreshToken,
+            expiresAt: this.tokenExpiresAt,
             userProfile: this.currentUser
         };
         localStorage.setItem('google_auth_token', JSON.stringify(tokenData));
-        
-        this.updateAuthStatus();
     }
 
-    async fetchUserProfile() {
-        try {
-            if (!this.accessToken) return;
-            
-            const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: {
-                    'Authorization': `Bearer ${this.accessToken}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Failed to fetch user info: ${response.status}`);
-            }
-            
-            const profile = await response.json();
-            this.currentUser = {
-                name: profile.name,
-                email: profile.email,
-                picture: profile.picture
-            };
-            
-        } catch (error) {
-            console.error("獲取 Google 使用者資訊失敗:", error);
-            this.currentUser = null; // 獲取失敗時清空
-        }
+    /**
+     * 清除認證資料
+     */
+    _clearAuthData() {
+        localStorage.removeItem('google_auth_token');
+        this.isSignedIn = false;
+        this.accessToken = null;
+        this.refreshToken = null;
+        this.currentUser = null;
+        this.tokenExpiresAt = null;
+        this.folderId = null;
     }
 
-    // 載入新的 Google Identity Services
-    async loadGoogleIdentityServices() {
-        // 如果已經載入，就直接返回
-        if (window.google?.accounts?.oauth2) {
-            return;
+    /**
+     * 使用 Refresh Token 取得新的 Access Token
+     */
+    async _refreshAccessToken() {
+        if (!this.refreshToken) {
+            throw new Error('No refresh token available');
         }
 
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.async = true;
-            script.defer = true;
-            script.onload = () => {
-                // GIS 載入後，window.google 物件會存在
-                if (window.google?.accounts?.oauth2) {
-                    resolve();
-                } else {
-                    // 有時候網路延遲，需要稍微等待
-                    setTimeout(() => {
-                        if (window.google?.accounts?.oauth2) {
-                            resolve();
-                        } else {
-                            reject(new Error('Google Identity Services object not found after script load.'));
-                        }
-                    }, 500);
-                }
-            };
-            script.onerror = () => reject(new Error('Google Identity Services script failed to load.'));
-            document.head.appendChild(script);
+        const response = await fetch(`${this.WORKER_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                refresh_token: this.refreshToken
+            })
         });
+
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            // Refresh token 已失效，需要重新登入
+            if (response.status === 401 || data.error === 'invalid_grant') {
+                this._clearAuthData();
+                throw new Error('Refresh token expired');
+            }
+            throw new Error(data.error || 'Token refresh failed');
+        }
+
+        // 更新 token
+        this.accessToken = data.access_token;
+        this.tokenExpiresAt = Date.now() + (data.expires_in * 1000);
+
+        // 如果返回了新的 refresh token，也更新它
+        if (data.refresh_token) {
+            this.refreshToken = data.refresh_token;
+        }
+
+        // 儲存更新後的 token
+        this._saveTokenData();
+
+        return this.accessToken;
     }
 
-    // 🎯 使用新的授權流程
+    /**
+     * 登入 - 重定向到 Worker OAuth 端點
+     */
     async signIn() {
         try {
-            if (!this.tokenClient) {
-                // 如果 client 還沒準備好，可以嘗試重新初始化
-                await this.init();
-                if (!this.tokenClient) {
-                     throw new Error('Google Identity Services 未就緒');
-                }
-            }
+            // 取得目前頁面 URL 作為回調目標
+            const currentUrl = window.location.origin + window.location.pathname;
+            const loginUrl = `${this.WORKER_URL}/auth/login?redirect=${encodeURIComponent(currentUrl)}`;
 
-            // 請求授權 token
-            this.tokenClient.requestAccessToken({ prompt: 'consent' });
-            
+            // 重定向到 Google 登入
+            window.location.href = loginUrl;
+
         } catch (error) {
             console.error('Google 登入失敗:', error);
             this.showError(t('loginFailed') + ': ' + (error.message || t('unknownError')));
         }
     }
 
-    // 登出
-     async signOut() {
+    /**
+     * 登出
+     */
+    async signOut() {
         try {
-            if (this.accessToken) {
-                google.accounts.oauth2.revoke(this.accessToken, () => {
+            // 嘗試撤銷 token（即使失敗也繼續登出流程）
+            if (this.refreshToken) {
+                try {
+                    await fetch(`${this.WORKER_URL}/auth/revoke`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            token: this.refreshToken
+                        })
+                    });
                     console.log('Token 已撤銷');
-                });
+                } catch (revokeError) {
+                    console.warn('Token 撤銷失敗:', revokeError);
+                }
             }
-            
-            localStorage.removeItem('google_auth_token');
-            
-            this.currentUser = null;
-            this.isSignedIn = false;
-            this.accessToken = null;
-            this.folderId = null;
-            this.tokenExpiresAt = null;
-            
+
+            this._clearAuthData();
             this.updateAuthStatus();
             NotificationManager.success(t('googleLogoutSuccess'));
-            
+
         } catch (error) {
             console.error('登出失敗:', error);
             this.showError(t('logoutFailed'));
         }
     }
 
-    // 檢查 token 有效性，並在過期時自動續期 (帶有備用方案)
+    /**
+     * 確保 token 有效，過期時自動使用 refresh token 續期
+     */
     async ensureValidToken() {
         if (!this.accessToken) {
             throw new Error(t('notLoggedInGoogle'));
         }
 
+        // 檢查是否快過期（提前 5 分鐘）
         const isExpired = Date.now() >= (this.tokenExpiresAt - 5 * 60 * 1000);
 
         if (!isExpired) {
-            return this.accessToken; // Token 仍然有效，直接返回
+            return this.accessToken;
         }
 
-        // 如果已經有另一個操作正在進行續期，就等待它完成
+        // 如果沒有 refresh token，無法續期
+        if (!this.refreshToken) {
+            this._clearAuthData();
+            this.updateAuthStatus();
+            throw new Error(t('googleSessionExpired'));
+        }
+
+        // 防止並發續期請求
         if (this._tokenRefreshPromise) {
-            return await this._tokenRefreshPromise.promise;
+            return await this._tokenRefreshPromise;
         }
 
-        // --- 開始續期流程 ---
-        let resolver, rejecter;
-        const promise = new Promise((resolve, reject) => {
-            resolver = resolve;
-            rejecter = reject;
-        });
-        this._tokenRefreshPromise = { promise, resolve: resolver, reject: rejecter };
-        
-        try {
-            console.log('Token expired. Attempting silent refresh...');
-            NotificationManager.info(t('refreshingGoogleToken'));
-            
-            // 步驟 1: 嘗試靜默續期
-            this.tokenClient.requestAccessToken({ prompt: 'none' });
-            
-            const newAccessToken = await this._tokenRefreshPromise.promise;
-            
-            console.log('Silent refresh successful!');
-            this._tokenRefreshPromise = null; // 清理
-            return newAccessToken;
+        // 開始續期流程
+        console.log('Access token 即將過期，使用 refresh token 續期...');
 
-        } catch (silentError) {
-            console.warn('Silent refresh failed. Switching to manual consent.', silentError);
-            NotificationManager.warning(t('googleSessionExpired'), 6000);
-
-            // 步驟 2: 靜默續期失敗，切換到手動續期 (會跳出 Google 登入視窗)
-            try {
-                this.tokenClient.requestAccessToken({ prompt: 'consent' });
-                
-                // 再次等待同一個 promise 被新的 callback 完成
-                const newAccessToken = await this._tokenRefreshPromise.promise;
-                
-                console.log('Manual refresh successful!');
+        this._tokenRefreshPromise = this._refreshAccessToken()
+            .then(token => {
+                console.log('Token 續期成功！');
                 NotificationManager.success(t('googleAuthSuccess'));
-                return newAccessToken;
+                return token;
+            })
+            .catch(error => {
+                console.error('Token 續期失敗:', error);
+                NotificationManager.warning(t('googleSessionExpired'), 6000);
+                this.updateAuthStatus();
+                throw error;
+            })
+            .finally(() => {
+                this._tokenRefreshPromise = null;
+            });
 
-            } catch (manualError) {
-                console.error('Manual refresh also failed:', manualError);
-                this.showError(t('tokenRefreshFailed'));
-                throw new Error(t('tokenRefreshFailed'));
-            } finally {
-                this._tokenRefreshPromise = null; // 無論成功或失敗，最後都要清理
-            }
-        }
+        return await this._tokenRefreshPromise;
     }
 
     // 🚀 上傳備份

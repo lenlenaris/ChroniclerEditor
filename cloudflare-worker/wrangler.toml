@@ -1,0 +1,11 @@
+name = "chronicler-oauth"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# 環境變數（部署時需要設定）
+# 使用 wrangler secret put 來設定敏感資訊：
+#   wrangler secret put GOOGLE_CLIENT_SECRET
+
+[vars]
+FRONTEND_URL = "https://lencat-to.github.io/editing"
+GOOGLE_CLIENT_ID = "601592669531-36o2ec8fbb8b103sc9agio8239dm33ll.apps.googleusercontent.com"

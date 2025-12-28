@@ -1,0 +1,14 @@
+{
+  "name": "chronicler-oauth",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for Chronicler Editor Google OAuth",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.54.0"
+  }
+}
