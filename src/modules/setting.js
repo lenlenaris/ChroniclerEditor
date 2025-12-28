@@ -494,8 +494,19 @@ static renderResultSection(sectionName, results, icon) {
             fieldDescription = `${t('prompt')} - ${result.fieldName}`;
         }
         
-        // 🧠 關鍵修改：將 jumpToResult 的第四個參數，在類型為 'preset' 時，傳遞 promptIdentifier
-        const jumpArgs = `'${result.type}', '${result.itemId}', '${result.versionId}', '${result.type === 'preset' ? result.promptIdentifier : result.fieldName}', '${this.escapeForAttribute(this.escapeRegex(searchText))}'`;
+        // 🧠 關鍵修改：根據類型傳遞不同的識別參數
+        // - preset: 傳遞 promptIdentifier
+        // - worldbook: 傳遞 entryId
+        // - 其他: 傳遞 fieldName
+        let fieldIdentifierParam;
+        if (result.type === 'preset') {
+            fieldIdentifierParam = result.promptIdentifier;
+        } else if (result.type === 'worldbook' && result.entryId) {
+            fieldIdentifierParam = result.entryId;
+        } else {
+            fieldIdentifierParam = result.fieldName;
+        }
+        const jumpArgs = `'${result.type}', '${result.itemId}', '${result.versionId}', '${fieldIdentifierParam}', '${this.escapeForAttribute(this.escapeRegex(searchText))}', '${result.fieldName || ''}'`;
 
         
         html += `
@@ -545,9 +556,9 @@ static renderResultSection(sectionName, results, icon) {
     }
     
 // 跳轉到結果
-static jumpToResult(type, itemId, versionId, fieldIdentifier, searchText) { // 參數名改為 fieldIdentifier 更通用
+static jumpToResult(type, itemId, versionId, fieldIdentifier, searchText, fieldName = '') { // 增加 fieldName 參數
     this.closeSearchModal();
-    
+
     // 延遲執行，確保模態框完全關閉
     setTimeout(() => {
         let options = {
@@ -557,6 +568,10 @@ static jumpToResult(type, itemId, versionId, fieldIdentifier, searchText) { // �
         if (type === 'preset') {
             // 對於 preset，我們傳遞 promptIdentifier 用於後續定位
             options.scrollToPrompt = fieldIdentifier;
+        } else if (type === 'worldbook') {
+            // 對於 worldbook，fieldIdentifier 是 entryId，fieldName 是欄位名稱
+            options.scrollToEntry = fieldIdentifier;
+            options.entryFieldName = fieldName;
         } else {
             // 對於其他類型，我們傳遞欄位名稱
             options.scrollToField = fieldIdentifier;
@@ -697,6 +712,95 @@ function scrollToPresetPrompt(promptIdentifier, searchText) {
         entryPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
         highlightElement(entryPanel);
     }
+}
+
+// 滾動到世界書條目
+function scrollToWorldBookEntry(entryId, fieldName, searchText) {
+    if (!entryId) return;
+
+    // 1. 找到條目面板
+    const entryPanel = document.querySelector(`[data-entry-id="${entryId}"]`);
+    if (!entryPanel) {
+        console.warn('找不到世界書條目面板:', entryId);
+        return;
+    }
+
+    // 2. 找到內容區域和展開按鈕
+    const content = document.getElementById(`entry-content-${entryId}`);
+    const toggleBtn = entryPanel.querySelector('.entry-toggle-btn, .wb-toggle-btn');
+
+    // 3. 如果條目是收合的，先展開它
+    if (content) {
+        const computedStyle = window.getComputedStyle(content);
+        const isCollapsed = computedStyle.display === 'none';
+
+        if (isCollapsed) {
+            // 檢查是否需要懶載入內容
+            if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
+                // 從 toggle 按鈕的 onclick 屬性取得世界書和版本 ID
+                const onclickAttr = toggleBtn?.getAttribute('onclick') || '';
+                const matches = onclickAttr.match(/toggleEntryContentLazy\('([^']+)',\s*'([^']+)',\s*'([^']+)'/);
+                if (matches) {
+                    const [, worldBookId, versionId] = matches;
+                    // 呼叫載入內容函數
+                    if (typeof loadEntryContent === 'function') {
+                        loadEntryContent(worldBookId, versionId, entryId);
+                    }
+                }
+            }
+
+            // 展開內容
+            content.style.display = 'block';
+            if (toggleBtn) {
+                const arrowIcon = toggleBtn.querySelector('.arrow-icon');
+                if (arrowIcon) {
+                    arrowIcon.classList.remove('arrow-right');
+                    arrowIcon.classList.add('arrow-down');
+                }
+            }
+        }
+    }
+
+    // 4. 延遲後找到並滾動到目標欄位
+    setTimeout(() => {
+        let targetElement = null;
+
+        // 根據欄位名稱找到對應的 textarea
+        if (fieldName) {
+            const textareas = entryPanel.querySelectorAll('textarea');
+            for (const textarea of textareas) {
+                const placeholder = textarea.placeholder || '';
+                // 檢查 placeholder 是否包含欄位名稱的關鍵字
+                if (fieldName === t('entryContent') && placeholder.includes(t('entryContentPlaceholder'))) {
+                    targetElement = textarea;
+                    break;
+                } else if (fieldName === t('entryComment') && placeholder.includes(t('entryCommentPlaceholder'))) {
+                    targetElement = textarea;
+                    break;
+                }
+            }
+        }
+
+        // 如果找不到特定欄位，就用第一個 textarea
+        if (!targetElement) {
+            targetElement = entryPanel.querySelector('textarea');
+        }
+
+        if (targetElement) {
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            highlightElement(targetElement);
+            setTimeout(() => {
+                targetElement.focus();
+            }, 500);
+        } else {
+            // 沒有找到 textarea，直接滾動到面板
+            entryPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            highlightElement(entryPanel);
+        }
+    }, 150); // 延遲等待內容載入
 }
 
 // 顯示其他設定介面

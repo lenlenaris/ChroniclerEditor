@@ -3197,10 +3197,15 @@ function selectItem(type, itemId, versionId = null, searchOptions = null) {
             if (searchOptions.scrollToField) {
                 scrollToSearchResult(type, searchOptions.scrollToField, searchOptions.highlightText);
             }
-            
-        if (searchOptions.scrollToPrompt) {
-            scrollToPresetPrompt(searchOptions.scrollToPrompt, searchOptions.highlightText);
-        }
+
+            // 處理世界書條目的滾動
+            if (searchOptions.scrollToEntry) {
+                scrollToWorldBookEntry(searchOptions.scrollToEntry, searchOptions.entryFieldName, searchOptions.highlightText);
+            }
+
+            if (searchOptions.scrollToPrompt) {
+                scrollToPresetPrompt(searchOptions.scrollToPrompt, searchOptions.highlightText);
+            }
         }
         
         updateMobileBreadcrumb();
