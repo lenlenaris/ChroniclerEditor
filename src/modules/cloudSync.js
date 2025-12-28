@@ -123,11 +123,18 @@ class GoogleCloudSync {
                 NotificationManager.success(t('googleLoginSuccess'));
 
                 // 登入成功後自動打開雲端同步頁面
-                setTimeout(() => {
+                const openCloudSync = () => {
                     if (typeof showCloudSync === 'function') {
                         showCloudSync();
                     }
-                }, 500);
+                };
+
+                // 確保頁面完全載入後再打開
+                if (document.readyState === 'complete') {
+                    setTimeout(openCloudSync, 800);
+                } else {
+                    window.addEventListener('load', () => setTimeout(openCloudSync, 800));
+                }
 
             } catch (error) {
                 console.error('解析 OAuth 回調資料失敗:', error);
