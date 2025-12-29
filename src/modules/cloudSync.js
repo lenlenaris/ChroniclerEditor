@@ -823,3 +823,10 @@ function checkGoogleAuthStatus() {
 
 // 建立全域實例
 const googleCloudSync = new GoogleCloudSync();
+
+// 頁面載入時自動初始化（處理 OAuth 回調和恢復登入狀態）
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => googleCloudSync.init());
+} else {
+    googleCloudSync.init();
+}
