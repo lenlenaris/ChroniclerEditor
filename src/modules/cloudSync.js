@@ -122,18 +122,22 @@ class GoogleCloudSync {
 
                 NotificationManager.success(t('googleLoginSuccess'));
 
-                // 登入成功後自動打開雲端同步頁面
+                // 登入成功後自動打開雲端同步頁面（如果還沒有打開的話）
                 const openCloudSync = () => {
-                    if (typeof showCloudSync === 'function') {
+                    // 檢查是否已經有雲端同步視窗
+                    const existingModal = document.querySelector('.modal .compact-modal-title');
+                    const hasCloudSyncModal = existingModal && existingModal.textContent.includes(t('cloudSync'));
+
+                    if (!hasCloudSyncModal && typeof showCloudSync === 'function') {
                         showCloudSync();
                     }
                 };
 
                 // 確保頁面完全載入後再打開
                 if (document.readyState === 'complete') {
-                    setTimeout(openCloudSync, 800);
+                    setTimeout(openCloudSync, 300);
                 } else {
-                    window.addEventListener('load', () => setTimeout(openCloudSync, 800));
+                    window.addEventListener('load', () => setTimeout(openCloudSync, 300));
                 }
 
             } catch (error) {
