@@ -104,8 +104,11 @@ function countTokensBasic(text) {
 function countTokens(text) {
     if (!text) return 0;
     
-    if (text.length > 20000) {
-        const estimated = Math.ceil(text.length * 0.75);
+    // 直接計算，tiktoken 對於大多數文本都足夠快
+    // 只有超過 100000 字符時才使用估算（避免阻塞 UI）
+    if (text.length > 100000) {
+        // 使用更準確的估算比例：約 0.28（每 3.5 個字符約 1 個 token）
+        const estimated = Math.ceil(text.length * 0.28);
         
 
         setTimeout(() => {

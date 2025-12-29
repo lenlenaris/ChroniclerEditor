@@ -382,6 +382,18 @@ static togglePromptEnabled(presetId, versionId, identifier, characterId, enabled
             
             TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
             markAsChanged();
+
+            // 更新版本統計
+            setTimeout(() => {
+                updateVersionStats('preset', presetId, versionId);
+                updateAllPageStats();
+
+                // 如果在預覽模式，也更新預覽內容和統計
+                const previewPanel = document.querySelector('.preset-preview-panel');
+                if (previewPanel) {
+                    this.refreshPreview(versionId);
+                }
+            }, 100);
         }
     }
 }
@@ -878,30 +890,30 @@ return `
 static updatePreviewStats(versionId) {
     const presetData = this.getCurrentPresetData(versionId);
     if (!presetData) return;
-    
+
     const { preset, version } = presetData;
-    
+
     // 找到可編輯條目的配置
     const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
     if (!orderConfig || !orderConfig.order) return;
-    
+
     // 收集所有啟用的內容
     let allContent = '';
     let enabledCount = 0;
 
     orderConfig.order.forEach(orderItem => {
         if (!orderItem.enabled) return;
-        
+
         const prompt = version.prompts?.find(p => p.identifier === orderItem.identifier);
         if (!prompt) return;
-        
+
         // 只計算非 marker 條目的內容和數量
         if (!prompt.marker && prompt.content && prompt.content.trim()) {
             enabledCount++;
             allContent += prompt.content.trim() + '\n\n';
         }
     });
-    
+
     // 計算統計
     const chars = allContent.length;
     const tokens = countTokens(allContent);
