@@ -1068,7 +1068,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     '<h4 style="color: var(--text-color); margin: 0 0 8px 0; font-size: 1em;">其他說明</h4>' +
     '• 資料夾暫不支援自定義拖曳排序功能。<br>' +
     '• 世界書預設為「自訂排序」模式，條目順序將記錄於 JSON 檔案中，匯入 SillyTavern 後會同步反映。<br>' +
-    '• 可於側邊欄底部齒輪選單的「其他設定」中關閉「卿卿我我」AI 平台格式的角色編輯功能。',
+    '• 可於側邊欄底部齒輪選單的「其他設定」中設定是否開啟「卿卿我我」AI 平台格式的角色編輯功能。',
 
     //聯絡
     contactTitle: 'Feedback',
