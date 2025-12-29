@@ -846,9 +846,12 @@ return `
                             id="font-mono-btn-${version.id}" title="${t('monospaceFont')}" style="display: flex; align-items: center; gap: 4px;">
                         <span style="font-family: monospace; font-weight: bold;">Aa</span>
                     </button>
-                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewFont('${version.id}', 'serif')" 
+                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.togglePreviewFont('${version.id}', 'serif')"
                             id="font-serif-btn-${version.id}" title="${t('serifFont')}" style="display: flex; align-items: center; gap: 4px;">
                         <span style="font-family: serif; font-weight: bold;">Aa</span>
+                    </button>
+                    <button class="version-panel-btn hover-primary" onclick="PresetRenderer.copyPreviewContent(this, '${version.id}')" title="${t('copyPreview')}" style="display: flex; align-items: center;">
+                        ${IconManager.copy({width: 14, height: 14})}
                     </button>
                     <button class="version-panel-btn hover-primary" onclick="PresetRenderer.refreshPreview('${version.id}')" style="display: flex; align-items: center; gap: 6px;">
                         ${IconManager.refresh({width: 14, height: 14})}
@@ -945,6 +948,106 @@ static togglePreviewFont(versionId, fontType) {
 static initPreviewFont(versionId) {
     const savedFont = localStorage.getItem('previewFontType') || 'monospace';
     this.togglePreviewFont(versionId, savedFont);
+}
+
+// 複製預覽內容到剪貼簿
+static copyPreviewContent(button, versionId) {
+    const presetData = this.getCurrentPresetData(versionId);
+    if (!presetData) {
+        showNotification(t('noDataAvailable'), 'error');
+        return;
+    }
+
+    const { preset, version } = presetData;
+
+    // 找到可編輯條目的配置 (character_id: 100001)
+    const orderConfig = version.prompt_order?.find(config => config.character_id === 100001);
+    if (!orderConfig || !orderConfig.order) {
+        showNotification(t('noPromptsConfigured'), 'error');
+        return;
+    }
+
+    // 按順序處理每個條目，生成純文字內容
+    const contentParts = [];
+
+    orderConfig.order.forEach(orderItem => {
+        if (!orderItem.enabled) return;
+
+        const prompt = version.prompts?.find(p => p.identifier === orderItem.identifier);
+        if (!prompt) return;
+
+        const isMarker = prompt.marker === true;
+
+        if (isMarker) {
+            // Marker 條目顯示來源標記
+            contentParts.push(`*${t('source')}：${prompt.name}*`);
+        } else {
+            // 一般條目顯示內容
+            if (prompt.content && prompt.content.trim()) {
+                contentParts.push(prompt.content.trim());
+            }
+        }
+    });
+
+    if (contentParts.length === 0) {
+        showNotification(t('noEnabledPrompts'), 'error');
+        return;
+    }
+
+    // 將所有內容用雙換行連接
+    const textContent = contentParts.join('\n\n');
+
+    // 複製到剪貼簿
+    navigator.clipboard.writeText(textContent).then(() => {
+        this.showCopyTooltip(button, t('previewCopied'));
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        showNotification(t('copyFailed'), 'error');
+    });
+}
+
+// 顯示複製成功的小提示
+static showCopyTooltip(button, message) {
+    // 移除已存在的提示
+    const existingTooltip = document.querySelector('.copy-tooltip');
+    if (existingTooltip) existingTooltip.remove();
+
+    // 創建提示元素
+    const tooltip = document.createElement('div');
+    tooltip.className = 'copy-tooltip';
+    tooltip.textContent = message;
+
+    // 定位在按鈕下方
+    const rect = button.getBoundingClientRect();
+    tooltip.style.cssText = `
+        position: fixed;
+        left: ${rect.left + rect.width / 2}px;
+        top: ${rect.bottom + 6}px;
+        transform: translateX(-50%);
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 10000;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    `;
+
+    document.body.appendChild(tooltip);
+
+    // 淡入
+    requestAnimationFrame(() => {
+        tooltip.style.opacity = '1';
+    });
+
+    // 1.5 秒後淡出並移除
+    setTimeout(() => {
+        tooltip.style.opacity = '0';
+        setTimeout(() => tooltip.remove(), 150);
+    }, 1500);
 }
 
 // 更新所有預覽按鈕狀態
