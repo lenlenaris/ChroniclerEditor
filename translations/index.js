@@ -69,23 +69,18 @@ class TranslationManager {
             
             script.onload = () => {
                 if (window.ChroniclerTranslations && window.ChroniclerTranslations[locale]) {
-                    
                     resolve(true);
                 } else {
-                    console.warn(`⚠️ ${locale} 翻譯檔載入失敗或格式錯誤`);
                     resolve(false);
                 }
             };
-            
+
             script.onerror = () => {
-                console.warn(`❌ 無法載入 ${locale} 翻譯檔`);
                 resolve(false);
             };
-            
-            // 設定超時
+
             setTimeout(() => {
                 if (!this.loadedLanguages.has(locale)) {
-                    console.warn(`⏰ ${locale} 翻譯檔載入超時`);
                     resolve(false);
                 }
             }, 5000);
@@ -112,14 +107,10 @@ class TranslationManager {
             return this.replaceArguments(fallbackText, args);
         }
         
-        // 最後備援：返回鍵值本身並記錄缺失
-        console.warn(`❌ 缺少翻譯: ${locale}.${key}`);
-        
         // 如果是英文且找不到翻譯，嘗試使用中文版本作為備援
         if (langKey === 'en' && window.ChroniclerTranslations && window.ChroniclerTranslations['zh-TW']) {
             const zhText = window.ChroniclerTranslations['zh-TW'][key];
             if (zhText !== undefined && zhText !== null) {
-                console.warn(`🔄 使用中文作為備援: ${key}`);
                 return this.replaceArguments(zhText, args);
             }
         }
@@ -159,7 +150,6 @@ class TranslationManager {
             
             return successCount === languages.length;
         } catch (error) {
-            console.error('預載入翻譯失敗:', error);
             return false;
         }
     }

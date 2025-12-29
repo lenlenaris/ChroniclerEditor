@@ -857,11 +857,8 @@ async function handleLoveyDoveyImageUpload(itemId, versionId, file = null) {
 ImageCropper.show(file, '1:1', async (croppedDataUrl) => {
     updateField('loveydovey', itemId, versionId, 'profileImage', croppedDataUrl);
     
-    // 🌟 雙屏模式下避免整頁重渲染
+    // 雙屏模式下避免整頁重渲染
     if (crossTypeCompareMode && currentMode === 'crosstype') {
-        console.log('雙屏模式卿卿我我圖片更新 - 避免整頁重渲染');
-        
-        // 重新渲染雙屏界面
         CrossTypeCompareManager.renderCrossTypeInterface();
         
     } else {
@@ -958,21 +955,17 @@ function updateLoveyDoveyField(itemType, itemId, versionId, fieldName, value, ma
     }
         
     if (!inputId) {
-        console.warn('無法生成inputId:', { itemId, versionId, fieldName });
         return;
     }
-        
-    // 查找統計元素（框外面的顯示）
+
     const countElement = document.querySelector(`[data-target="${inputId}"]`);
     const inputElement = document.getElementById(inputId);
-    
+
     if (!countElement) {
-        console.warn('找不到字數統計元素:', inputId);
         return;
     }
-    
+
     if (!inputElement) {
-        console.warn('找不到輸入元素:', inputId);
         return;
     }
     
@@ -1136,8 +1129,7 @@ function updateAdditionalInfoFieldById(characterId, versionId, infoId, field, va
     
     const version = character.versions.find(v => v.id === versionId);
     if (!version || !version.additionalInfo) return;
-    
-    // 🔧 動態查找當前 index
+
     const index = version.additionalInfo.findIndex(info => info.id === infoId);
     if (index === -1) return;
     
@@ -1168,8 +1160,7 @@ function updateCreatorEventFieldById(characterId, versionId, eventId, field, val
     
     const version = character.versions.find(v => v.id === versionId);
     if (!version || !version.creatorEvents) return;
-    
-    // 🔧 動態查找當前 index
+
     const index = version.creatorEvents.findIndex(event => event.id === eventId);
     if (index === -1) return;
     
@@ -1580,7 +1571,6 @@ function updateEventCollapsedTitle(eventId) {
 function enableCreatorEventsDragSort(characterId, versionId) {
     const container = document.getElementById(`creator-events-list-${versionId}`);
     if (!container || typeof Sortable === 'undefined') {
-        console.warn('無法啟用創作者事件拖曳排序：容器不存在或 Sortable 未載入');
         return;
     }
     
@@ -1631,7 +1621,6 @@ function enableCreatorEventsDragSort(characterId, versionId) {
 function enablePrivateStoriesDragSort(characterId, versionId) {
     const container = document.getElementById(`private-stories-list-${versionId}`);
     if (!container || typeof Sortable === 'undefined') {
-        console.warn('無法啟用私密物語拖曳排序：容器不存在或 Sortable 未載入');
         return;
     }
     
@@ -1686,8 +1675,7 @@ function reorderCreatorEvents(characterId, versionId, oldIndex, newIndex) {
     // 更新時間戳記
     TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
     markAsChanged();
-    
-    // 🔧 改善：更新編號
+
     updateCreatorEventNumbers(version, versionId);
 }
 
@@ -1846,7 +1834,6 @@ function saveCollapseStates() {
         localStorage.setItem('loveydovey-collapse-states', JSON.stringify(newStates));
         
     } catch (error) {
-        console.warn('保存折疊狀態失敗:', error);
     }
 }
 
@@ -1863,7 +1850,6 @@ function loadCollapseStates() {
             }
         }
     } catch (error) {
-        console.warn('載入折疊狀態失敗:', error);
     }
     return { additionalInfo: {}, creatorEvents: {}, privateStories: {} };
 }
@@ -1976,7 +1962,6 @@ function toggleAdditionalInfoCollapseLazy(clickedElement, characterId, versionId
                 if (version && version.additionalInfo) {
                     const realIndex = version.additionalInfo.findIndex(info => info.id === infoId);
                     if (realIndex !== -1) {
-                        // 🆕 關鍵修改：將 content 這個 div 元素直接傳遞給載入函數
                         loadAdditionalInfoContent(content, characterId, versionId, infoId, realIndex);
                     }
                 }
@@ -2000,8 +1985,7 @@ function loadAdditionalInfoContent(contentDiv, characterId, versionId, infoId, i
     if (!info) return;
     
     const detailHTML = generateAdditionalInfoDetailContent(characterId, versionId, info, index);
-    
-    // 🆕 關鍵修改：直接使用傳入的 contentDiv，不再使用 getElementById
+
     if (contentDiv) {
         contentDiv.innerHTML = detailHTML;
         
@@ -2098,7 +2082,6 @@ function toggleCreatorEventCollapseLazy(clickedElement, characterId, versionId, 
                 if (version && version.creatorEvents) {
                     const realIndex = version.creatorEvents.findIndex(event => event.id === eventId);
                     if (realIndex !== -1) {
-                        // 🆕 關鍵修改：將 content 這個 div 元素直接傳遞給載入函數
                         loadCreatorEventContent(content, characterId, versionId, eventId, realIndex);
                     }
                 }
@@ -2121,8 +2104,7 @@ function loadCreatorEventContent(contentDiv, characterId, versionId, eventId, in
     if (!event) return;
     
     const detailHTML = generateCreatorEventDetailContent(characterId, versionId, event, index);
-    
-    // 🆕 關鍵修改：直接使用傳入的 contentDiv，不再使用 getElementById
+
     if (contentDiv) {
         contentDiv.innerHTML = detailHTML;
         
@@ -2377,8 +2359,7 @@ function updatePrivateStoryFieldById(characterId, versionId, storyId, field, val
     
     const version = character.versions.find(v => v.id === versionId);
     if (!version || !version.privateStories) return;
-    
-    // 🔧 動態查找當前 index
+
     const index = version.privateStories.findIndex(story => story.id === storyId);
     if (index === -1) return;
     
@@ -2446,7 +2427,6 @@ function updateAffectionIconsForStory(storyId, affectionLevel) {
     if (titleExpanded) {
         const h4 = titleExpanded.querySelector('h4');
         if (h4) {
-            // 🔧 修正：移除所有可能的 emoji，保留文字部分
             const text = h4.textContent.replace(/^[👋🤝💗❤️💍\s]+/, '');
             h4.textContent = `${icon} ${text}`;
         }
@@ -2455,7 +2435,6 @@ function updateAffectionIconsForStory(storyId, affectionLevel) {
     // 2. 更新折疊狀態標題中的圖示
     const titleCollapsed = document.getElementById(`story-collapsed-title-text-${storyId}`);
     if (titleCollapsed) {
-        // 🔧 修正：移除所有可能的 emoji，保留「私密物語 N：標題」部分
         const text = titleCollapsed.textContent.replace(/^[👋🤝💗❤️💍\s]+/, '');
         titleCollapsed.textContent = `${icon} ${text}`;
     }
@@ -2554,7 +2533,6 @@ function togglePrivateStoryCollapseLazy(clickedElement, characterId, versionId, 
     const isExpanded = content.style.display !== 'none';
 
     if (isExpanded) {
-        // 🔧 折疊前:先從資料源更新摺疊標題的 emoji
         const character = loveyDoveyCharacters.find(c => c.id === characterId);
         if (character) {
             const version = character.versions.find(v => v.id === versionId);
@@ -2611,8 +2589,7 @@ function loadPrivateStoryContent(contentDiv, characterId, versionId, storyId, in
     if (!story) return;
     
     const detailHTML = generatePrivateStoryDetailContent(characterId, versionId, story, index);
-    
-    // 🆕 關鍵修改：直接使用傳入的 contentDiv，不再使用 getElementById
+
     if (contentDiv) {
         contentDiv.innerHTML = detailHTML;
         
@@ -2745,8 +2722,7 @@ function reorderPrivateStories(characterId, versionId, oldIndex, newIndex) {
     // 更新時間戳記
     TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
     markAsChanged();
-    
-    // 🔧 改善：更新編號
+
     updatePrivateStoryNumbers(version, versionId);
 }
 

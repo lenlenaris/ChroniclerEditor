@@ -1,6 +1,5 @@
 // theme-manager.js - 完整主題管理系統
 
-// 🎨 ThemeManager - 主題管理核心類別
 class ThemeManager {
     static themes = new Map();
     static currentThemeId = 'default';
@@ -146,7 +145,6 @@ static createBuiltinThemes() {
             };
             localStorage.setItem('characterCreator_customThemes', JSON.stringify(data));
         } catch (error) {
-            console.error('儲存主題失敗:', error);
         }
     }
     
@@ -206,7 +204,6 @@ static getCurrentColors() {
             this.isModified = false;
             this.saveThemes();
             this.updateThemeInterface();
-            console.log(`已切換到主題: ${theme.name}`);
         }
     }
     
@@ -435,7 +432,7 @@ static getCurrentColors() {
     // 點擊遮罩關閉
 modal.addEventListener('click', (e) => {
     if (e.target === modal) {
-        e.stopPropagation(); // 🔧 阻止事件冒泡
+        e.stopPropagation();
         this.cancelDelete();
     }
 });
@@ -632,7 +629,6 @@ static confirmDelete() {
     
    // 顯示主題名稱輸入框
 static showThemeNameInput(title, message, onConfirm, defaultValue = '') {
-    // 🔧 找到背景視窗並暫時移除其點擊事件監聽器
     const backgroundModal = document.querySelector('.modal.show');
     let originalHandler = null;
     
@@ -710,7 +706,6 @@ static showThemeNameInput(title, message, onConfirm, defaultValue = '') {
         modal.parentNode.removeChild(modal);
     }
     
-    // 🔧 恢復背景視窗的事件監聽器
     if (this._backgroundModal) {
         // 重新添加背景視窗的點擊事件
         this._backgroundModal.addEventListener('click', function(e) {
@@ -772,7 +767,6 @@ static loadThemes() {
             this.createBuiltinThemes();
         }
     } catch (error) {
-        console.error('載入主題失敗:', error);
         this.createBuiltinThemes();
     }
 }
@@ -821,7 +815,6 @@ static getInputId(key) {
 }
 }
 
-// 🎨 ColorManager - 整合後的顏色管理器
 class ColorManager {
     // 顯示主題設定介面
     static show() {
@@ -1020,7 +1013,6 @@ static generateColorInputs() {
     }
 }
 
-// 🎨 舊版相容函數 - 保持與現有代碼的相容性
 function showColorPicker() {
     ColorManager.show();
 }
@@ -1035,7 +1027,6 @@ function applyImportedColors(colors) {
     ThemeManager.markAsModified();
 }
 
-// 🚀 初始化主題系統
 document.addEventListener('DOMContentLoaded', () => {
     ThemeManager.initialize();
 });

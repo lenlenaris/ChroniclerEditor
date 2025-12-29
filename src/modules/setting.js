@@ -190,7 +190,6 @@ class ContentSearchManager {
         try {
             result = JSON.parse(resultJson);
         } catch (e) {
-            console.error('無法解析結果物件:', e);
             return;
         }
 
@@ -1187,7 +1186,6 @@ function scrollToSearchResult(type, fieldName, searchText) {
             targetElement.focus();
         }, 500);
     } else {
-        console.warn('找不到對應的欄位:', fieldName);
     }
 }
 
@@ -1216,7 +1214,6 @@ function scrollToPresetPrompt(promptIdentifier, searchText) {
     // 1. 找到條目面板並展開它
     const entryPanel = document.querySelector(`.preset-entry-panel[data-prompt-identifier="${promptIdentifier}"]`);
     if (!entryPanel) {
-        console.warn('找不到預設條目面板:', promptIdentifier);
         return;
     }
 
@@ -1260,10 +1257,8 @@ function scrollToPresetPrompt(promptIdentifier, searchText) {
 function scrollToWorldBookEntry(entryId, fieldName, searchText) {
     if (!entryId) return;
 
-    // 1. 找到條目面板
     const entryPanel = document.querySelector(`[data-entry-id="${entryId}"]`);
     if (!entryPanel) {
-        console.warn('找不到世界書條目面板:', entryId);
         return;
     }
 
@@ -1476,7 +1471,6 @@ function handleMenuAction(event) {
                     openModalOnMobile(() => showCloudSync()); 
                     break;
                 
-                // 🔧 新增：手機版專用的模態框處理
                 case 'showColorPickerOnMobile': 
                     openModalOnMobile(() => showColorPicker()); 
                     break;
@@ -1488,7 +1482,6 @@ function handleMenuAction(event) {
                     break;
             }
         } catch (error) {
-            console.error("執行選單動作時出錯:", action, error);
         }
     }, 50); 
 }
@@ -1779,10 +1772,8 @@ function showCloudSync() {
 function scrollToPresetPrompt(promptIdentifier, searchText) {
     if (!promptIdentifier) return;
 
-    // 1. 找到條目面板並展開它
     const entryPanel = document.querySelector(`.preset-entry-panel[data-prompt-identifier="${promptIdentifier}"]`);
     if (!entryPanel) {
-        console.warn('找不到預設條目面板:', promptIdentifier);
         return;
     }
 

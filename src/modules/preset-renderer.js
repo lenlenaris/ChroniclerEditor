@@ -76,8 +76,7 @@ static renderPresetVersionContent(preset, version) {
     `;
     
     setTimeout(() => {
-        this.enablePromptsDragSort(); // 👈 不再傳遞參數
-        console.log(`🎯 已觸發 preset 的可編輯條目拖曳排序初始化`);
+        this.enablePromptsDragSort();
 
         updateAllPageStats();
         updateVersionStats('preset', preset.id, version.id);
@@ -311,27 +310,21 @@ ${!cannotRemove ? `
     
     // 展開/收合條目內容
     static togglePromptContent(identifier, event) {
-        // 🎯 從點擊事件獲取當前按鈕，確保操作正確的面板
-        const toggleBtn = event ? event.currentTarget : 
+        const toggleBtn = event ? event.currentTarget :
                         document.querySelector(`.entry-toggle-btn[onclick*="togglePromptContent('${identifier}')"]`);
-        
+
         if (!toggleBtn) {
-            console.warn(`togglePromptContent: 找不到ID為 ${identifier} 的按鈕`);
             return;
         }
-        
-        // 🎯 從按鈕向上查找最近的 entry-panel，確保操作同一個面板內的內容
+
         const entryPanel = toggleBtn.closest('.entry-panel');
         if (!entryPanel) {
-            console.warn(`togglePromptContent: 找不到ID為 ${identifier} 的條目面板`);
             return;
         }
-        
-        // 🎯 在當前面板內查找對應的內容區域
+
         const content = entryPanel.querySelector(`#prompt-content-${identifier}`);
         
         if (!content) {
-            console.warn(`togglePromptContent: 找不到ID為 ${identifier} 的內容區域`);
             return;
         }
         
@@ -519,9 +512,8 @@ static enablePromptsDragSort() {
                     const presetId = container.dataset.presetId;
                     const versionId = container.dataset.versionId;
                     const characterId = parseInt(container.dataset.characterId);
-                    
+
                     if (presetId && versionId && !isNaN(characterId)) {
-                        // ✨ 呼叫既有的重新排序函數，確保 order 陣列會被更新
                         PresetRenderer.reorderPromptsFromContainer(container, presetId, versionId, characterId);
                     }
                     
@@ -560,7 +552,6 @@ static reorderPromptsFromContainer(container, presetId, versionId, characterId) 
     
     // 確保沒有遺失條目
     if (newOrderItems.length !== orderConfig.order.length) {
-        console.warn('⚠️ 條目數量不匹配，使用原順序');
         return;
     }
     
@@ -569,8 +560,6 @@ static reorderPromptsFromContainer(container, presetId, versionId, characterId) 
     
     TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
     markAsChanged();
-    
-    console.log(`✅ 已更新 character_id ${characterId} 的提示詞順序`);
 }
 
 // 獲取當前提示詞折疊狀態
@@ -611,9 +600,7 @@ static restorePromptCollapseStates(states) {
 // 自動初始化拖拽排序（只針對可編輯條目）
 static initializeDragSort(presetId, versionId) {
     setTimeout(() => {
-        // 只為可編輯條目啟用拖拽
         this.enablePromptsDragSort(presetId, versionId, 100001);
-        console.log(`🎯 已初始化 preset ${presetId} version ${versionId} 的拖拽排序`);
     }, 200);
 }
 
@@ -649,7 +636,6 @@ static reorderPrompts(presetId, versionId, characterId, container) {
     
     // 確保沒有遺失條目
     if (newOrder.length !== orderConfig.order.length) {
-        console.warn('⚠️ 條目數量不匹配，使用原順序');
         return;
     }
     
@@ -697,17 +683,12 @@ static restorePromptCollapseStates(states) {
 
 // 展開所有提示詞條目
 static expandAllPrompts(versionId) {
-    console.log('🔍 展開全部被觸發，versionId:', versionId);
-    
-    // 🎯 修正：找到所有匹配的容器（對比模式下可能有多個）
     const containers = document.querySelectorAll(`.prompts-entries-container[data-version-id="${versionId}"]`);
-    
+
     if (containers.length === 0) {
-        console.warn('⌛ 找不到容器，versionId:', versionId);
         return;
     }
-    
-    // 🎯 對每個容器都執行展開操作
+
     containers.forEach(container => {
         const entryPanels = container.querySelectorAll('.preset-entry-panel');
         
@@ -726,23 +707,20 @@ static expandAllPrompts(versionId) {
 
 // 摺疊所有提示詞條目
 static collapseAllPrompts(versionId) {
-    // 🎯 修正：找到所有匹配的容器（對比模式下可能有多個）
     const containers = document.querySelectorAll(`.prompts-entries-container[data-version-id="${versionId}"]`);
-    
+
     if (containers.length === 0) {
-        console.warn('⌛ 找不到容器，versionId:', versionId);
         return;
     }
-    
-    // 🎯 對每個容器都執行摺疊操作
+
     containers.forEach(container => {
         const entryPanels = container.querySelectorAll('.preset-entry-panel');
-        
+
         entryPanels.forEach(panel => {
             const identifier = panel.dataset.promptIdentifier;
             const content = panel.querySelector(`#prompt-content-${identifier}`);
             const toggleBtn = panel.querySelector('.entry-toggle-btn');
-            
+
             if (content && toggleBtn) {
                 content.style.display = 'none';
                 toggleBtn.innerHTML = '<span class="arrow-icon arrow-right"></span>';
@@ -1078,7 +1056,6 @@ static getCurrentPresetData(versionId) {
         }
     }
     
-    console.warn('無法找到 preset 數據，versionId:', versionId);
     return null;
 }
 
@@ -1660,9 +1637,7 @@ static moveSinglePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetV
     const targetVersion = targetPreset.versions.find(v => v.id === targetVersionId);
     if (!targetVersion) return false;
     
-    // 檢查目標中是否已存在同 identifier 的 prompt
     if (targetVersion.prompts.some(p => p.identifier === identifier)) {
-        console.warn(`Prompt with identifier ${identifier} already exists in target. Skipping move.`);
         NotificationManager.warning(t('promptAlreadyExistsInTarget'));
         return false;
     }
@@ -1920,7 +1895,6 @@ if (successCount > 0) {
     TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
     markAsChanged();
     
-    // ✅ 先關閉批量模式再重新渲染
     const container = document.querySelector(`.prompts-entries-container[data-preset-id="${presetId}"][data-version-id="${versionId}"]`);
     if (container?.classList.contains('batch-mode-active')) {
         this.togglePresetBatchMode(presetId, versionId);
@@ -2069,7 +2043,6 @@ if (successCount > 0) {
     
     window.movePromptTarget = null;
     
-    // ✅ 強制退出批量模式
     setTimeout(() => {
         const container = document.querySelector(`.prompts-entries-container[data-preset-id="${sourcePresetId}"][data-version-id="${sourceVersionId}"]`);
         const button = document.getElementById(`batch-mode-toggle-${sourcePresetId}-${sourceVersionId}`);
@@ -2221,10 +2194,8 @@ static movePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetVersion
 
     const promptToMove = { ...sourceVersion.prompts[promptIndex] };
 
-    // 檢查目標中是否已存在同名 prompt
     if (targetVersion.prompts.some(p => p.identifier === identifier)) {
-        console.warn(`Prompt with identifier ${identifier} already exists in target. Skipping move.`);
-        return false; // Or handle merging/renaming
+        return false;
     }
 
     // 從來源的 order 中移除

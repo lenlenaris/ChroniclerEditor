@@ -37,7 +37,6 @@ function toggleMobileSidebar() {
         
         if (overlay) overlay.remove();
     } else {
-        // 🔧 修復：只移除側邊欄的收合狀態，不展開內部列表
         if (sidebar.classList.contains('collapsed')) {
             sidebar.classList.remove('collapsed');
             
@@ -151,7 +150,6 @@ function handleResponsiveChanges() {
                 });
             }
             
-            // 🔧 關鍵：根據收合狀態控制圖示顯示
             if (collapsedIcons) {
                 if (sidebar.classList.contains('collapsed')) {
                     collapsedIcons.style.display = 'flex';
@@ -179,8 +177,7 @@ function handleResponsiveChanges() {
             sidebar.style.transition = '';
             sidebar.style.display = 'flex';
             sidebar.style.width = '';
-            
-            // 🔧 關鍵：根據收合狀態控制圖示顯示
+
             if (collapsedIcons) {
                 if (sidebar.classList.contains('collapsed')) {
                     collapsedIcons.style.display = 'flex';
@@ -274,7 +271,6 @@ function updateMobileBreadcrumb() {
                 isClickable = false; // 在根目錄時不可點擊
             }
         } catch (error) {
-            console.warn('取得總覽頁麵包屑時發生錯誤:', error);
             breadcrumbText = '總覽';
             isClickable = false;
         }
@@ -403,7 +399,6 @@ function getMobileBreadcrumbForEdit() {
         }
         
     } catch (error) {
-        console.warn('取得手機版編輯麵包屑時發生錯誤:', error);
     }
     
     return typeName || t('edit') || '編輯';
@@ -432,7 +427,6 @@ function initializeMobileLongPress() {
             e.preventDefault();
             e.stopPropagation();
             
-            // 🔧 記住被長按的元素
             longPressedElement = e.target.closest('.home-card, .overview-card, .list-item, .folder-card');
             
             // 200ms 後清除標記
@@ -446,7 +440,6 @@ function initializeMobileLongPress() {
     function interceptClick(e) {
         const clickedElement = e.target.closest('.home-card, .overview-card, .list-item, .folder-card');
         
-        // 🎯 只有被長按的那個元素才阻止點擊
         if (longPressedElement && clickedElement === longPressedElement) {
             e.preventDefault();
             e.stopPropagation();
@@ -480,7 +473,6 @@ function initializeMobileLongPress() {
             clientY: e.touches[0].clientY
         };
         
-        // 🔧 更詳細的判斷邏輯
         if (card.classList.contains('folder-card') || 
             card.classList.contains('folder-list-item') || 
             card.id?.startsWith('folder-')) {
@@ -490,20 +482,16 @@ function initializeMobileLongPress() {
             const folderName = card.querySelector('.overview-folder-name, .list-item-name span, span')?.textContent?.trim();
             const type = getCurrentPageType();
             
-            console.log('📁 資料夾長按:', { type, folderId, folderName });
             
             if (folderId && folderName) {
                 ContextMenuManager.showFolderMenu(syntheticEvent, type, folderId, folderName);
             }
             
         } else if (card.classList.contains('list-item')) {
-            
-            // 🔧 列表項目長按
             const itemId = card.dataset.itemId;
             const itemName = card.querySelector('.list-item-name')?.textContent?.trim();
             const type = getCurrentPageType();
             
-            console.log('📋 列表項目長按:', { type, itemId, itemName });
             
             if (itemId && itemName) {
                 ContextMenuManager.showItemMenu(syntheticEvent, type, itemId, itemName);
@@ -516,7 +504,6 @@ function initializeMobileLongPress() {
             const itemName = card.querySelector('.character-name, .persona-name, .overview-card-name')?.textContent?.trim();
             const type = getCurrentPageType();
             
-            console.log('🎴 卡片項目長按:', { type, itemId, itemName });
             
             if (itemId && itemName) {
                 ContextMenuManager.showItemMenu(syntheticEvent, type, itemId, itemName);
@@ -533,7 +520,6 @@ function initializeMobileLongPress() {
         return 'character';
     }
     
-    // 🔧 添加精準的點擊攔截
     document.addEventListener('click', interceptClick, { 
         passive: false, 
         capture: true 
@@ -548,7 +534,6 @@ window.addEventListener('resize', handleResponsiveChanges);
 document.addEventListener('DOMContentLoaded', function() {
     handleResponsiveChanges();
     
-    // 🔧 強化版翻譯系統等待邏輯
     function waitForTranslations() {
         // 檢查翻譯系統是否真的準備好
         const testKey = 'character';
@@ -561,16 +546,11 @@ document.addEventListener('DOMContentLoaded', function() {
             translated === null ||
             translated.length === 0) {
             
-            console.log('🔄 等待翻譯系統載入...', {
-                tFunction: typeof t,
-                testResult: translated
-            });
             
             setTimeout(waitForTranslations, 100);
             return;
         }
         
-        console.log('✅ 翻譯系統準備完成，更新麵包屑');
         updateMobileBreadcrumb();
     }
     

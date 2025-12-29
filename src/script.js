@@ -1,17 +1,12 @@
 // ===== 1. 全域變數初始化 =====
 let currentLang = localStorage.getItem('characterCreatorLang') || 'en';
 let translationsReady = false;
-
-// 資料變數
 let characters = [];
 let customSections = [];
 let worldBooks = [];
 let userPersonas = [];
 let loveyDoveyCharacters = [];
 let presets = [];
-
-
-// 狀態變數
 let isHomePage = true;
 let currentCharacterId = null;
 let currentVersionId = null;
@@ -32,10 +27,8 @@ let hasUnsavedChanges = false;
 let lastSavedData = null;
 let sidebarCollapsed = false;
 let favoriteEditMode = false;
-let currentFolderId = null; 
+let currentFolderId = null;
 let folderBreadcrumbs = [];
-
-// 列表頁面狀態變數
 let isListPage = false;
 let listPageType = null;
 let batchEditMode = false;
@@ -43,8 +36,6 @@ let selectedItems = [];
 let currentPage = 1;
 let itemsPerPage = 100;
 let searchText = '';
-
-// 雙屏編輯狀態變數
 let crossTypeCompareMode = false;
 let crossTypeItems = {
     left: { type: 'character', itemId: null, versionId: null },
@@ -75,7 +66,6 @@ function adjustBrightness(hex, factor) {
 // ===== 翻譯系統 =====
 function t(key, ...args) {
     if (!window.translationManager) {
-        console.warn('⚠️ 翻譯管理器尚未初始化，使用鍵值:', key);
         return key;
     }
     
@@ -91,7 +81,6 @@ function t(key, ...args) {
 
 async function initTranslations() {
     if (!window.translationManager) {
-        console.error('❌ 翻譯管理器未找到，請確保已載入 translations/index.js');
         return false;
     }
     
@@ -104,12 +93,10 @@ async function initTranslations() {
             const testTranslation = window.translationManager.getTranslation(locale, 'appTitle');
             return true;
         } else {
-            console.warn(`⚠️ 翻譯載入失敗，使用備援翻譯 (${locale})`);
             translationsReady = true;
             return false;
         }
     } catch (error) {
-        console.error('❌ 翻譯系統初始化失敗:', error);
         translationsReady = true;
         return false;
     }
@@ -444,8 +431,6 @@ class DataOperations {
                     updatedAt: TimestampManager.createTimestamp(),
                     versions: [{
                         ...baseStructure.versions[0],
-                        
-                        // 🔥 直接使用完整的SillyTavern JSON結構
                         temperature: 1,
                         frequency_penalty: 0,
                         presence_penalty: 0,
@@ -473,8 +458,6 @@ class DataOperations {
                         bias_preset_selected: "Default (none)",
                         max_context_unlocked: true,
                         stream_openai: true,
-                        
-                        // 🔑 核心：SillyTavern 的 prompts 和 prompt_order 結構
                         prompts: [
                             {
                                 name: "Main Prompt",
@@ -706,8 +689,6 @@ class DataOperations {
                     updatedAt: TimestampManager.createTimestamp(),
                     versions: [{
                         ...baseStructure.versions[0],
-                        
-                        // 🔥 直接使用完整的SillyTavern JSON結構
                         temperature: 1,
                         frequency_penalty: 0,
                         presence_penalty: 0,
@@ -735,8 +716,6 @@ class DataOperations {
                         bias_preset_selected: "Default (none)",
                         max_context_unlocked: true,
                         stream_openai: true,
-                        
-                        // 🔑 核心：SillyTavern 的 prompts 和 prompt_order 結構
                         prompts: [
                             {
                                 name: "Main Prompt",
@@ -957,7 +936,6 @@ class DataOperations {
                 return {
                     ...baseClone,
                     
-                    // 🔥 深拷貝所有預設欄位
                     temperature: originalVersion.temperature || 1,
                     frequency_penalty: originalVersion.frequency_penalty || 0,
                     presence_penalty: originalVersion.presence_penalty || 0,
@@ -987,20 +965,14 @@ class DataOperations {
                     bias_preset_selected: originalVersion.bias_preset_selected || "Default (none)",
                     max_context_unlocked: originalVersion.max_context_unlocked !== false,
                     stream_openai: originalVersion.stream_openai !== false,
-                    
-                    // 🔑 深拷貝核心陣列
                     prompts: JSON.parse(JSON.stringify(originalVersion.prompts || [])),
                     prompt_order: JSON.parse(JSON.stringify(originalVersion.prompt_order || [])),
-                    
-                    // 進階設定
                     assistant_prefill: originalVersion.assistant_prefill || "",
                     claude_use_sysprompt: originalVersion.claude_use_sysprompt || false,
                     squash_system_messages: originalVersion.squash_system_messages || false,
                     show_thoughts: originalVersion.show_thoughts || false,
                     reasoning_effort: originalVersion.reasoning_effort || "medium",
                     enable_web_search: originalVersion.enable_web_search || false,
-                    
-                    // 深拷貝擴展
                     extensions: JSON.parse(JSON.stringify(originalVersion.extensions || {})),
                     
                     createdAt: TimestampManager.createTimestamp(),
@@ -1078,14 +1050,12 @@ static remove(type, itemId, silent = false) {
         this.updateCurrentAfterDelete(type, itemId);
         
         if (!silent) {
-            // 🔑 關鍵：檢查是否需要頁面導航
             const needsPageNavigation = this.checkIfNeedsPageNavigation(type, itemId);
             
             if (needsPageNavigation) {
                 // 需要跳轉頁面時才進行導航
                 this.navigateAfterDelete(type);
             } else {
-                // 在總覽頁面時保持原有邏輯
                 OverviewManager.onDataChange();
             }
             
@@ -1097,9 +1067,7 @@ static remove(type, itemId, silent = false) {
     return false;
 }
 
-// 🆕 新增：檢查是否需要頁面導航
 static checkIfNeedsPageNavigation(type, itemId) {
-    // 檢查當前是否在被刪除項目的詳細編輯頁面
     switch (type) {
         case 'character':
             return !isHomePage && !isListPage && currentMode === 'character' && currentCharacterId === itemId;
@@ -1116,7 +1084,6 @@ static checkIfNeedsPageNavigation(type, itemId) {
     }
 }
 
-// 🆕 新增：導航邏輯（與之前相同）
 static navigateAfterDelete(type) {
     this.clearCurrentItemIds();
     
@@ -1720,21 +1687,18 @@ static detectLoveyDoveyField(originalTextarea) {
     let maxLength = 0;
     let countElement = null;
     
-    // 🔧 特殊處理：附加資訊欄位
     if (originalTextarea.id.includes('additionalContent-') || originalTextarea.id.includes('additionalTitle-')) {
         // 附加資訊欄位：查找 .char-count-display
         countElement = document.querySelector(`[data-target="${originalTextarea.id}"]`);
         
         if (countElement) {
             const countText = countElement.textContent;
-            // 解析 "0/500" 格式
             const match = countText.match(/(\d+)\/(\d+)/);
             if (match) {
                 maxLength = parseInt(match[2]);
             }
         }
     } else {
-    // 普通卿卿我我欄位：查找 .loveydovey-char-count
     const labelElement = originalTextarea.previousElementSibling;
     countElement = labelElement?.querySelector('.loveydovey-char-count');
     
@@ -1744,7 +1708,6 @@ static detectLoveyDoveyField(originalTextarea) {
         if (match) {
             maxLength = parseInt(match[1]);
         } else {
-            // 嘗試 "0/500" 格式
             match = countText.match(/(\d+)\/(\d+)/);
             if (match) {
                 maxLength = parseInt(match[2]);
@@ -1752,8 +1715,7 @@ static detectLoveyDoveyField(originalTextarea) {
         }
     }
 }
-    
-    // 備援策略：使用 data-target 通用查找
+
     if (!countElement) {
         countElement = document.querySelector(`[data-target="${originalTextarea.id}"]`);
         if (countElement) {
@@ -2206,7 +2168,6 @@ function updateListItemVisualState(itemId) {
     let listItem;
     if (itemId.startsWith('folder-')) {
         const realFolderId = itemId.replace('folder-', '');
-        // 🔧 使用多重查詢確保找到元素
         listItem = document.querySelector(`[data-folder-id="${realFolderId}"]`) ||
                    document.getElementById(`folder-list-item-${realFolderId}`) ||
                    document.getElementById(`list-item-folder-${realFolderId}`);
@@ -2215,7 +2176,6 @@ function updateListItemVisualState(itemId) {
     }
     
     if (!listItem) {
-        console.warn('找不到列表項目:', itemId);
         return;
     }
     
@@ -2758,7 +2718,6 @@ function toggleItemVersions(type, itemId) {
     const isCurrentItem = (currentMode === type && ItemManager.getCurrentItemId() === itemId);
 
     if (!isCurrentItem) {
-        // ✨ 新增：在切換到新角色前，先摺疊所有其他角色的版本列表
         collapseAllOtherItemVersions(type, itemId);
         
         const itemsArray = DataOperations.getItems(type);
@@ -2774,7 +2733,6 @@ function toggleItemVersions(type, itemId) {
                 versionsList.classList.add('expanded');
                 
                 setTimeout(() => {
-                    // 🚫 手機版不啟用版本拖曳
                     if (window.innerWidth > 768) {
                         DragSortManager.enableVersionDragSort(type, itemId);
                     }
@@ -2801,7 +2759,6 @@ function toggleItemVersions(type, itemId) {
         versionsList.classList.add('expanded');
         
         setTimeout(() => {
-            // 🚫 手機版不啟用版本拖曳
             if (window.innerWidth > 768) {
                 DragSortManager.enableVersionDragSort(type, itemId);
             }
@@ -2848,16 +2805,11 @@ function scrollToSelectedVersion(type, itemId, versionId) {
     );
     
     if (!selectedVersion) {
-        console.warn('❌ 找不到選中的版本元素');
         return;
     }
-    
-    
-    
-    // 🎯 使用正確的滾動容器：sidebar-content
+
     const sidebarContent = document.querySelector('.sidebar-content');
     if (!sidebarContent) {
-        console.warn('❌ 找不到 sidebar-content 容器');
         return;
     }
     
@@ -2981,14 +2933,12 @@ function selectSidebarItem(type, id, subId = null) {
             
         }, 1000);
     }
-   // 🚀 立即視覺反饋 - 讓用戶瞬間看到點擊效果
 requestAnimationFrame(() => {
     // 移除所有active狀態
     document.querySelectorAll('.character-header.active, .version-item.active').forEach(el => {
         el.classList.remove('active');
     });
     
-    // ✅ 修改：使用 data 屬性尋找元素
     const clickedHeader = document.querySelector(`[data-action="toggleItemVersions"][data-type="${type}"][data-item-id="${id}"]`);
     if (clickedHeader) {
         clickedHeader.classList.add('active');
@@ -3044,7 +2994,6 @@ requestAnimationFrame(() => {
         }
     }
     
-    // 🎯 智能渲染：只在必要時重新渲染側邊欄
     const needFullSidebarRender = (
         wasHomePage || 
         previousType !== type  
@@ -3099,7 +3048,6 @@ function updateSidebarSelectionOnly(oldItemId, newItemId, newVersionId, type) {
         }, 50);
     }
     
-    // 🎯 更新統計（呼叫 stats-system.js 的函數）
     setTimeout(() => {
         updateSingleItemStats(type, newItemId, newVersionId);
     }, 0);
@@ -3233,7 +3181,6 @@ function goToHomePage() {
     viewMode = 'single';
     compareVersions = [];
     
-    // 🔧 重要：清除當前選中的項目ID
     currentCharacterId = null;
     currentVersionId = null;
     currentUserPersonaId = null;
@@ -3280,7 +3227,6 @@ function enterListPage(type) {
         currentPage = 1;
         searchText = '';
         
-        // 🔧 清除當前選中的卿卿我我角色，回到總覽
         currentLoveyDoveyId = null;
         currentLoveyDoveyVersionId = null;
         
@@ -3305,7 +3251,6 @@ function enterListPage(type) {
         currentPage = 1;
         searchText = '';
         
-        // 🔧 清除當前選中的玩家角色，回到總覽
         currentUserPersonaId = null;
         currentUserPersonaVersionId = null;
         
@@ -3449,7 +3394,6 @@ function selectAllItems() {
     
     allItems = allItems.filter(item => !item.isFolder);
     
-    // 🆕 清空之前的選擇（確保互斥）
     if (selectedItems.length > 0) {
         // 清除之前選中項目的視覺狀態
         selectedItems.forEach(itemId => {
@@ -3512,7 +3456,6 @@ function clearListItemVisualState(itemId) {
     let listItem;
     if (itemId.startsWith('folder-')) {
         const realFolderId = itemId.replace('folder-', '');
-        // 🔧 使用多重查詢確保找到元素
         listItem = document.querySelector(`[data-folder-id="${realFolderId}"]`) ||
                    document.getElementById(`folder-list-item-${realFolderId}`) ||
                    document.getElementById(`list-item-folder-${realFolderId}`);
@@ -3521,7 +3464,6 @@ function clearListItemVisualState(itemId) {
     }
     
     if (!listItem) {
-        console.warn('找不到列表項目:', itemId);
         return;
     }
     
@@ -3775,7 +3717,6 @@ function selectCharacterFromHome(characterId) {
             }
         }
         
-        // ✨ 新增：觸發滾動定位
         scrollToSelectedVersion('character', characterId, character?.versions[0]?.id);
         updateMobileBreadcrumb();
     }, 200); // 增加等待時間，確保渲染完成
@@ -4018,13 +3959,11 @@ function updateField(itemType, itemId, versionId, field, value, source = 'input'
     
     const item = ItemManager.getItemsArray(actualItemType).find(i => i.id === itemId);
     if (!item) {
-        console.warn(`找不到項目: ${actualItemType}-${itemId}`);
         return;
     }
-    
+
     const version = item.versions.find(v => v.id === versionId);
     if (!version) {
-        console.warn(`找不到版本: ${versionId}`);
         return;
     }
 
@@ -4056,10 +3995,6 @@ function updateField(itemType, itemId, versionId, field, value, source = 'input'
     
     markAsChanged();
     
-    // 如果是頭像更新，在雙屏模式下觸發局部重渲染
-    if (field === 'avatar' && crossTypeCompareMode) {
-        console.log(`✅ 雙屏模式頭像已更新到數據: ${actualItemType}-${itemId}-${versionId}`);
-    }
 }
 
 function updateCharacterField(characterId, versionId, field, value) {
@@ -4166,7 +4101,6 @@ function addCustomField(sectionId, versionId) {
             };
             version.fields.push(newField);
             
-            // 🎯 找到正確的容器（支援單版本和對比模式）
             const container = document.querySelector(`#custom-fields-${versionId}[data-section-id="${sectionId}"]`);
             
             if (container) {
@@ -4176,7 +4110,6 @@ function addCustomField(sectionId, versionId) {
                 
                 markAsChanged();
                 
-                // 🎯 初始化新欄位的功能
                 requestAnimationFrame(() => {
                     // 初始化自動調整大小
                     if (typeof initAutoResize === 'function') {
@@ -4188,7 +4121,6 @@ function addCustomField(sectionId, versionId) {
                         updateAllPageStats();
                     }
                     
-                    // 🎯 重新初始化拖曳排序
                     setTimeout(() => {
                         if (typeof DragSortManager !== 'undefined' && DragSortManager.enableCustomFieldsDragSort) {
                             DragSortManager.enableCustomFieldsDragSort(sectionId, versionId);
@@ -4196,8 +4128,6 @@ function addCustomField(sectionId, versionId) {
                     }, 50);
                 });
             } else {
-                // 🛡️ 找不到容器時的備用方案
-                console.warn('找不到筆記本容器，使用完整重新渲染');
                 if ((crossTypeCompareMode || viewMode === 'compare') && typeof ContentRenderer.renderCustomFieldsList === 'function') {
                     ContentRenderer.renderCustomFieldsList(sectionId, versionId);
                 } else {
@@ -4245,7 +4175,6 @@ function removeCustomField(sectionId, versionId, fieldId) {
         if (version && version.fields.length > 1) {
             version.fields = version.fields.filter(f => f.id !== fieldId);
             
-            // 🎯 找到要刪除的欄位元素
             const fieldElement = document.getElementById(`field-${fieldId}`);
             
             if (fieldElement) {
@@ -4257,7 +4186,6 @@ function removeCustomField(sectionId, versionId, fieldId) {
                     fieldElement.remove();
                     markAsChanged();
                     
-                    // 🎯 重新初始化拖曳排序
                     requestAnimationFrame(() => {
                         if (typeof updateAllPageStats === 'function') {
                             updateAllPageStats();
@@ -4271,8 +4199,6 @@ function removeCustomField(sectionId, versionId, fieldId) {
                     });
                 }, 150);
             } else {
-                // 🛡️ 找不到元素時的備用方案
-                console.warn('找不到欄位元素，使用完整重新渲染');
                 if ((crossTypeCompareMode || viewMode === 'compare') && typeof ContentRenderer.renderCustomFieldsList === 'function') {
                     ContentRenderer.renderCustomFieldsList(sectionId, versionId);
                 } else {
@@ -4458,15 +4384,13 @@ class OtherSettings {
                 this.settings = { ...this.settings, ...JSON.parse(saved) };
             }
         } catch (error) {
-            console.error('載入其他設定失敗:', error);
         }
     }
-    
+
     static saveSettings() {
         try {
             localStorage.setItem('characterCreator_otherSettings', JSON.stringify(this.settings));
         } catch (error) {
-            console.error('儲存其他設定失敗:', error);
         }
     }
     
@@ -4603,7 +4527,6 @@ static bindHeightChangeEvent(textarea) {
                         localStorage.setItem(storageKey, height);
                         
                     } else {
-                        console.warn('⚠️ 無法儲存：項目資訊不完整');
                     }
                 }
                 startHeight = null;
@@ -4614,7 +4537,6 @@ static bindHeightChangeEvent(textarea) {
     // 綁定到 document
     document.addEventListener('mouseup', textarea._globalMouseUpHandler);
     
-    // 🚫 完全移除 ResizeObserver 邏輯，避免跨角色衝突
 }
 
     static applyLoveyDoveyVisibility(show) {
@@ -4660,7 +4582,6 @@ static bindHeightChangeEvent(textarea) {
 class FavoriteManager {
     static favoriteEditMode = false;
     
-    // 🎨 顯示邏輯：處理名稱顯示
     static getDisplayName(item) {
         // 向後兼容：如果舊數據沒有 isFavorite 欄位，預設為 false
         if (item.isFavorite === undefined) {
@@ -4669,7 +4590,6 @@ class FavoriteManager {
         return item.isFavorite ? `♥ ${item.name}` : item.name;
     }
     
-    // ⚙️ 操作邏輯：切換最愛狀態
     static toggleItemFavorite(type, itemId) {
         const itemsArray = DataOperations.getItems(type);
         const item = itemsArray.find(i => i.id === itemId);
@@ -4688,7 +4608,6 @@ class FavoriteManager {
         return false;
     }
     
-    // 🎯 批量操作：獲取所有最愛項目的ID
     static getAllFavoriteItemIds(type) {
         const itemsArray = DataOperations.getItems(type);
         return itemsArray
@@ -4699,7 +4618,6 @@ class FavoriteManager {
             .map(item => item.id);
     }
     
-    // 🚀 模式切換：進入/退出愛心編輯模式
     static toggleMode() {
         this.favoriteEditMode = !this.favoriteEditMode;
         
@@ -4728,7 +4646,6 @@ class FavoriteManager {
         updateSelectedCount();
         this.rerenderCurrentPage();
         
-        // 👈 新增：重新渲染後更新視覺選擇狀態
         if (this.favoriteEditMode && selectedItems.length > 0) {
             setTimeout(() => {
                 selectedItems.forEach(itemId => {
@@ -4742,7 +4659,6 @@ class FavoriteManager {
         }
     }
     
-    // 🚫 取消編輯模式
     static cancelEdit() {
         this.favoriteEditMode = false;
         selectedItems = [];
@@ -4750,7 +4666,6 @@ class FavoriteManager {
         this.rerenderCurrentPage();
     }
     
-    // 💾 套用變更：批量更新最愛狀態
     static applyChanges() {
         const currentType = this.getCurrentPageType();
         const itemsArray = DataOperations.getItems(currentType);
@@ -4770,7 +4685,6 @@ class FavoriteManager {
         NotificationManager.success(t('favoriteChangesApplied'));
     }
     
-    // 🔍 獲取當前頁面類型
     static getCurrentPageType() {
         if (isHomePage) return 'character';
         if (isListPage) return listPageType;
@@ -4779,7 +4693,6 @@ class FavoriteManager {
         return 'character'; // 預設
     }
     
-    // 📺 顯示操作欄
     static showOperationsBar() {
         const favoriteBar = document.getElementById('favorite-operations-bar');
         if (favoriteBar) {
@@ -4787,7 +4700,6 @@ class FavoriteManager {
         }
     }
     
-    // 📺 隱藏操作欄
     static hideOperationsBar() {
         const favoriteBar = document.getElementById('favorite-operations-bar');
         if (favoriteBar) {
@@ -4795,7 +4707,6 @@ class FavoriteManager {
         }
     }
     
-    // 🔄 重新渲染當前頁面
     static rerenderCurrentPage() {
         if (isHomePage) {
             OverviewManager.renderCharacters();
@@ -4808,7 +4719,6 @@ class FavoriteManager {
         }
     }
     
-    // 📊 檢查是否在愛心編輯模式
     static isInEditMode() {
         return this.favoriteEditMode;
     }

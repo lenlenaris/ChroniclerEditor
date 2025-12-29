@@ -15,7 +15,6 @@ class DragSortManager {
             onReorder = null
         } = config;
 
-        // 🚫 手機版禁用這些特定容器的拖曳
         const mobileBannedContainers = [
             '#character-grid',      // 主頁卡片
             '#sidebarContent',      // 側邊欄角色
@@ -25,18 +24,15 @@ class DragSortManager {
             '#loveyDoveyContent',    // 側邊欄卿卿我我
         ];
         
-        // 🚫 手機版禁用列表頁拖曳（以 -list 結尾的容器）
         const isListContainer = containerSelector.endsWith('-list');
         
         if (this.isMobileDevice() && 
             (mobileBannedContainers.includes(containerSelector) || isListContainer)) {
-            console.log(`🚫 手機版：跳過 ${containerSelector} 拖曳功能`);
             return null;
         }
 
         const container = document.querySelector(containerSelector);
         if (!container) {
-            console.warn(`拖曳排序：找不到容器 ${containerSelector}`);
             return;
         }
 
@@ -114,7 +110,6 @@ class DragSortManager {
 
 // ===== 替換整個 DragSortManager.handleReorder() 函數 =====
 static handleReorder(type, container, itemSelector, evt, onReorder) {
-    // 🆕 第一步：立即設定為自定義排序模式
     OverviewManager.currentSort = 'custom';
     OverviewManager.saveSortPreference('custom');
     
@@ -122,22 +117,17 @@ static handleReorder(type, container, itemSelector, evt, onReorder) {
     const dropdown = document.querySelector('.overview-sort-dropdown') || document.querySelector('.sort-dropdown');
     if (dropdown) dropdown.value = 'custom';
     
-    // 🚀 立即處理資料更新
     const items = Array.from(container.querySelectorAll(itemSelector))
         .filter(el => !el.getAttribute('onclick')?.includes('addCharacterFromHome'));
     
     const newOrder = items.map(item => this.extractItemData(item, type));
     
-    // 🚀 應用新排序到資料
     this.applyNewOrder(type, newOrder);
     
-    // 🆕 強制清除 OverviewManager 的快取
     OverviewManager.invalidateCache();
     
-    // 🚀 立即同步側邊欄排序
     this.syncSidebarOrder(type);
     
-    // 🚀 使用 requestAnimationFrame 優化重新渲染時機
     if (onReorder) {
         requestAnimationFrame(() => {
             onReorder(newOrder, evt.oldIndex, evt.newIndex);
@@ -189,21 +179,18 @@ static syncSidebarOrder(type = 'character') {
     });
 }
 
-// 💾 保存版本排序偏好
 static saveVersionOrder(type, itemId, orderedVersionIds) {
     const key = `characterCreator-versionOrder-${type}-${itemId}`;
     localStorage.setItem(key, JSON.stringify(orderedVersionIds));
     
 }
 
-// 📖 載入版本排序偏好
 static loadVersionOrder(type, itemId) {
     const key = `characterCreator-versionOrder-${type}-${itemId}`;
     const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : null;
 }
 
-// 🎯 應用版本排序到數據
 static applyVersionOrder(type, itemId, orderedVersionIds) {
     const itemsArray = ItemManager.getItemsArray(type);
     const item = itemsArray.find(i => i.id === itemId);
@@ -234,9 +221,7 @@ static applyVersionOrder(type, itemId, orderedVersionIds) {
 
 
 static enableVersionDragSort(type, itemId) {
-    // 🚫 手機版禁用版本拖曳排序
     if (this.isMobileDevice()) {
-        console.log(`🚫 手機版：跳過 ${type}-versions-${itemId} 版本拖曳功能`);
         return null;
     }
     const containerSelector = `#${type}-versions-${itemId}`;
@@ -296,11 +281,7 @@ versionItems.forEach(item => {
     }
 });
 
-console.log(`📋 版本重新排序 [${type}/${itemId}]:`, newVersionOrder);
-
-// 驗證是否成功提取到版本ID
 if (newVersionOrder.length === 0) {
-    console.error('❌ 無法提取版本ID，排序失敗');
     return;
 }
     
@@ -375,7 +356,6 @@ static updateVersionUI(type, itemId) {
 
 
 static extractItemData(item, type) {
-    // 🆕 優先檢查資料夾
     const folderId = item.getAttribute('data-folder-id');
     if (folderId) {
         return { id: `folder-${folderId}`, element: item };
@@ -503,7 +483,6 @@ static handleAdditionalInfoReorder(characterId, versionId, oldIndex, newIndex) {
     const version = character.versions.find(v => v.id === versionId);
     if (!version || !version.additionalInfo) return;
     
-    // 🔧 保存當前的折疊狀態（拖曳前）
     const currentStates = getCurrentAdditionalInfoCollapseStates();
     
     // 重新排序陣列
@@ -515,7 +494,6 @@ static handleAdditionalInfoReorder(characterId, versionId, oldIndex, newIndex) {
     TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
     markAsChanged();
     
-    // 🔧 關鍵修復：完整重新渲染列表 HTML，而不只是更新編號
     const container = document.getElementById(`additional-info-list-${versionId}`);
     if (container && typeof LoveyDoveyRenderer !== 'undefined') {
         // 重新生成 HTML
@@ -531,7 +509,6 @@ static handleAdditionalInfoReorder(characterId, versionId, oldIndex, newIndex) {
     }
 }
 
-    // 💾 應用新排序到數據
 static applyNewOrder(type, newOrder) {
     const itemIds = newOrder.map(item => item.id).filter(id => id);
     
@@ -565,7 +542,6 @@ static applyNewOrder(type, newOrder) {
         const folderIds = [];
         const regularIds = [];
         
-        // 🆕 分離資料夾 ID 和一般項目 ID
         orderedIds.forEach(id => {
             if (id.startsWith('folder-')) {
                 folderIds.push(id);
@@ -594,22 +570,18 @@ static applyNewOrder(type, newOrder) {
         sourceArray.push(...reorderedArray);
     }
 
-    // 💾 保存自定義排序偏好
     static saveCustomOrder(type, orderedIds) {
         const key = `characterCreator-customOrder-${type}`;
         const value = JSON.stringify(orderedIds);
-        console.log(`%c[saveCustomOrder] 正在儲存 ${type} 的排序...`, 'color: #28a745;', { key: key, value: value });
         localStorage.setItem(key, value);
     }
 
-    // 📖 載入自定義排序偏好
     static loadCustomOrder(type) {
         const key = `characterCreator-customOrder-${type}`;
         const saved = localStorage.getItem(key);
         return saved ? JSON.parse(saved) : null;
     }
 
-// 🎯 應用保存的排序（在數據載入後調用）
 static applySavedOrder(type) {
     const savedOrder = this.loadCustomOrder(type);
     
@@ -646,7 +618,6 @@ static clearCustomOrder(type) {
     localStorage.removeItem(key);
 }
 
-    // 🎯 銷毀特定容器的 Sortable 實例
     static destroySortable(containerSelector) {
         const instance = this.sortableInstances.get(containerSelector);
         if (instance) {
@@ -655,7 +626,6 @@ static clearCustomOrder(type) {
         }
     }
 
-    // 🎯 銷毀所有 Sortable 實例
     static destroyAll() {
         this.sortableInstances.forEach((instance, selector) => {
             instance.destroy();
@@ -714,7 +684,6 @@ static clearCustomOrder(type) {
                 });
             }
 
-            // 🆕 預設列表拖曳(側邊欄)
             if (document.querySelector('#presetContent')) {
                 this.enableDragSort({
                     containerSelector: '#presetContent',
@@ -777,7 +746,6 @@ static enableCustomFieldsDragSort(sectionId, versionId) {
     }
     
     if (containers.length === 0) {
-        console.warn(`找不到筆記本容器`);
         return;
     }
     
@@ -806,7 +774,6 @@ static enableCustomFieldsDragSort(sectionId, versionId) {
             chosenClass: 'sortable-chosen',
             dragClass: 'sortable-drag',
             
-            // 🎯 關鍵修復：禁用 clone 和 fallback
             forceFallback: false,
             fallbackOnBody: false,
             
@@ -820,7 +787,6 @@ static enableCustomFieldsDragSort(sectionId, versionId) {
                 document.body.classList.add('dragging-active');
                 container.classList.add('drag-in-progress');
                 
-                // 🎯 修復：移除 ghost 元素的 ID 屬性，避免重複
                 setTimeout(() => {
                     const ghostElement = container.querySelector('.sortable-ghost');
                     if (ghostElement) {
@@ -844,7 +810,6 @@ static enableCustomFieldsDragSort(sectionId, versionId) {
                 document.body.classList.remove('dragging-active');
                 container.classList.remove('drag-in-progress');
                 
-                // 🎯 修復：清理可能殘留的重複 ID
                 setTimeout(() => {
                     this.cleanupDuplicateIds(container);
                 }, 0);
@@ -868,7 +833,6 @@ static cleanupDuplicateIds(container) {
     
     elementsWithIds.forEach(element => {
         if (seenIds.has(element.id)) {
-            console.warn(`清理重複 ID: ${element.id}`);
             element.removeAttribute('id');
         } else {
             seenIds.add(element.id);
@@ -936,7 +900,6 @@ static handleCustomFieldsReorder(container, sectionId, versionId, evt) {
     });
     
     if (newFieldsOrder.length !== version.fields.length) {
-        console.warn('⚠️ 欄位數量不匹配，使用原順序');
         return;
     }
     
@@ -1000,14 +963,12 @@ static autoInitializeAdditionalInfoDragSort() {
             
             this.enableAdditionalInfoDragSort(characterId, versionId);
         } else {
-            console.warn(`⚠️ 無法獲取 characterId，versionId: ${versionId}`);
         }
     });
 }
     
     //  初始化拖曳匯入功能（首頁專用）
     static initializeDragImport() {
-        // 🚫 手機版完全禁用拖曳匯入功能
         if (this.isMobileDevice()) {
             return;
         }
@@ -1124,7 +1085,6 @@ async function handleFileImport(file) {
         
         await ImportManager.handleImport(file, importType);
     } catch (error) {
-        console.error('拖拽匯入失敗:', error);
         NotificationManager.error('匯入失敗：' + error.message);
     }
 }
@@ -1135,12 +1095,9 @@ if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType
             
             
             
-            // 🔧 修復：只檢查 types，不檢查 files（在 dragenter 階段 files 始終為 0）
             if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
-                //  如果是檔案拖曳，立即標記以避免 SortableJS 干擾
                 document.body.setAttribute('data-file-dragging', 'true');
-                
-                // 🔧 額外檢查：確保不是從角色卡片開始的拖曳
+
                 if (!document.body.hasAttribute('data-sortable-dragging')) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1158,7 +1115,6 @@ if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType
 //  支援首頁、世界書列表頁面和預設列表頁面
 if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType === 'preset'))) return;
             
-            // 🔧 修復：只檢查 types
             if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
                 if (!document.body.hasAttribute('data-sortable-dragging')) {
                     e.preventDefault();
@@ -1171,13 +1127,12 @@ if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType
 //  支援首頁、世界書列表頁面和預設列表頁面
 if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType === 'preset'))) return;
             
-            // 🔧 修復：只檢查 types
             if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
                 if (!document.body.hasAttribute('data-sortable-dragging')) {
                     dragCounter--;
                     if (dragCounter <= 0) {
                         dragCounter = 0;
-                        
+
                         hideDragOverlay();
                         //  清除檔案拖曳標記
                         document.body.removeAttribute('data-file-dragging');
@@ -1193,7 +1148,6 @@ if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType
     return;
 }
             
-            // 🔧 強制檢查：只要有 dataTransfer 就處理
             if (e.dataTransfer) {
                 
                 
@@ -1201,9 +1155,7 @@ if (!isHomePage && !(isListPage && (listPageType === 'worldbook' || listPageType
                 if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                     
                     
-                    //  如果是檔案拖曳，強制處理，不管目標是什麼
                     if (document.body.hasAttribute('data-file-dragging')) {
-                        // 🔧 先阻止默認行為，避免瀏覽器打開檔案
                         e.preventDefault();
                         e.stopPropagation();
                         
@@ -1243,7 +1195,6 @@ NotificationManager.success(`成功匯入 ${successCount} 個${itemType}！${err
                                             successCount++;
                                         } catch (error) {
                                             errorCount++;
-                                            console.error(`檔案 ${files[index].name} 匯入失敗:`, error);
                                         }
                                         
                                         setTimeout(() => importNext(index + 1), 100);
@@ -1253,7 +1204,6 @@ NotificationManager.success(`成功匯入 ${successCount} 個${itemType}！${err
                                     setTimeout(() => importNext(1), 100);
                                 }
                             } catch (error) {
-                                console.error('❌ 檔案匯入失敗:', error);
                             }
                         }
                     } else {
@@ -1304,7 +1254,6 @@ static enableAlternateGreetingsDragSort(characterId, versionId) {
     const container = document.querySelector(containerSelector);
     
     if (!container) {
-        console.warn(`找不到額外問候語容器: ${containerSelector}`);
         return;
     }
     

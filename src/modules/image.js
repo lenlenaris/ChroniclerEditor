@@ -40,8 +40,7 @@ class BlobManager {
             return blobUrl;
             
         } catch (error) {
-            console.warn('Blob URL 轉換失敗:', error);
-            return base64; // 失敗時返回原始 Base64
+            return base64;
         }
     }
     
@@ -163,7 +162,6 @@ class ImageCropper {
                     <button class="close-modal" onclick="ImageCropper.close()">×</button>
                 </div>
                 
-                <!-- 🌟 預覽區域: 使用 flex-grow 佔據剩餘空間 -->
                     <div id="cropper-container" style="
                         flex-grow: 1;
                         position: relative;
@@ -178,13 +176,11 @@ class ImageCropper {
                         overflow: hidden;
                         cursor: grab;
                     ">
-                    <!-- 🌟 Canvas 將由 JS 控制大小與位置 -->
                     <canvas id="cropper-canvas" style="
                         position: absolute; /* 使用絕對定位，由 transform 控制 */
                         display: block;
                     "></canvas>
                     
-                    <!-- 🌟 可操作的裁切框 -->
                     <div id="crop-overlay" style="
                         position: absolute;
                         border: 1px solid rgba(255, 255, 255, 0.8);
@@ -199,7 +195,6 @@ class ImageCropper {
                     </div>
                 </div>
                 
-                <!-- 🌟 整合後的 Footer -->
                 <div class="compact-modal-footer" style="flex-direction: column; align-items: stretch; gap: 1rem; padding-top: 1rem;">
                     ${this.renderQualityOptions(ratioInfo)}
                     <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -385,17 +380,14 @@ static setupInitialCropArea() {
     const container = document.getElementById('cropper-container');
     const containerRect = container.getBoundingClientRect();
 
-    // 🌟 關鍵計算：基於圖片在容器中的實際顯示尺寸
     const imageDisplayWidth = cropper.image.naturalWidth * cropper.scale;
     const imageDisplayHeight = cropper.image.naturalHeight * cropper.scale;
     
-    // 🌟 計算圖片在容器中的位置和邊界
     const imageLeft = cropper.imageOffset.x;
     const imageTop = cropper.imageOffset.y;
     const imageRight = imageLeft + imageDisplayWidth;
     const imageBottom = imageTop + imageDisplayHeight;
     
-    // 🌟 計算可用的圖片區域（與容器的交集）
     const availableLeft = Math.max(0, imageLeft);
     const availableTop = Math.max(0, imageTop);
     const availableRight = Math.min(containerRect.width, imageRight);
@@ -406,7 +398,6 @@ static setupInitialCropArea() {
     
     
 
-    // 🌟 根據目標比例，計算最大可能的裁切框尺寸
     let cropWidth, cropHeight;
     
     if (availableWidth / availableHeight > targetAspectRatio) {
@@ -419,7 +410,6 @@ static setupInitialCropArea() {
         cropHeight = cropWidth / targetAspectRatio;
     }
     
-    // 🌟 確保裁切框在可用區域內居中
     const cropX = availableLeft + (availableWidth - cropWidth) / 2;
     const cropY = availableTop + (availableHeight - cropHeight) / 2;
     
@@ -556,7 +546,6 @@ cropOverlay.querySelectorAll('.resize-handle').forEach(handle => {
         
 
         if (!direction) {
-            console.error('❌ 無法識別控制點方向:', Array.from(handle.classList));
             return;
         }
 
@@ -651,7 +640,6 @@ static handleDrag(e) {
     const newX = e.clientX - cropper.dragStart.x;
     const newY = e.clientY - cropper.dragStart.y;
     
-    // 🌟 計算圖片在容器中的實際顯示區域
     const imageDisplayWidth = cropper.image.naturalWidth * cropper.scale;
     const imageDisplayHeight = cropper.image.naturalHeight * cropper.scale;
     const imageLeft = cropper.imageOffset.x;
@@ -659,17 +647,14 @@ static handleDrag(e) {
     const imageRight = imageLeft + imageDisplayWidth;
     const imageBottom = imageTop + imageDisplayHeight;
     
-    // 🌟 獲取容器尺寸
     const container = document.getElementById('cropper-container');
     const containerRect = container.getBoundingClientRect();
     
-    // 🌟 計算有效的圖片區域（與容器的交集）
     const effectiveLeft = Math.max(0, imageLeft);
     const effectiveTop = Math.max(0, imageTop);
     const effectiveRight = Math.min(containerRect.width, imageRight);
     const effectiveBottom = Math.min(containerRect.height, imageBottom);
-    
-    // 🌟 限制裁切框在有效圖片區域內
+
     cropper.cropArea.x = Math.max(
         effectiveLeft, 
         Math.min(newX, effectiveRight - cropper.cropArea.width)
@@ -687,7 +672,6 @@ static handleDrag(e) {
     const direction = cropper.isResizing;
     
     if (!direction || typeof direction !== 'string') {
-        console.error('❌ 無效的調整方向:', direction);
         return;
     }
     
@@ -783,7 +767,6 @@ static handleDrag(e) {
         return; // 太小時不更新
     }
 
-    // 🌟 新的邊界限制：基於圖片實際顯示區域
     const imageDisplayWidth = cropper.image.naturalWidth * cropper.scale;
     const imageDisplayHeight = cropper.image.naturalHeight * cropper.scale;
     const imageLeft = cropper.imageOffset.x;
@@ -791,17 +774,14 @@ static handleDrag(e) {
     const imageRight = imageLeft + imageDisplayWidth;
     const imageBottom = imageTop + imageDisplayHeight;
 
-    // 🌟 計算有效的圖片區域（與容器的交集）
     const effectiveLeft = Math.max(0, imageLeft);
     const effectiveTop = Math.max(0, imageTop);
     const effectiveRight = Math.min(containerWidth, imageRight);
     const effectiveBottom = Math.min(containerHeight, imageBottom);
 
-    // 🌟 限制裁切框不超出有效圖片區域
     newX = Math.max(effectiveLeft, Math.min(newX, effectiveRight - newWidth));
     newY = Math.max(effectiveTop, Math.min(newY, effectiveBottom - newHeight));
 
-    // 🌟 如果調整後還是超出邊界，重新計算尺寸
     if (newX + newWidth > effectiveRight) {
         newWidth = effectiveRight - newX;
         newHeight = newWidth / aspectRatio;
@@ -838,8 +818,6 @@ static handleDrag(e) {
         cropCanvas.width = targetSize.width;
         cropCanvas.height = targetSize.height;
         
-        // 🌟 關鍵計算：將裁切框在 viewport 上的座標，
-        // 轉換為在原始圖片上的座標。
         const sourceX = (cropArea.x - imageOffset.x) / scale;
         const sourceY = (cropArea.y - imageOffset.y) / scale;
         const sourceWidth = cropArea.width / scale;
@@ -892,14 +870,12 @@ class ImageOptimizer {
     static maxHeight = 768;     
     static quality = 0.85;      
     
-    // 🌟 新的記憶體管理系統
     static hashCache = new Map();
     static cacheMaxSize = 50;           // 最多快取50張圖片
     static cacheAccessOrder = [];       // LRU 追蹤順序
     static memoryCheckInterval = 10;     // 每10次操作檢查一次記憶體
     static operationCount = 0;
     
-    // 🎯 主要優化入口（保持不變）
     static async optimizeImage(file, options = {}) {
         const {
             maxWidth = this.maxWidth,
@@ -914,7 +890,6 @@ class ImageOptimizer {
             const imageHash = await this.calculateImageHash(file);
             
             
-            // 2. 🌟 智能快取檢查（新增記憶體管理）
             const existingImage = await this.findExistingImageSmart(imageHash);
             if (existingImage) {
                 
@@ -932,7 +907,6 @@ class ImageOptimizer {
             const optimizedDataUrl = await this.compressImage(file, maxWidth, maxHeight, quality);
             const optimizedSize = this.getDataUrlSize(optimizedDataUrl);
             
-            // 4. 🌟 智能快取儲存（新增記憶體管理）
             await this.cacheImageSmart(imageHash, optimizedDataUrl, optimizedSize);
             
             
@@ -958,7 +932,6 @@ class ImageOptimizer {
         }
     }
 
-    // 🔐 計算圖片雜湊（保持不變）
     static async calculateImageHash(file) {
         const buffer = await file.arrayBuffer();
         const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
@@ -966,9 +939,8 @@ class ImageOptimizer {
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
     
-    // 🔍 🌟 智能尋找現有圖片（新方法）
     static async findExistingImageSmart(hash) {
-        // 🌟 定期記憶體檢查
+
         this.operationCount++;
         if (this.operationCount % this.memoryCheckInterval === 0) {
             this.performMemoryMaintenance();
@@ -985,7 +957,6 @@ class ImageOptimizer {
         if (cached) {
             try {
                 const imageData = JSON.parse(cached);
-                // 🌟 載入到記憶體快取（智能管理）
                 this.addToCacheSmart(hash, imageData);
                 return imageData;
             } catch (error) {
@@ -998,11 +969,9 @@ class ImageOptimizer {
         return this.searchInExistingCharacters(hash);
     }
     
-    // 🌟 智能快取儲存（新方法）
     static async cacheImageSmart(hash, dataUrl, size) {
         const imageData = { dataUrl, size, timestamp: Date.now() };
-        
-        // 🌟 智能記憶體快取管理
+
         this.addToCacheSmart(hash, imageData);
         
         // localStorage 快取（有大小限制）
@@ -1012,12 +981,10 @@ class ImageOptimizer {
             }
         } catch (error) {
             console.warn('localStorage 空間不足，跳過圖片快取');
-            // 🌟 清理一些 localStorage 空間
             this.cleanupLocalStorageCache();
         }
     }
     
-    // 🌟 智能記憶體快取管理（新方法）
     static addToCacheSmart(hash, imageData) {
         // 如果已存在，更新使用順序
         if (this.hashCache.has(hash)) {
@@ -1038,7 +1005,6 @@ class ImageOptimizer {
         
     }
     
-    // 🌟 更新快取使用順序（LRU）
     static updateCacheAccess(hash) {
         // 移除舊位置
         const index = this.cacheAccessOrder.indexOf(hash);
@@ -1049,7 +1015,6 @@ class ImageOptimizer {
         this.cacheAccessOrder.push(hash);
     }
     
-    // 🌟 清理最舊的快取項目
     static evictOldestCache() {
         if (this.cacheAccessOrder.length === 0) return;
         
@@ -1059,7 +1024,6 @@ class ImageOptimizer {
         
     }
     
-    // 🌟 定期記憶體維護
     static performMemoryMaintenance() {
         const cacheSize = this.hashCache.size;
         const memoryUsage = this.estimateMemoryUsage();
@@ -1076,7 +1040,6 @@ class ImageOptimizer {
         }
     }
     
-    // 🌟 估算記憶體使用量
     static estimateMemoryUsage() {
         let totalSize = 0;
         for (const imageData of this.hashCache.values()) {
@@ -1085,7 +1048,6 @@ class ImageOptimizer {
         return totalSize;
     }
     
-    // 🌟 清理 localStorage 快取
     static cleanupLocalStorageCache() {
         const imageCacheKeys = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -1103,7 +1065,6 @@ class ImageOptimizer {
         
     }
 
-    // 🔎 在現有角色中搜尋相同圖片（保持不變）
     static async searchInExistingCharacters(targetHash) {
         for (const character of characters) {
             for (const version of character.versions) {
@@ -1120,7 +1081,6 @@ class ImageOptimizer {
         return null;
     }
 
-    // 🗜️ 壓縮圖片（保持不變）
     static async compressImage(file, maxWidth, maxHeight, quality) {
         return new Promise((resolve, reject) => {
             const canvas = document.createElement('canvas');
@@ -1155,7 +1115,6 @@ class ImageOptimizer {
         });
     }
     
-    // 📏 計算新尺寸（保持不變）
     static calculateNewDimensions(originalWidth, originalHeight, maxWidth, maxHeight) {
         let { width, height } = { width: originalWidth, height: originalHeight };
         
@@ -1172,7 +1131,6 @@ class ImageOptimizer {
         return { width: Math.round(width), height: Math.round(height) };
     }
     
-    // 📊 計算 DataURL 大小（保持不變）
     static getDataUrlSize(dataUrl) {
         if (!dataUrl) return 0;
         
@@ -1182,7 +1140,6 @@ class ImageOptimizer {
         return Math.round((base64Data.length * 3) / 4);
     }
     
-    // 📄 檔案轉 DataURL（保持不變）
     static async fileToDataUrl(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -1192,7 +1149,6 @@ class ImageOptimizer {
         });
     }
     
-    // 🧹 清理過期快取（保持不變，但增強）
     static cleanExpiredCache(maxAge = 7 * 24 * 60 * 60 * 1000) {
         const now = Date.now();
         
@@ -1224,7 +1180,6 @@ class ImageOptimizer {
         
     }
     
-    // ⚙️ 設定優化參數（保持不變）
     static setOptimizationSettings(settings) {
         if (settings.maxWidth) this.maxWidth = settings.maxWidth;
         if (settings.maxHeight) this.maxHeight = settings.maxHeight;
@@ -1233,7 +1188,6 @@ class ImageOptimizer {
         
     }
     
-    // 📈 取得快取統計（增強版）
     static getCacheStats() {
         const memoryCount = this.hashCache.size;
         const memoryUsage = this.estimateMemoryUsage();
@@ -1276,8 +1230,6 @@ async function handleImageUpload(itemId, versionId, file) {
        setTimeout(() => {
     // 雙屏模式下使用特殊的渲染邏輯
     if (crossTypeCompareMode && currentMode === 'crosstype') {
-        console.log('雙屏模式圖片更新 - 使用對比渲染邏輯');
-        
         CrossTypeCompareManager.renderCrossTypeInterface();
         
         setTimeout(() => {
@@ -1327,7 +1279,6 @@ function autoConvertNewImages() {
                     const blobUrl = BlobManager.getBlobUrl(img.src);
                     img.src = blobUrl;
                 } catch (error) {
-                    console.warn('圖片轉換失敗:', error);
                 }
             });
             

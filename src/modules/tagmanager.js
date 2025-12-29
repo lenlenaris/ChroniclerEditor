@@ -409,7 +409,6 @@ static updateData(inputId, itemType, itemId, versionId, fieldName) {
             }, 50);
         }
         
-        // 🔧 修復：重新渲染後，恢復所有欄位統計
         setTimeout(() => {
             if (typeof updateAllFieldStatsOnLoad === 'function') {
                 updateAllFieldStatsOnLoad();
@@ -431,7 +430,6 @@ class TagAdminManager {
         if (this.isTagManagerOpen) {
         const existingModal = document.getElementById('tag-admin-modal');
         if (!existingModal) {
-            console.warn('🔧 檢測到狀態不同步，自動重置 TagAdminManager 狀態');
             this.isTagManagerOpen = false;
             this.currentView = 'list';
             this.currentTag = null;
@@ -1150,7 +1148,6 @@ static performRename(oldTagName, newTagName) {
     saveDataSilent().then(() => {
         
     }).catch(error => {
-        console.error('❌ 標籤重新命名後自動保存失敗:', error);
     });
 
     // 顯示成功訊息
@@ -1447,7 +1444,6 @@ static performDelete(tagName, mode) {
         }, 100);
         
     } catch (error) {
-        console.error('刪除過程出錯:', error);
         
         // 即使出錯也要關閉模態框
         const allModals = document.querySelectorAll('.modal');
@@ -1548,7 +1544,6 @@ static deleteAllItemsWithTag(tagName) {
     const deletedVersions = [];
     const itemsToDelete = [];
     
-    // 🔧 處理角色卡
     for (let i = characters.length - 1; i >= 0; i--) {
         const character = characters[i];
         const versionsToDelete = [];

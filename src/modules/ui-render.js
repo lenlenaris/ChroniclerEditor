@@ -66,12 +66,10 @@ if (currentItem && currentItem.id) {
     }
 }
 
-// 🎯 立即設置滾動位置到頂部（無動畫）
 document.getElementById('contentArea').scrollTop = 0;
 document.documentElement.scrollTop = 0;
 document.body.scrollTop = 0;
 
-// 🎯 新增：DOM 渲染完成後更新欄位統計
 requestAnimationFrame(() => {
     // 再次確保在頂部
     document.getElementById('contentArea').scrollTop = 0;
@@ -103,7 +101,6 @@ setTimeout(() => {
 
 // 渲染卿卿我我卡片
 static renderLoveyDoveyCards() {
-    // 🎯 直接調用統一卡片渲染函數
     OverviewManager.renderCards('loveydovey');
 }
         
@@ -162,10 +159,8 @@ static renderItemHeader(item) {
         </select>
     ` : '';
 
-    // ✨ 關鍵修正：第一行總是包含操作按鈕，同時給它一個 wrapper class 方便 CSS 定位
     const firstRowControlsContent = `<div class="main-action-buttons">${actionButtonsHTML}</div>`;
     
-    // ✨ 關鍵修正：第二行只在需要時才添加內容
     const secondRowControlsContent = itemType !== 'character' ? `<div class="header-spacer"></div><div class="mobile-action-buttons">${actionButtonsHTML}</div>` : '';
     
     // 3. 組裝最終的 HTML
@@ -211,7 +206,6 @@ switch (itemType) {
         
         // 渲染版本面板
 static renderVersionPanel(item, version, explicitItemType = null) {
-    // 🔧 優先使用明確傳入的類型，否則使用 currentMode
     const itemType = explicitItemType || currentMode;
     
     return `
@@ -500,7 +494,6 @@ markAsChanged();
 saveDataSilent();
 this.rerenderVersionPanel(itemType, itemId, versionId);
 
-// 🔧 修復：版本Tag操作後恢復欄位統計
 setTimeout(() => {
     if (typeof updateAllFieldStatsOnLoad === 'function') {
         updateAllFieldStatsOnLoad();
@@ -549,7 +542,6 @@ static rerenderVersionPanel(itemType, itemId, versionId) {
 
     if (panel) {
         
-        // 🔧 明確傳遞 itemType
         panel.outerHTML = this.renderVersionPanel(item, version, itemType);
         
         setTimeout(() => {
@@ -1102,7 +1094,6 @@ static renderCustomFieldsList(sectionId, versionId) {
 
 // 渲染玩家角色卡片
 static renderUserPersonaCards() {
-    // 🎯 直接調用統一卡片渲染函數
     OverviewManager.renderCards('userpersona');
 }
         
@@ -1773,7 +1764,6 @@ function updateWorldBookSelector() {
     const currentVersionId = ItemManager.getCurrentVersionId();
     if (!currentVersionId) return;
 
-    // ✨ 修正：同時尋找 desktop 和 mobile 版本的選擇器
     const selectorDesktop = document.getElementById(`worldbook-selector-desktop-${currentVersionId}`);
     const selectorMobile = document.getElementById(`worldbook-selector-mobile-${currentVersionId}`);
     
@@ -1885,17 +1875,14 @@ function renderBasicUI() {
 // 延遲載入進階功能
 async function loadAdvancedFeatures(startTime) {
     try {
-        // ✅ 1. 先載入排序管理（必須在拖曳功能前）
         if (typeof OverviewManager !== 'undefined') {
             OverviewManager.initialize();
         }
         
-        // ✅ 2. 應用保存的自定義排序（必須在渲染前）
         if (typeof DragSortManager !== 'undefined') {
             DragSortManager.applySavedOrder('character');
         }
         
-        // ✅ 3. 重新渲染以反映正確順序
         if (characters.length > 0) {
             // 重新渲染側邊欄（套用正確排序）
             renderSidebar();
@@ -1906,13 +1893,11 @@ async function loadAdvancedFeatures(startTime) {
             }
         }
         
-        // ✅ 4. 啟用拖曳功能
         if (typeof DragSortManager !== 'undefined') {
             DragSortManager.initializeAll();
             DragSortManager.initializeDragImport();
         }
         
-        // ⏰ 5. 延遲載入非關鍵功能
         setTimeout(() => {
             if (typeof ScrollbarManager !== 'undefined') {
                 ScrollbarManager.initializeAll();
@@ -1926,11 +1911,9 @@ async function loadAdvancedFeatures(startTime) {
         
         
     } catch (error) {
-        console.warn('進階功能載入失敗:', error);
     }
 }
 
-// 📊 側邊欄事件委託系統
 function initSidebarEventDelegation() {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar) return;
@@ -1944,7 +1927,6 @@ function initSidebarEventDelegation() {
     
 }
 
-// 📊 統一的側邊欄點擊處理函數
 function handleSidebarClick(event) {
     const target = event.target.closest('[data-action]');
     if (!target) return;
@@ -1964,7 +1946,6 @@ function handleSidebarClick(event) {
             
         case 'toggleItemVersions':
             if (itemId && type) {
-                // ✅ 修正：正確的參數順序
                 toggleItemVersions(type, itemId);
             }
             break;
@@ -1984,7 +1965,6 @@ function handleSidebarClick(event) {
             break;
             
         default:
-            console.warn('未知的側邊欄操作:', action);
     }
 }
 
@@ -2008,19 +1988,16 @@ function reorderCustomFieldsFromContainer(container, sectionId, versionId) {
     });
     
     if (newFieldsOrder.length !== version.fields.length) {
-        console.warn('⚠️ 欄位數量不匹配，使用原順序');
         return;
     }
     
     // 更新陣列順序
     version.fields = newFieldsOrder;
     
-    // 🎯 修復：重新渲染整個欄位容器以確保 id 正確
     ContentRenderer.renderCustomFieldsList(sectionId, versionId);
     
     TimestampManager.updateVersionTimestamp('custom', sectionId, versionId);
     markAsChanged();
 }
 
-// 🚀 在頁面載入時初始化事件委託
 document.addEventListener('DOMContentLoaded', initSidebarEventDelegation);

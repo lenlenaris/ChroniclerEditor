@@ -160,7 +160,6 @@ class CrossTypeCompareManager {
             const stored = localStorage.getItem('dualScreenRecentCombinations');
             return stored ? JSON.parse(stored) : [];
         } catch (e) {
-            console.warn('讀取最近使用記錄失敗:', e);
             return [];
         }
     }
@@ -187,7 +186,6 @@ class CrossTypeCompareManager {
             
             localStorage.setItem('dualScreenRecentCombinations', JSON.stringify(recent));
         } catch (e) {
-            console.warn('儲存最近使用記錄失敗:', e);
         }
     }
 

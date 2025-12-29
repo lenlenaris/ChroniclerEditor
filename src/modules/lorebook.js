@@ -64,8 +64,7 @@ function addWorldBookEntry(worldBookId, versionId) {
             };
             
             version.entries.push(newEntry);
-            
-            // 🎯 找到正確的容器（使用更精確的選擇器）
+
             const container = document.querySelector(`.entries-container[data-world-book-id="${worldBookId}"][data-version-id="${versionId}"]`);
             
             if (container) {
@@ -78,8 +77,7 @@ function addWorldBookEntry(worldBookId, versionId) {
                     addButton.insertAdjacentHTML('beforebegin', newEntryHTML);
                     
                     markAsChanged();
-                    
-                    // 🎯 只初始化新條目相關功能
+
                     setTimeout(() => {
                         // 更新統計
                         updateFieldStats(`worldbook-${worldBookId}-${versionId}-${newEntry.id}`);
@@ -89,15 +87,12 @@ function addWorldBookEntry(worldBookId, versionId) {
                         enableWorldBookEntriesDragSort(worldBookId, versionId);
                     }, 50);
                 } else {
-                    console.warn('找不到新增按鈕，使用備用渲染方案');
                     fallbackRender();
                 }
             } else {
-                console.warn('找不到條目容器，使用備用渲染方案');
                 fallbackRender();
             }
-            
-            // 🛡️ 備用渲染方案
+
             function fallbackRender() {
                 if (crossTypeCompareMode) {
                     if (typeof WorldBookRenderer !== 'undefined' && WorldBookRenderer.renderWorldBookEntriesList) {
@@ -356,15 +351,12 @@ function copyWorldBookEntry(worldBookId, versionId, entryId) {
             }, 50);
 
         } else {
-            console.warn('找不到原始條目元素，使用備用渲染方案');
             fallbackRender();
         }
     } else {
-        console.warn('找不到條目容器，使用備用渲染方案');
         fallbackRender();
     }
 
-    // 🛡️ 備用渲染方案 (以防萬一)
     function fallbackRender() {
         if (crossTypeCompareMode) {
             CrossTypeCompareManager.renderCrossTypeInterface();
@@ -954,11 +946,9 @@ function toggleEntryContentLazy(worldBookId, versionId, entryId, event = null) {
         document.querySelector(`[onclick*="toggleEntryContentLazy('${worldBookId}', '${versionId}', '${entryId}'"]`);
     
     if (!content || !toggleBtn) {
-        console.warn(`找不到元素: content=${!!content}, btn=${!!toggleBtn}`);
         return;
     }
-    
-    // 🔥 關鍵修復：使用 getComputedStyle 來正確判斷顯示狀態
+
     const computedStyle = window.getComputedStyle(content);
     const isExpanded = computedStyle.display !== 'none';
     
@@ -1286,7 +1276,6 @@ function enableWorldBookEntriesDragSort(worldBookId, versionId) {
     }
     
     if (containers.length === 0 || typeof Sortable === 'undefined') {
-        console.warn('無法啟用世界書條目拖曳排序：容器不存在或 Sortable 未載入');
         return;
     }
     
@@ -1376,12 +1365,10 @@ function reorderWorldBookEntriesFromContainer(container, worldBookId, versionId)
     });
     
     if (newEntriesOrder.length !== version.entries.length) {
-        console.warn('⚠️ 條目數量不匹配，使用原順序');
         return;
     }
-    
+
     version.entries = newEntriesOrder;
-    // 🔧 確保 displayIndex 和 uid 連續且唯一
     version.entries.forEach((entry, index) => {
         entry.displayIndex = index;
         // 保持 uid 不變，只更新 displayIndex
@@ -1413,9 +1400,7 @@ function reorderWorldBookEntries(worldBookId, versionId, oldIndex, newIndex) {
         }
     });
     
-    // 確保沒有遺失條目
     if (newEntriesOrder.length !== version.entries.length) {
-        console.warn('⚠️ 條目數量不匹配，使用原順序');
         return;
     }
     
@@ -1574,7 +1559,6 @@ ModalManager.create({
 
 window.moveEntryTarget = null;
 
-// 🎯 綁定移動選項的點擊事件
 setTimeout(() => {
     document.querySelectorAll('.move-option').forEach(option => {
         option.addEventListener('click', function() {
@@ -1585,11 +1569,9 @@ setTimeout(() => {
             selectMoveTarget(worldBookId, versionId, worldBookName, versionName);
         });
     });
-    
-    // 🎯 綁定確認按鈕的點擊事件
+
     const confirmBtn = document.getElementById('confirm-move-btn');
     if (confirmBtn) {
-        // 🔑 使用 setAttribute 安全地設置包含特殊字符的數據
         confirmBtn.setAttribute('data-source-worldbook-id', sourceWorldBookId);
         confirmBtn.setAttribute('data-source-version-id', sourceVersionId);
         confirmBtn.setAttribute('data-entry-id', entryId);
@@ -2113,7 +2095,6 @@ ModalManager.create({
 
 window.moveEntryTarget = null;
 
-// 🎯 綁定移動選項的點擊事件
 setTimeout(() => {
     document.querySelectorAll('.move-option').forEach(option => {
         option.addEventListener('click', function() {
@@ -2124,11 +2105,9 @@ setTimeout(() => {
             selectMoveTarget(worldBookId, versionId, worldBookName, versionName);
         });
     });
-    
-    // 🎯 綁定確認按鈕的點擊事件
+
     const confirmBtn = document.getElementById('confirm-move-btn');
     if (confirmBtn) {
-        // 🔑 使用 setAttribute 安全地設置包含特殊字符的數據
         confirmBtn.setAttribute('data-source-worldbook-id', sourceWorldBookId);
         confirmBtn.setAttribute('data-source-version-id', sourceVersionId);
         confirmBtn.setAttribute('data-entry-ids', entryIds.join(','));

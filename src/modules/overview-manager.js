@@ -23,7 +23,6 @@ static initialize() {
         try {
             this.selectedTags = JSON.parse(savedTags);
         } catch (error) {
-            console.warn('載入儲存的標籤篩選失敗:', error);
             this.selectedTags = [];
         }
     }
@@ -466,9 +465,6 @@ static calculateItemTotalTokensWithType(item, type) {
 }
     
 static applySorting(sortValue) {
-    console.log(`%c[applySorting] 被呼叫，傳入的值是: "${sortValue}"`, 'background: #ffc107; color: black;');
-    console.log(`[applySorting] 呼叫前的 this.currentSort 是: "${this.currentSort}"`);
-
     this.currentSort = sortValue;
     this.saveSortPreference(sortValue);
     this.currentlyShown = this.itemsPerPage;
@@ -556,11 +552,9 @@ static selectTag(tag) {
     this.saveTagsPreference();
     this.updateTagDisplay();
     
-    // 🆕 重置分頁狀態
     this.currentlyShown = this.itemsPerPage;
     this.lastProcessParams = null;
-    
-    // 根據當前頁面重新渲染
+
     if (isHomePage) {
         this.renderCharacters();
     } else if (isListPage) {
@@ -570,7 +564,7 @@ static selectTag(tag) {
     } else if (currentMode === 'loveydovey' && !ItemManager.getCurrentItemId()) {
         ContentRenderer.renderLoveyDoveyCards();
     }
-    
+
     const dropdown = document.getElementById('tag-dropdown');
     if (dropdown) dropdown.remove();
 }
@@ -592,11 +586,9 @@ static removeTag(tag) {
     this.saveTagsPreference();
     this.updateTagDisplay();
     
-    // 🆕 重置分頁狀態
     this.currentlyShown = this.itemsPerPage;
     this.lastProcessParams = null;
-    
-    // 根據當前頁面重新渲染
+
     if (isHomePage) {
         this.renderCharacters();
     } else if (isListPage) {
@@ -654,7 +646,6 @@ static renderItems(type, containerId) {
         this.lastProcessParams = currentParams;
     }
     
-    // 🆕 分離資料夾和檔案
     const currentFolderId = NavigationManager.getCurrentFolderId();
     const hasTagFilter = this.selectedTags && this.selectedTags.length > 0;
     const hasSearchText = searchText && searchText.trim().length > 0;
@@ -667,10 +658,8 @@ static renderItems(type, containerId) {
         folders = FolderManager.getFoldersByType(type);
     }
     
-    // 🆕 渲染資料夾區塊
     this.renderFoldersSection(folders, type);
-    
-    // 🆕 渲染檔案區塊
+
     const itemsToShow = regularItems.slice(0, this.currentlyShown);
     this.isShowingAll = this.currentlyShown >= regularItems.length;
 
@@ -689,7 +678,6 @@ static renderItems(type, containerId) {
     container.innerHTML = htmlParts.join('');
     container.style.display = '';
     
-    // 🆕 控制檔案區塊標題顯示
     this.updateFilesHeaderVisibility(folders.length > 0 && regularItems.length > 0);
     
     OverviewManager.syncDropdownValue();
@@ -715,7 +703,6 @@ static renderFoldersSection(folders, type) {
     foldersGrid.innerHTML = folderCards;
 }
 
-// 🆕 生成資料夾小長條卡片
 static generateFolderCard(folder, type) {
     const folderInfo = FolderManager.loadFolderInfo(type, folder.id);
     const folderName = folderInfo?.name || folder.name;
@@ -996,7 +983,6 @@ if (this.currentSort === 'custom') {
         
         return [...folders, ...orderedItems];
     }
-    // 🆕 沒有儲存的排序時，保持當前順序並應用最愛優先
     return [...folders, ...this.applyFavoritePriority(regularItems)];
 }
     
@@ -1509,7 +1495,7 @@ static CARD_CONFIGS = {
     character: {
         width: '180px', height: '280px', aspectRatio: '2/3',
         imageField: 'avatar',
-        clickFn: 'selectCharacterFromHome', // ✅ 這個是對的
+        clickFn: 'selectCharacterFromHome',
         dataAttr: 'data-character-id',
         nameClass: 'character-name',
         dragSelector: '.home-card[onclick*="selectCharacterFromHome"]',
@@ -1547,23 +1533,20 @@ static CARD_CONFIGS = {
 static renderCards(type, folderId = null) {
     const config = this.CARD_CONFIGS[type];
     if (!config) {
-        console.error('❌ 不支援的卡片類型:', type);
         return;
     }
     
     const container = document.getElementById(config.gridId);
     if (!container) return;
     
-    // 🆕 使用 NavigationManager 的狀態
     const currentFolderId = NavigationManager.getCurrentFolderId();
-    
-    // 📄 檢查是否需要重新處理數據
+
     const currentParams = {
         sort: this.currentSort,
         tags: [...this.selectedTags],
         search: searchText || '',
         type: type,
-        folderId: currentFolderId, // 🆕 使用導航狀態
+        folderId: currentFolderId,
         dataLength: this.getItemsArray(type).length
     };
     
@@ -1589,7 +1572,6 @@ static renderCards(type, folderId = null) {
                 // 在根目錄：顯示無資料夾的項目
                 items = items.filter(item => !item.folderId);
                 
-                // 🆕 在根目錄時，在前面加入資料夾（當作特殊項目）
                 const folders = FolderManager.getFoldersByType(type);
                 const folderAsItems = folders.map(folder => ({
                     id: `folder-${folder.id}`,
@@ -1621,7 +1603,6 @@ static renderCards(type, folderId = null) {
     const itemsToShow = this.processedItems.slice(0, this.currentlyShown);
     this.isShowingAll = this.currentlyShown >= this.processedItems.length;
     
-    // 🎨 生成卡片HTML
     const cards = this.generateUnifiedCards(itemsToShow, type, config);
     const createCard = currentFolderId ? '' : this.generateCreateCard(type, config); // 資料夾內不顯示新增卡片
     
@@ -1635,7 +1616,6 @@ static renderCards(type, folderId = null) {
         container.innerHTML += this.generateShowMoreButton(showMoreType);
     }
     
-    // ⚡ 延遲初始化功能（避免效能問題）
     setTimeout(() => {
         this.initializeCardFeatures(type, config);
     }, 100);
@@ -1766,7 +1746,6 @@ static generateCreateCard(type, config) {
 
 // ===== 統一功能初始化 =====
 static initializeCardFeatures(type, config) {
-    // 🎯 啟用拖曳功能
     if (typeof DragSortManager !== 'undefined') {
         DragSortManager.enableDragSort({
             containerSelector: `#${config.gridId}`,
@@ -1775,7 +1754,6 @@ static initializeCardFeatures(type, config) {
             mode: 'grid',
             onReorder: () => {
                 this.enableCustomSort();
-                // 🔧 修復：找對正確的下拉選單
                 const dropdown = document.querySelector('.overview-sort-dropdown') || 
                                document.querySelector('.sort-dropdown');
                 if (dropdown) dropdown.value = 'custom';
@@ -1786,17 +1764,14 @@ static initializeCardFeatures(type, config) {
         });
     }
     
-    // 🎯 綁定hover效果
     ContentRenderer.bindCardHoverEffects();
-    
-    // 🎯 恢復選中項目的視覺狀態（如果在批量編輯模式）
+
     if (batchEditMode && selectedItems.length > 0) {
         selectedItems.forEach(itemId => {
             updateCardVisualState(itemId);
         });
     }
     
-    // 🎯 特殊處理：卿卿我我的額外初始化
     if (type === 'loveydovey') {
         setTimeout(() => {
             if (typeof DragSortManager !== 'undefined' && DragSortManager.autoInitializeAdditionalInfoDragSort) {
@@ -1874,7 +1849,6 @@ class FolderManager {
     static createFolder(type, name) {
         const folderId = 'folder-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         
-        // 🎯 創建一個虛擬資料夾項目來顯示在UI上
         const folderInfo = {
             id: folderId,
             name: name,
@@ -1896,8 +1870,7 @@ class FolderManager {
         itemIds.forEach(itemId => {
             const item = itemsArray.find(i => i.id === itemId);
             if (item) {
-                // 🎯 超簡單：直接設定屬性，就像最愛功能一樣
-                item.folderId = targetFolderId; // null = 根目錄
+                item.folderId = targetFolderId;
             }
         });
         
@@ -1953,7 +1926,6 @@ class FolderManager {
                         folders.push(folderData);
                     }
                 } catch (error) {
-                    console.warn('讀取資料夾資料失敗:', key, error);
                 }
             }
         }
@@ -2752,7 +2724,6 @@ function selectAllFolders() {
         return;
     }
     
-    // 🆕 清空之前的選擇（確保互斥）
     if (selectedItems.length > 0) {
         // 清除之前選中項目的視覺狀態
         selectedItems.forEach(itemId => {

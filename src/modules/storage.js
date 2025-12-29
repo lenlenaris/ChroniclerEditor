@@ -25,8 +25,6 @@ async function saveData() {
         showStorageInfo();
         
     } catch (error) {
-        console.error('å„²å­˜è³‡æ–™å¤±æ•—ï¼š', error);
-        
         try {
             localStorage.setItem('characterCreatorData', JSON.stringify(characters));
             localStorage.setItem('characterCreatorCustomData', JSON.stringify(customSections));
@@ -37,7 +35,6 @@ async function saveData() {
 
             
         } catch (fallbackError) {
-            console.error('é€£ localStorage éƒ½å„²å­˜å¤±æ•—:', fallbackError);
             if (fallbackError.name === 'QuotaExceededError') {
                 showStorageExceededDialog();
             } else {
@@ -84,7 +81,6 @@ async function saveDataSilent() {
             
             return true;
         } catch (fallbackError) {
-            console.error('é€£ localStorage éƒ½å„²å­˜å¤±æ•—:', fallbackError);
             return false;
         }
     }
@@ -184,13 +180,11 @@ async function loadData() {
                 items.forEach(item => {
                     const savedVersionOrder = DragSortManager.loadVersionOrder(type, item.id);
                     if (savedVersionOrder && savedVersionOrder.length > 0) {
-                        console.log(`✅ 恢復 ${type} [${item.name}] 的版本排序:`, savedVersionOrder);
                         DragSortManager.applyVersionOrder(type, item.id, savedVersionOrder);
                     }
                 });
             });
         } catch (error) {
-            console.error('❌ 恢復版本排序失敗:', error);
         }
 
         // 恢復所有類型的自定義【項目】排序
@@ -199,7 +193,6 @@ async function loadData() {
                 DragSortManager.applySavedOrder(type);
             });
         } catch(error) {
-            console.warn('🥺 恢復自定義項目排序失敗:', error);
         }
 
         // 顯示儲存空間資訊

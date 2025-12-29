@@ -343,7 +343,6 @@ static collectAllFolderData() {
                         typeFolders.push(folderData);
                     }
                 } catch (error) {
-                    console.warn('讀取資料夾資料失敗:', key, error);
                 }
             }
         }
@@ -949,9 +948,8 @@ return `
     // --- PNG 匯出 ---
     static exportCharacterPNGWithFilename(character, version, filename, includeWorldBook = false) {
         const characterData = this.createCharacterData(character, version, includeWorldBook);
-        const jsonString = JSON.stringify(characterData, null, 0);  // 🔧 不使用縮排，減少檔案大小
-        
-        // 🔧 更安全的Base64編碼，處理特殊字符
+        const jsonString = JSON.stringify(characterData, null, 0);
+
         let base64Data;
         try {
             // 現代瀏覽器優先使用 TextEncoder
@@ -964,8 +962,6 @@ return `
                 base64Data = btoa(unescape(encodeURIComponent(jsonString)));
             }
         } catch (error) {
-            console.warn('Base64編碼失敗，使用備用方法:', error);
-            // 🔧 備用編碼方法
             base64Data = btoa(unescape(encodeURIComponent(jsonString)));
         }
         
@@ -1079,7 +1075,6 @@ const characterData = {
                 }
             }
         } catch (error) {
-            console.warn('世界書綁定失敗，但不影響角色匯出:', error);
         }
 
         return characterData;
@@ -1656,8 +1651,7 @@ static createWorldBookMarkdownContent(worldBook, version) {
             name: worldBook.name,
             entries: version.entries.map((entry, index) => {
                 return {
-                    // 🔧 使用陣列索引確保ID唯一
-                    id: index,  // 改用 index 而不是 entry.uid
+                    id: index,
                     keys: Array.isArray(entry.key) ? entry.key : [],
                     secondary_keys: Array.isArray(entry.keysecondary) ? entry.keysecondary : [],
                     comment: entry.comment || '',
@@ -1671,7 +1665,6 @@ static createWorldBookMarkdownContent(worldBook, version) {
                     extensions: {
                         position: entry.position || 1,
                         exclude_recursion: entry.excludeRecursion || false,
-                        // 🔧 使用陣列索引確保 display_index 唯一
                         display_index: index,
                         probability: entry.probability !== undefined ? entry.probability : 100,
                         useProbability: entry.useProbability || false,
@@ -1845,7 +1838,6 @@ static createPresetData(preset, version) {
     static generateFilename(itemName, versionName, format, includeVersion) {
         let extension;
         
-        // 🔧 修復：添加所有支援的格式
         switch(format) {
             case 'json': extension = '.json'; break;
             case 'png': extension = '.png'; break;
@@ -2079,7 +2071,6 @@ versions: [{
     scenario: data.data?.scenario || data.scenario || '',
     dialogue: data.data?.mes_example || data.mes_example || '',
     firstMessage: data.data?.first_mes || data.first_mes || '',
-    // 🆕 添加額外問候語支援
     alternateGreetings: data.data?.alternate_greetings || data.alternate_greetings || [],
     boundWorldBookId: null,
     boundWorldBookVersionId: null,
@@ -2221,12 +2212,10 @@ versions: [{
         isHomePage = false;
         isListPage = false;
         
-// 🔧 延遲渲染，確保狀態穩定
 setTimeout(() => {
     renderAll();
     markAsChanged();
-    
-    // 🔧 再次確保狀態正確（防止被其他函數覆蓋）
+
     setTimeout(() => {
         currentMode = 'worldbook';
         currentWorldBookId = worldBook.id;
@@ -2303,12 +2292,10 @@ setTimeout(() => {
         isHomePage = false;
         isListPage = false;
         
-// 🔧 延遲渲染，確保狀態穩定
 setTimeout(() => {
     renderAll();
     markAsChanged();
-    
-    // 🔧 再次確保狀態正確（防止被其他函數覆蓋）
+
     setTimeout(() => {
         currentMode = 'worldbook';
         currentWorldBookId = existingWorldBook.id;
@@ -2586,7 +2573,6 @@ setTimeout(() => {
             }
             return false; // 代表使用者取消
         } catch (error) {
-            console.error('從物件匯入資料失敗:', error);
             NotificationManager.error(t('importFailed', error.message));
             return false;
         }
@@ -2942,13 +2928,11 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
                         localStorage.setItem(key, JSON.stringify(folderInfo));
                         totalRestored++;
                     } catch (error) {
-                        console.warn(`恢復資料夾失敗 ${type}/${folderInfo.id}:`, error);
                     }
                 });
             }
         });
-        
-        console.log(`成功恢復 ${totalRestored} 個資料夾`);
+
         return totalRestored;
     }
 
@@ -3082,10 +3066,8 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
                 };
                 OtherSettings.saveSettings();
 
-                // 🔧 確保卿卿我我區塊顯示狀態正確應用
-                OtherSettings.applyLoveyDoveyVisibility(true); 
+                OtherSettings.applyLoveyDoveyVisibility(true);
 
-                // 🔧 重置主題系統到初始狀態（清空用戶自定義主題）
                 ThemeManager.themes.clear();  
                 ThemeManager.createBuiltinThemes();  
                 ThemeManager.currentThemeId = 'default'; 
@@ -3101,7 +3083,6 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
             this.showClearSuccessNotification();
             
         } catch (error) {
-            console.error('清空資料失敗：', error);
             alert(t('clearDataError'));
         }
     }
