@@ -692,10 +692,15 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
                         ${t('entryContentLabel')}
                         <span class="field-stats wb-detail-stats" data-target="worldbook-${worldBookId}-${versionId}-${entry.id}">${entry.content ? entry.content.length : 0} ${t('chars')} / ${entry.content ? countTokens(entry.content) : 0} ${t('tokens')}</span>
 
-                        <button class="fullscreen-btn wb-detail-fullscreen-btn" onclick="openFullscreenEditor('worldbook-${worldBookId}-${versionId}-${entry.id}', '${t('entryContent')}')" 
+                        <button class="fullscreen-btn wb-detail-fullscreen-btn" onclick="openFullscreenEditor('worldbook-${worldBookId}-${versionId}-${entry.id}', '${t('entryContent')}')"
                                 title="${t('fullscreenEditor')}">⛶</button>
                     </span>
-                    <span class="wb-detail-uid">(UID: ${entry.uid || 0})</span>
+                    <span class="wb-detail-right-controls">
+                        <button class="version-panel-btn hover-primary alternate-greetings-btn"
+                                onclick="event.stopPropagation(); openWorldBookContentVersionsModal('${worldBookId}', '${versionId}', '${entry.id}')"
+                                title="${t('manageContentVersions')}">${t('contentVersions')}</button>
+                        <span class="wb-detail-uid">(UID: ${entry.uid || 0})</span>
+                    </span>
                 </label>
                <textarea class="field-input scrollable wb-detail-textarea" id="worldbook-${worldBookId}-${versionId}-${entry.id}" 
     placeholder="${t('entryContentPlaceholder')}"
@@ -2154,5 +2159,353 @@ function confirmBatchMoveEntries(sourceWorldBookId, sourceVersionId, entryIdsStr
         window.moveEntryTarget = null;
     } else {
         NotificationManager.error(t('moveFailed'));
+    }
+}
+
+// ===== 世界書內容版本管理 =====
+
+// 打開內容版本管理模態框
+function openWorldBookContentVersionsModal(worldBookId, versionId, entryId) {
+    const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+    if (!worldBook) return;
+
+    const version = worldBook.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const entry = version.entries.find(e => e.id === entryId);
+    if (!entry) return;
+
+    // 確保 contentVersions 陣列存在
+    if (!entry.contentVersions) {
+        entry.contentVersions = [];
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'content-versions-modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="compact-modal-content content-versions-modal">
+            <div class="compact-modal-header">
+                <div class="modal-title-group">
+                    ${IconManager.file({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('manageContentVersions')}</h3>
+                </div>
+                <button class="close-modal" onclick="closeContentVersionsModal()">×</button>
+            </div>
+
+            <div id="content-versions-container" class="content-versions-content">
+                ${renderWorldBookContentVersionsModalContent(worldBook, version, entry)}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // 點擊遮罩關閉
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeContentVersionsModal();
+        }
+    });
+
+    // ESC 鍵關閉
+    const handleKeydown = (e) => {
+        if (e.key === 'Escape') {
+            closeContentVersionsModal();
+        }
+    };
+    document.addEventListener('keydown', handleKeydown);
+    modal._handleKeydown = handleKeydown;
+
+    // 儲存當前編輯的上下文
+    modal._context = { worldBookId, versionId, entryId };
+
+    // 初始化功能
+    setTimeout(() => {
+        updateAllPageStats();
+        initAutoResize();
+        DragSortManager.enableContentVersionsDragSort('worldbook', worldBookId, versionId, entryId);
+    }, 100);
+}
+
+// 渲染版本列表內容
+function renderWorldBookContentVersionsModalContent(worldBook, version, entry) {
+    const contentVersions = entry.contentVersions || [];
+    const worldBookId = worldBook.id;
+    const versionId = version.id;
+    const entryId = entry.id;
+
+    return `
+        <div id="content-versions-list-${entryId}">
+            <!-- 當前主內容（置頂） -->
+            <div class="content-version-item content-version-current">
+                <div class="content-version-header">
+                    <div class="content-version-title-area">
+                        <h4 class="content-version-title">${t('currentContent')}</h4>
+                        <span class="content-version-badge">${t('currentContent')}</span>
+                    </div>
+                </div>
+
+                <div class="field-group no-bottom-margin">
+                    <textarea class="field-input content-version-textarea"
+                        id="content-version-main-${entryId}"
+                        placeholder="${t('entryContentPlaceholder')}"
+                        oninput="updateWorldBookMainContentFromModal('${worldBookId}', '${versionId}', '${entryId}', this.value);"
+                        onfocus="showAdditionalFullscreenBtn(this);"
+                        onblur="hideAdditionalFullscreenBtn(this);">${entry.content || ''}</textarea>
+
+                    <div class="content-version-toolbar">
+                        <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                            onclick="openFullscreenEditor('content-version-main-${entryId}', '${t('currentContent')}')"
+                            title="${t('fullscreenEdit')}">⛶</button>
+
+                        <div class="field-stats content-version-stats" data-target="content-version-main-${entryId}">
+                            ${(entry.content || '').length} ${t('chars')} / ${countTokens(entry.content || '')} ${t('tokens')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 額外版本列表 -->
+            ${contentVersions.length === 0 ? `
+                <div class="content-versions-empty">
+                    ${t('noContentVersions')}
+                </div>
+            ` : contentVersions.map((versionContent, index) => `
+                <div class="content-version-item" data-version-index="${index}">
+                    <div class="content-version-header">
+                        <div class="content-version-title-area">
+                            <div class="drag-handle custom-field-drag-handle">
+                                ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+                            </div>
+                            <h4 class="content-version-title">${t('contentVersion')} ${index + 1}</h4>
+                        </div>
+
+                        <div class="content-version-actions">
+                            <button class="use-version-btn"
+                                onclick="useWorldBookContentVersion('${worldBookId}', '${versionId}', '${entryId}', ${index})">
+                                ${t('useThisVersion')}
+                            </button>
+                            <button class="delete-btn"
+                                onclick="deleteWorldBookContentVersion('${worldBookId}', '${versionId}', '${entryId}', ${index})">
+                                ${IconManager.delete()}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="field-group no-bottom-margin">
+                        <textarea class="field-input content-version-textarea"
+                            id="content-version-${entryId}-${index}"
+                            placeholder="${t('contentVersionPlaceholder')}"
+                            oninput="updateWorldBookContentVersion('${worldBookId}', '${versionId}', '${entryId}', ${index}, this.value);"
+                            onfocus="showAdditionalFullscreenBtn(this);"
+                            onblur="hideAdditionalFullscreenBtn(this);">${versionContent}</textarea>
+
+                        <div class="content-version-toolbar">
+                            <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                                onclick="openFullscreenEditor('content-version-${entryId}-${index}', '${t('contentVersion')} ${index + 1}')"
+                                title="${t('fullscreenEdit')}">⛶</button>
+
+                            <div class="field-stats content-version-stats" data-target="content-version-${entryId}-${index}">
+                                ${versionContent.length} ${t('chars')} / ${countTokens(versionContent)} ${t('tokens')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+
+        <!-- 新增按鈕 -->
+        <div class="content-versions-add-container">
+            <button class="loveydovey-add-btn" onclick="addWorldBookContentVersion('${worldBookId}', '${versionId}', '${entryId}')">
+                ${IconManager.plus({width: 16, height: 16})}
+                ${t('addContentVersion')}
+            </button>
+        </div>
+    `;
+}
+
+// 關閉模態框
+function closeContentVersionsModal() {
+    const modal = document.getElementById('content-versions-modal');
+    if (modal) {
+        if (modal._handleKeydown) {
+            document.removeEventListener('keydown', modal._handleKeydown);
+        }
+        modal.remove();
+
+        // 重新渲染主頁面以更新統計
+        setTimeout(() => {
+            updateAllPageStats();
+        }, 50);
+    }
+}
+
+// 更新主內容（從模態框）
+function updateWorldBookMainContentFromModal(worldBookId, versionId, entryId, value) {
+    const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+    if (!worldBook) return;
+
+    const version = worldBook.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const entry = version.entries.find(e => e.id === entryId);
+    if (!entry) return;
+
+    // 更新內容
+    entry.content = value;
+
+    // 同步更新主頁面的 textarea
+    const mainTextarea = document.getElementById(`worldbook-${worldBookId}-${versionId}-${entryId}`);
+    if (mainTextarea && mainTextarea.value !== value) {
+        mainTextarea.value = value;
+        updateFieldStats(`worldbook-${worldBookId}-${versionId}-${entryId}`);
+    }
+
+    // 更新模態框內的統計
+    updateFieldStats(`content-version-main-${entryId}`);
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
+    markAsChanged();
+}
+
+// 新增額外版本
+function addWorldBookContentVersion(worldBookId, versionId, entryId) {
+    const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+    if (!worldBook) return;
+
+    const version = worldBook.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const entry = version.entries.find(e => e.id === entryId);
+    if (!entry) return;
+
+    if (!entry.contentVersions) {
+        entry.contentVersions = [];
+    }
+
+    // 檢查數量限制
+    if (entry.contentVersions.length >= 10) {
+        NotificationManager.warning(t('maxContentVersionsReached'));
+        return;
+    }
+
+    // 新增空的版本
+    entry.contentVersions.push('');
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容
+    refreshWorldBookContentVersionsModal(worldBook, version, entry);
+}
+
+// 刪除額外版本
+function deleteWorldBookContentVersion(worldBookId, versionId, entryId, index) {
+    const confirmDelete = confirm(t('deleteContentVersionConfirm'));
+    if (!confirmDelete) return;
+
+    const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+    if (!worldBook) return;
+
+    const version = worldBook.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const entry = version.entries.find(e => e.id === entryId);
+    if (!entry || !entry.contentVersions) return;
+
+    // 刪除指定的版本
+    entry.contentVersions.splice(index, 1);
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容
+    refreshWorldBookContentVersionsModal(worldBook, version, entry);
+}
+
+// 更新額外版本內容
+function updateWorldBookContentVersion(worldBookId, versionId, entryId, index, value) {
+    const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+    if (!worldBook) return;
+
+    const version = worldBook.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const entry = version.entries.find(e => e.id === entryId);
+    if (!entry || !entry.contentVersions) return;
+
+    if (index < 0 || index >= entry.contentVersions.length) return;
+
+    // 更新內容
+    entry.contentVersions[index] = value;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
+
+    // 更新統計
+    updateFieldStats(`content-version-${entryId}-${index}`);
+    markAsChanged();
+}
+
+// 採用此版本（切換主內容）
+function useWorldBookContentVersion(worldBookId, versionId, entryId, index) {
+    const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+    if (!worldBook) return;
+
+    const version = worldBook.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const entry = version.entries.find(e => e.id === entryId);
+    if (!entry || !entry.contentVersions) return;
+
+    if (index < 0 || index >= entry.contentVersions.length) return;
+
+    // 保存當前主內容
+    const currentContent = entry.content || '';
+
+    // 獲取選中的版本
+    const selectedVersion = entry.contentVersions[index];
+
+    // 將選中的版本設為新的主內容
+    entry.content = selectedVersion;
+
+    // 將原主內容存入 contentVersions（替換選中的位置）
+    entry.contentVersions[index] = currentContent;
+
+    // 同步更新主頁面的 textarea
+    const mainTextarea = document.getElementById(`worldbook-${worldBookId}-${versionId}-${entryId}`);
+    if (mainTextarea) {
+        mainTextarea.value = entry.content;
+        updateFieldStats(`worldbook-${worldBookId}-${versionId}-${entryId}`);
+    }
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
+    markAsChanged();
+
+    // 顯示成功通知
+    NotificationManager.success(t('versionSwitched'));
+
+    // 重新渲染模態框內容
+    refreshWorldBookContentVersionsModal(worldBook, version, entry);
+}
+
+// 刷新模態框內容
+function refreshWorldBookContentVersionsModal(worldBook, version, entry) {
+    const container = document.getElementById('content-versions-container');
+    if (container) {
+        container.innerHTML = renderWorldBookContentVersionsModalContent(worldBook, version, entry);
+
+        // 重新初始化功能
+        setTimeout(() => {
+            updateAllPageStats();
+            initAutoResize();
+            DragSortManager.enableContentVersionsDragSort('worldbook', worldBook.id, version.id, entry.id);
+        }, 50);
     }
 }

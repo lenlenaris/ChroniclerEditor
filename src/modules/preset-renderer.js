@@ -290,8 +290,11 @@ ${!cannotRemove ? `
                 ${t('promptContent')}
                 <span class="field-stats wb-detail-stats" data-target="preset-content-${presetId}-${versionId}-${prompt.identifier}">${prompt.content ? prompt.content.length : 0} ${t('chars')} / ${prompt.content ? countTokens(prompt.content) : 0} ${t('tokens')}</span>
             </span>
+            <button class="version-panel-btn hover-primary alternate-greetings-btn"
+                onclick="event.stopPropagation(); PresetRenderer.openContentVersionsModal('${presetId}', '${versionId}', '${prompt.identifier}')"
+                title="${t('manageContentVersions')}">${t('contentVersions')}</button>
         </label>
-        <textarea class="field-input scrollable" 
+        <textarea class="field-input scrollable"
             id="preset-content-${presetId}-${versionId}-${prompt.identifier}"
             placeholder="${t('promptContentPlaceholder')}"
             style="min-height: 120px;"
@@ -2343,6 +2346,338 @@ static movePrompt(sourcePresetId, sourceVersionId, targetPresetId, targetVersion
     // 重新渲染當前頁面
     this.refreshPresetContent(sourcePresetId, sourceVersionId);
     return true;
+}
+
+// ===== 預設內容版本管理 =====
+
+// 打開內容版本管理模態框
+static openContentVersionsModal(presetId, versionId, identifier) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt) return;
+
+    // 確保 contentVersions 陣列存在
+    if (!prompt.contentVersions) {
+        prompt.contentVersions = [];
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'content-versions-modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="compact-modal-content content-versions-modal">
+            <div class="compact-modal-header">
+                <div class="modal-title-group">
+                    ${IconManager.file({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('manageContentVersions')}</h3>
+                </div>
+                <button class="close-modal" onclick="closeContentVersionsModal()">×</button>
+            </div>
+
+            <div id="content-versions-container" class="content-versions-content">
+                ${this.renderContentVersionsModalContent(preset, version, prompt)}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // 點擊遮罩關閉
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeContentVersionsModal();
+        }
+    });
+
+    // ESC 鍵關閉
+    const handleKeydown = (e) => {
+        if (e.key === 'Escape') {
+            closeContentVersionsModal();
+        }
+    };
+    document.addEventListener('keydown', handleKeydown);
+    modal._handleKeydown = handleKeydown;
+
+    // 儲存當前編輯的上下文
+    modal._context = { presetId, versionId, identifier };
+
+    // 初始化功能
+    setTimeout(() => {
+        updateAllPageStats();
+        initAutoResize();
+        DragSortManager.enableContentVersionsDragSort('preset', presetId, versionId, identifier);
+    }, 100);
+}
+
+// 渲染版本列表內容
+static renderContentVersionsModalContent(preset, version, prompt) {
+    const contentVersions = prompt.contentVersions || [];
+    const presetId = preset.id;
+    const versionId = version.id;
+    const identifier = prompt.identifier;
+
+    return `
+        <div id="content-versions-list-${identifier}">
+            <!-- 當前主內容（置頂） -->
+            <div class="content-version-item content-version-current">
+                <div class="content-version-header">
+                    <div class="content-version-title-area">
+                        <h4 class="content-version-title">${t('currentContent')}</h4>
+                        <span class="content-version-badge">${t('currentContent')}</span>
+                    </div>
+                </div>
+
+                <div class="field-group no-bottom-margin">
+                    <textarea class="field-input content-version-textarea"
+                        id="content-version-main-${identifier}"
+                        placeholder="${t('promptContentPlaceholder')}"
+                        oninput="PresetRenderer.updateMainContentFromModal('${presetId}', '${versionId}', '${identifier}', this.value);"
+                        onfocus="showAdditionalFullscreenBtn(this);"
+                        onblur="hideAdditionalFullscreenBtn(this);">${prompt.content || ''}</textarea>
+
+                    <div class="content-version-toolbar">
+                        <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                            onclick="openFullscreenEditor('content-version-main-${identifier}', '${t('currentContent')}')"
+                            title="${t('fullscreenEdit')}">⛶</button>
+
+                        <div class="field-stats content-version-stats" data-target="content-version-main-${identifier}">
+                            ${(prompt.content || '').length} ${t('chars')} / ${countTokens(prompt.content || '')} ${t('tokens')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 額外版本列表 -->
+            ${contentVersions.length === 0 ? `
+                <div class="content-versions-empty">
+                    ${t('noContentVersions')}
+                </div>
+            ` : contentVersions.map((versionContent, index) => `
+                <div class="content-version-item" data-version-index="${index}">
+                    <div class="content-version-header">
+                        <div class="content-version-title-area">
+                            <div class="drag-handle custom-field-drag-handle">
+                                ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+                            </div>
+                            <h4 class="content-version-title">${t('contentVersion')} ${index + 1}</h4>
+                        </div>
+
+                        <div class="content-version-actions">
+                            <button class="use-version-btn"
+                                onclick="PresetRenderer.useContentVersion('${presetId}', '${versionId}', '${identifier}', ${index})">
+                                ${t('useThisVersion')}
+                            </button>
+                            <button class="delete-btn"
+                                onclick="PresetRenderer.deleteContentVersion('${presetId}', '${versionId}', '${identifier}', ${index})">
+                                ${IconManager.delete()}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="field-group no-bottom-margin">
+                        <textarea class="field-input content-version-textarea"
+                            id="content-version-${identifier}-${index}"
+                            placeholder="${t('contentVersionPlaceholder')}"
+                            oninput="PresetRenderer.updateContentVersion('${presetId}', '${versionId}', '${identifier}', ${index}, this.value);"
+                            onfocus="showAdditionalFullscreenBtn(this);"
+                            onblur="hideAdditionalFullscreenBtn(this);">${versionContent}</textarea>
+
+                        <div class="content-version-toolbar">
+                            <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                                onclick="openFullscreenEditor('content-version-${identifier}-${index}', '${t('contentVersion')} ${index + 1}')"
+                                title="${t('fullscreenEdit')}">⛶</button>
+
+                            <div class="field-stats content-version-stats" data-target="content-version-${identifier}-${index}">
+                                ${versionContent.length} ${t('chars')} / ${countTokens(versionContent)} ${t('tokens')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+
+        <!-- 新增按鈕 -->
+        <div class="content-versions-add-container">
+            <button class="loveydovey-add-btn" onclick="PresetRenderer.addContentVersion('${presetId}', '${versionId}', '${identifier}')">
+                ${IconManager.plus({width: 16, height: 16})}
+                ${t('addContentVersion')}
+            </button>
+        </div>
+    `;
+}
+
+// 更新主內容（從模態框）
+static updateMainContentFromModal(presetId, versionId, identifier, value) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt) return;
+
+    // 更新內容
+    prompt.content = value;
+
+    // 同步更新主頁面的 textarea
+    const mainTextarea = document.getElementById(`preset-content-${presetId}-${versionId}-${identifier}`);
+    if (mainTextarea && mainTextarea.value !== value) {
+        mainTextarea.value = value;
+        updateFieldStats(`preset-content-${presetId}-${versionId}-${identifier}`);
+    }
+
+    // 更新模態框內的統計
+    updateFieldStats(`content-version-main-${identifier}`);
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+}
+
+// 新增額外版本
+static addContentVersion(presetId, versionId, identifier) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt) return;
+
+    if (!prompt.contentVersions) {
+        prompt.contentVersions = [];
+    }
+
+    // 檢查數量限制
+    if (prompt.contentVersions.length >= 10) {
+        NotificationManager.warning(t('maxContentVersionsReached'));
+        return;
+    }
+
+    // 新增空的版本
+    prompt.contentVersions.push('');
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容
+    this.refreshContentVersionsModal(preset, version, prompt);
+}
+
+// 刪除額外版本
+static deleteContentVersion(presetId, versionId, identifier, index) {
+    const confirmDelete = confirm(t('deleteContentVersionConfirm'));
+    if (!confirmDelete) return;
+
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt || !prompt.contentVersions) return;
+
+    // 刪除指定的版本
+    prompt.contentVersions.splice(index, 1);
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容
+    this.refreshContentVersionsModal(preset, version, prompt);
+}
+
+// 更新額外版本內容
+static updateContentVersion(presetId, versionId, identifier, index, value) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt || !prompt.contentVersions) return;
+
+    if (index < 0 || index >= prompt.contentVersions.length) return;
+
+    // 更新內容
+    prompt.contentVersions[index] = value;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+
+    // 更新統計
+    updateFieldStats(`content-version-${identifier}-${index}`);
+    markAsChanged();
+}
+
+// 採用此版本（切換主內容）
+static useContentVersion(presetId, versionId, identifier, index) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt || !prompt.contentVersions) return;
+
+    if (index < 0 || index >= prompt.contentVersions.length) return;
+
+    // 保存當前主內容
+    const currentContent = prompt.content || '';
+
+    // 獲取選中的版本
+    const selectedVersion = prompt.contentVersions[index];
+
+    // 將選中的版本設為新的主內容
+    prompt.content = selectedVersion;
+
+    // 將原主內容存入 contentVersions（替換選中的位置）
+    prompt.contentVersions[index] = currentContent;
+
+    // 同步更新主頁面的 textarea
+    const mainTextarea = document.getElementById(`preset-content-${presetId}-${versionId}-${identifier}`);
+    if (mainTextarea) {
+        mainTextarea.value = prompt.content;
+        updateFieldStats(`preset-content-${presetId}-${versionId}-${identifier}`);
+    }
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+
+    // 顯示成功通知
+    NotificationManager.success(t('versionSwitched'));
+
+    // 重新渲染模態框內容
+    this.refreshContentVersionsModal(preset, version, prompt);
+}
+
+// 刷新模態框內容
+static refreshContentVersionsModal(preset, version, prompt) {
+    const container = document.getElementById('content-versions-container');
+    if (container) {
+        container.innerHTML = this.renderContentVersionsModalContent(preset, version, prompt);
+
+        // 重新初始化功能
+        setTimeout(() => {
+            updateAllPageStats();
+            initAutoResize();
+            DragSortManager.enableContentVersionsDragSort('preset', preset.id, version.id, prompt.identifier);
+        }, 50);
+    }
 }
 
 

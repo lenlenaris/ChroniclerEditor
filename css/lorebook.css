@@ -197,6 +197,13 @@
     color: var(--text-muted) !important;
 }
 
+/* 右側控件區域 */
+.wb-detail-right-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
 /* 文本框 */
 .wb-detail-textarea {
     min-height: 200px !important;
@@ -743,4 +750,131 @@
 .batch-action-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* ===== 額外版本管理樣式 ===== */
+
+/* 版本管理模態框 */
+.content-versions-modal {
+    max-width: 800px !important;
+    max-height: 85% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* 版本管理內容滾動容器 */
+.content-versions-content {
+    flex: 1;
+    overflow-y: auto;
+    margin-top: 0px;
+    padding-right: 12px;
+}
+
+/* 版本項目容器 */
+.content-version-item {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    background: var(--header-bg);
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* 當前主內容特殊樣式 */
+.content-version-current {
+    border: 2px solid var(--accent-color) !important;
+    background: color-mix(in srgb, var(--accent-color) 8%, var(--header-bg)) !important;
+}
+
+/* 版本項目標題列 */
+.content-version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/* 版本標題左側區域 */
+.content-version-title-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 版本標題文字 */
+.content-version-title {
+    margin: 0;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* 當前主內容標記 */
+.content-version-badge {
+    background: var(--accent-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+/* 版本操作按鈕區域 */
+.content-version-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 採用此版本按鈕 */
+.use-version-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: opacity 0.2s ease;
+}
+
+.use-version-btn:hover {
+    opacity: 0.9;
+}
+
+/* 版本文本區域 */
+.content-version-textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* 版本底部工具列 */
+.content-version-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+}
+
+/* 版本統計文字 */
+.content-version-stats {
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+/* 版本新增按鈕容器 */
+.content-versions-add-container {
+    margin: 0px 0 20px 0;
+}
+
+/* 版本說明提示 */
+.content-versions-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    font-size: 0.85em;
+    font-style: italic;
 }

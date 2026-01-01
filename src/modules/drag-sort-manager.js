@@ -1322,7 +1322,7 @@ static handleAlternateGreetingsReorder(characterId, versionId, oldIndex, newInde
         const character = characters.find(c => c.id === characterId);
         const version = character.versions.find(v => v.id === versionId);
         container.innerHTML = renderAlternateGreetingsModalContent(character, version);
-        
+
         // 重新初始化功能
         setTimeout(() => {
             updateAllPageStats();
@@ -1330,7 +1330,103 @@ static handleAlternateGreetingsReorder(characterId, versionId, oldIndex, newInde
             this.enableAlternateGreetingsDragSort(characterId, versionId);
         }, 50);
     }
-    
-    
+
+
+}
+
+// ===== 內容版本拖曳排序 =====
+
+// 啟用內容版本拖曳排序
+static enableContentVersionsDragSort(type, itemId, versionId, entryId) {
+    const containerSelector = `#content-versions-list-${entryId}`;
+    const container = document.querySelector(containerSelector);
+
+    if (!container) {
+        return;
+    }
+
+    const existingInstance = this.sortableInstances.get(containerSelector);
+    if (existingInstance) {
+        existingInstance.destroy();
+    }
+
+    const commonConfig = this.getCommonSortableConfig();
+
+    const sortable = new Sortable(container, {
+        group: `content-versions-sort-${type}-${itemId}-${versionId}-${entryId}`,
+        animation: 150,
+        easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+
+        // 只允許拖曳額外版本項目（排除當前主內容）
+        draggable: '.content-version-item:not(.content-version-current)',
+        handle: '.drag-handle',
+
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        dragClass: 'sortable-drag',
+
+        // 應用通用配置
+        forceFallback: commonConfig.forceFallback,
+        fallbackOnBody: commonConfig.fallbackOnBody,
+
+        onEnd: (evt) => {
+            // 計算實際索引（排除當前主內容）
+            const oldIndex = evt.oldIndex - 1; // 減 1 因為主內容佔據索引 0
+            const newIndex = evt.newIndex - 1;
+
+            if (oldIndex !== newIndex && oldIndex >= 0 && newIndex >= 0) {
+                this.handleContentVersionsReorder(type, itemId, versionId, entryId, oldIndex, newIndex);
+            }
+        }
+    });
+
+    this.sortableInstances.set(containerSelector, sortable);
+}
+
+// 處理內容版本重新排序
+static handleContentVersionsReorder(type, itemId, versionId, entryId, oldIndex, newIndex) {
+    let contentVersions;
+    let item, version, entry;
+
+    if (type === 'worldbook') {
+        item = worldBooks.find(wb => wb.id === itemId);
+        if (!item) return;
+
+        version = item.versions.find(v => v.id === versionId);
+        if (!version) return;
+
+        entry = version.entries.find(e => e.id === entryId);
+        if (!entry || !entry.contentVersions) return;
+
+        contentVersions = entry.contentVersions;
+    } else if (type === 'preset') {
+        item = presets.find(p => p.id === itemId);
+        if (!item) return;
+
+        version = item.versions.find(v => v.id === versionId);
+        if (!version) return;
+
+        entry = version.prompts.find(p => p.identifier === entryId);
+        if (!entry || !entry.contentVersions) return;
+
+        contentVersions = entry.contentVersions;
+    } else {
+        return;
+    }
+
+    // 重新排序陣列
+    const [movedItem] = contentVersions.splice(oldIndex, 1);
+    contentVersions.splice(newIndex, 0, movedItem);
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp(type, itemId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容以更新編號
+    if (type === 'worldbook') {
+        refreshWorldBookContentVersionsModal(item, version, entry);
+    } else if (type === 'preset') {
+        PresetRenderer.refreshContentVersionsModal(item, version, entry);
+    }
 }
 }
