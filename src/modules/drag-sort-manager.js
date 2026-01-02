@@ -1410,6 +1410,22 @@ static handleContentVersionsReorder(type, itemId, versionId, entryId, oldIndex, 
         if (!entry || !entry.contentVersions) return;
 
         contentVersions = entry.contentVersions;
+    } else if (type === 'character' || type === 'userpersona') {
+        // 角色卡或玩家角色的欄位版本
+        const fieldName = entryId; // entryId 這裡是 fieldName
+        const versionsKey = `${fieldName}Versions`;
+
+        if (type === 'character') {
+            item = characters.find(c => c.id === itemId);
+        } else {
+            item = userPersonas.find(p => p.id === itemId);
+        }
+        if (!item) return;
+
+        version = item.versions.find(v => v.id === versionId);
+        if (!version || !version[versionsKey]) return;
+
+        contentVersions = version[versionsKey];
     } else {
         return;
     }
@@ -1427,6 +1443,8 @@ static handleContentVersionsReorder(type, itemId, versionId, entryId, oldIndex, 
         refreshWorldBookContentVersionsModal(item, version, entry);
     } else if (type === 'preset') {
         PresetRenderer.refreshContentVersionsModal(item, version, entry);
+    } else if (type === 'character' || type === 'userpersona') {
+        refreshFieldContentVersionsModal(type, item, version, entryId);
     }
 }
 }

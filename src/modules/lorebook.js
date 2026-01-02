@@ -2229,12 +2229,22 @@ function openWorldBookContentVersionsModal(worldBookId, versionId, entryId) {
     }, 100);
 }
 
+// 規範化版本數據（兼容舊格式）
+function normalizeContentVersion(ver) {
+    if (typeof ver === 'string') {
+        return { content: ver, note: '' };
+    }
+    return { content: ver.content || '', note: ver.note || '' };
+}
+
 // 渲染版本列表內容
 function renderWorldBookContentVersionsModalContent(worldBook, version, entry) {
-    const contentVersions = entry.contentVersions || [];
+    const rawVersions = entry.contentVersions || [];
+    const contentVersions = rawVersions.map(normalizeContentVersion);
     const worldBookId = worldBook.id;
     const versionId = version.id;
     const entryId = entry.id;
+    const currentNote = entry.contentNote || '';
 
     return `
         <div id="content-versions-list-${entryId}">
@@ -2243,7 +2253,10 @@ function renderWorldBookContentVersionsModalContent(worldBook, version, entry) {
                 <div class="content-version-header">
                     <div class="content-version-title-area">
                         <h4 class="content-version-title">${t('currentContent')}</h4>
-                        <span class="content-version-badge">${t('currentContent')}</span>
+                        <input type="text" class="content-version-note-input"
+                            placeholder="${t('versionNotePlaceholder')}"
+                            value="${escapeHtml(currentNote)}"
+                            oninput="updateWorldBookMainNoteFromModal('${worldBookId}', '${versionId}', '${entryId}', this.value)">
                     </div>
                 </div>
 
@@ -2257,7 +2270,7 @@ function renderWorldBookContentVersionsModalContent(worldBook, version, entry) {
 
                     <div class="content-version-toolbar">
                         <button class="fullscreen-btn-base fullscreen-btn-toolbar"
-                            onclick="openFullscreenEditor('content-version-main-${entryId}', '${t('currentContent')}')"
+                            onclick="openFullscreenEditor('content-version-main-${entryId}', '${escapeHtml(currentNote) || t('currentContent')}')"
                             title="${t('fullscreenEdit')}">⛶</button>
 
                         <div class="field-stats content-version-stats" data-target="content-version-main-${entryId}">
@@ -2272,7 +2285,7 @@ function renderWorldBookContentVersionsModalContent(worldBook, version, entry) {
                 <div class="content-versions-empty">
                     ${t('noContentVersions')}
                 </div>
-            ` : contentVersions.map((versionContent, index) => `
+            ` : contentVersions.map((ver, index) => `
                 <div class="content-version-item" data-version-index="${index}">
                     <div class="content-version-header">
                         <div class="content-version-title-area">
@@ -2280,6 +2293,10 @@ function renderWorldBookContentVersionsModalContent(worldBook, version, entry) {
                                 ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
                             </div>
                             <h4 class="content-version-title">${t('contentVersion')} ${index + 1}</h4>
+                            <input type="text" class="content-version-note-input"
+                                placeholder="${t('versionNotePlaceholder')}"
+                                value="${escapeHtml(ver.note)}"
+                                oninput="updateWorldBookContentVersionNote('${worldBookId}', '${versionId}', '${entryId}', ${index}, this.value)">
                         </div>
 
                         <div class="content-version-actions">
@@ -2300,15 +2317,15 @@ function renderWorldBookContentVersionsModalContent(worldBook, version, entry) {
                             placeholder="${t('contentVersionPlaceholder')}"
                             oninput="updateWorldBookContentVersion('${worldBookId}', '${versionId}', '${entryId}', ${index}, this.value);"
                             onfocus="showAdditionalFullscreenBtn(this);"
-                            onblur="hideAdditionalFullscreenBtn(this);">${versionContent}</textarea>
+                            onblur="hideAdditionalFullscreenBtn(this);">${ver.content}</textarea>
 
                         <div class="content-version-toolbar">
                             <button class="fullscreen-btn-base fullscreen-btn-toolbar"
-                                onclick="openFullscreenEditor('content-version-${entryId}-${index}', '${t('contentVersion')} ${index + 1}')"
+                                onclick="openFullscreenEditor('content-version-${entryId}-${index}', '${escapeHtml(ver.note) || t('contentVersion') + ' ' + (index + 1)}')"
                                 title="${t('fullscreenEdit')}">⛶</button>
 
                             <div class="field-stats content-version-stats" data-target="content-version-${entryId}-${index}">
-                                ${versionContent.length} ${t('chars')} / ${countTokens(versionContent)} ${t('tokens')}
+                                ${ver.content.length} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
                             </div>
                         </div>
                     </div>
@@ -2371,6 +2388,25 @@ function updateWorldBookMainContentFromModal(worldBookId, versionId, entryId, va
     markAsChanged();
 }
 
+// 更新主內容備註（從模態框）
+function updateWorldBookMainNoteFromModal(worldBookId, versionId, entryId, value) {
+    const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+    if (!worldBook) return;
+
+    const version = worldBook.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const entry = version.entries.find(e => e.id === entryId);
+    if (!entry) return;
+
+    // 更新備註
+    entry.contentNote = value;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
+    markAsChanged();
+}
+
 // 新增額外版本
 function addWorldBookContentVersion(worldBookId, versionId, entryId) {
     const worldBook = worldBooks.find(wb => wb.id === worldBookId);
@@ -2392,8 +2428,8 @@ function addWorldBookContentVersion(worldBookId, versionId, entryId) {
         return;
     }
 
-    // 新增空的版本
-    entry.contentVersions.push('');
+    // 新增空的版本（對象格式）
+    entry.contentVersions.push({ content: '', note: '' });
 
     // 更新時間戳記
     TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
@@ -2441,14 +2477,39 @@ function updateWorldBookContentVersion(worldBookId, versionId, entryId, index, v
 
     if (index < 0 || index >= entry.contentVersions.length) return;
 
-    // 更新內容
-    entry.contentVersions[index] = value;
+    // 規範化並更新內容
+    const ver = normalizeContentVersion(entry.contentVersions[index]);
+    ver.content = value;
+    entry.contentVersions[index] = ver;
 
     // 更新時間戳記
     TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
 
     // 更新統計
     updateFieldStats(`content-version-${entryId}-${index}`);
+    markAsChanged();
+}
+
+// 更新額外版本備註
+function updateWorldBookContentVersionNote(worldBookId, versionId, entryId, index, note) {
+    const worldBook = worldBooks.find(wb => wb.id === worldBookId);
+    if (!worldBook) return;
+
+    const version = worldBook.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const entry = version.entries.find(e => e.id === entryId);
+    if (!entry || !entry.contentVersions) return;
+
+    if (index < 0 || index >= entry.contentVersions.length) return;
+
+    // 規範化並更新備註
+    const ver = normalizeContentVersion(entry.contentVersions[index]);
+    ver.note = note;
+    entry.contentVersions[index] = ver;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('worldbook', worldBookId, versionId);
     markAsChanged();
 }
 
@@ -2465,17 +2526,19 @@ function useWorldBookContentVersion(worldBookId, versionId, entryId, index) {
 
     if (index < 0 || index >= entry.contentVersions.length) return;
 
-    // 保存當前主內容
+    // 保存當前主內容和備註
     const currentContent = entry.content || '';
+    const currentNote = entry.contentNote || '';
 
-    // 獲取選中的版本
-    const selectedVersion = entry.contentVersions[index];
+    // 獲取選中的版本（規範化）
+    const selectedVer = normalizeContentVersion(entry.contentVersions[index]);
 
-    // 將選中的版本設為新的主內容
-    entry.content = selectedVersion;
+    // 將選中的版本設為新的主內容和備註
+    entry.content = selectedVer.content;
+    entry.contentNote = selectedVer.note;
 
-    // 將原主內容存入 contentVersions（替換選中的位置）
-    entry.contentVersions[index] = currentContent;
+    // 將原主內容和備註存入 contentVersions
+    entry.contentVersions[index] = { content: currentContent, note: currentNote };
 
     // 同步更新主頁面的 textarea
     const mainTextarea = document.getElementById(`worldbook-${worldBookId}-${versionId}-${entryId}`);

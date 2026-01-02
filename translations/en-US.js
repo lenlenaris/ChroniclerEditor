@@ -161,7 +161,7 @@ window.ChroniclerTranslations['en-US'] = {
     maxAlternateGreetingsReached: 'You can add a maximum of 10 alternate greetings.',
     deleteAlternateGreetingConfirm: 'Are you sure you want to delete this alternate greeting?\n\n⚠️ This action cannot be undone!',
 
-    // Content Versions (for Lorebook/Preset)
+    // Content Versions
     contentVersions: 'Versions',
     manageContentVersions: 'Manage Content Versions',
     addContentVersion: 'Add Version',
@@ -173,6 +173,8 @@ window.ChroniclerTranslations['en-US'] = {
     versionSwitched: 'Main content switched',
     maxContentVersionsReached: 'Maximum 10 versions reached',
     contentVersionPlaceholder: 'Enter version content...',
+    versionNotePlaceholder: 'Note (optional)',
+    versionNote: 'Note',
 
     // Character Operations
     deleteCharacter: 'Delete Character',

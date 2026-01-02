@@ -809,16 +809,44 @@
     font-size: 0.95em;
     font-weight: 600;
     color: var(--text-color);
+    flex-shrink: 0;
 }
 
-/* 當前主內容標記 */
-.content-version-badge {
-    background: var(--accent-color);
-    color: white;
-    padding: 2px 8px;
+/* 版本備註輸入框（透明風格） */
+.content-version-note-input {
+    font-size: 0.8em;
+    font-style: italic;
+    color: var(--text-muted);
+    font-weight: normal;
+    margin-left: 8px;
+    max-width: 200px;
+    min-width: 80px;
+    padding: 2px 4px;
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: 4px;
-    font-size: 0.75em;
-    font-weight: 500;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.content-version-note-input:hover {
+    border-color: var(--border-color);
+}
+
+.content-version-note-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    background: var(--bg-secondary);
+}
+
+.content-version-note-input::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.6;
+}
+
+/* 當前主內容標題高亮 */
+.content-version-current .content-version-title {
+    color: var(--accent-color);
 }
 
 /* 版本操作按鈕區域 */

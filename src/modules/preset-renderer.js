@@ -2415,12 +2415,22 @@ static openContentVersionsModal(presetId, versionId, identifier) {
     }, 100);
 }
 
+// 規範化版本數據（兼容舊格式）
+static normalizeContentVersion(ver) {
+    if (typeof ver === 'string') {
+        return { content: ver, note: '' };
+    }
+    return { content: ver.content || '', note: ver.note || '' };
+}
+
 // 渲染版本列表內容
 static renderContentVersionsModalContent(preset, version, prompt) {
-    const contentVersions = prompt.contentVersions || [];
+    const rawVersions = prompt.contentVersions || [];
+    const contentVersions = rawVersions.map(v => this.normalizeContentVersion(v));
     const presetId = preset.id;
     const versionId = version.id;
     const identifier = prompt.identifier;
+    const currentNote = prompt.contentNote || '';
 
     return `
         <div id="content-versions-list-${identifier}">
@@ -2429,7 +2439,10 @@ static renderContentVersionsModalContent(preset, version, prompt) {
                 <div class="content-version-header">
                     <div class="content-version-title-area">
                         <h4 class="content-version-title">${t('currentContent')}</h4>
-                        <span class="content-version-badge">${t('currentContent')}</span>
+                        <input type="text" class="content-version-note-input"
+                            placeholder="${t('versionNotePlaceholder')}"
+                            value="${this.escapeHtml(currentNote)}"
+                            oninput="PresetRenderer.updateMainNoteFromModal('${presetId}', '${versionId}', '${identifier}', this.value)">
                     </div>
                 </div>
 
@@ -2443,7 +2456,7 @@ static renderContentVersionsModalContent(preset, version, prompt) {
 
                     <div class="content-version-toolbar">
                         <button class="fullscreen-btn-base fullscreen-btn-toolbar"
-                            onclick="openFullscreenEditor('content-version-main-${identifier}', '${t('currentContent')}')"
+                            onclick="openFullscreenEditor('content-version-main-${identifier}', '${this.escapeHtml(currentNote) || t('currentContent')}')"
                             title="${t('fullscreenEdit')}">⛶</button>
 
                         <div class="field-stats content-version-stats" data-target="content-version-main-${identifier}">
@@ -2458,7 +2471,7 @@ static renderContentVersionsModalContent(preset, version, prompt) {
                 <div class="content-versions-empty">
                     ${t('noContentVersions')}
                 </div>
-            ` : contentVersions.map((versionContent, index) => `
+            ` : contentVersions.map((ver, index) => `
                 <div class="content-version-item" data-version-index="${index}">
                     <div class="content-version-header">
                         <div class="content-version-title-area">
@@ -2466,6 +2479,10 @@ static renderContentVersionsModalContent(preset, version, prompt) {
                                 ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
                             </div>
                             <h4 class="content-version-title">${t('contentVersion')} ${index + 1}</h4>
+                            <input type="text" class="content-version-note-input"
+                                placeholder="${t('versionNotePlaceholder')}"
+                                value="${this.escapeHtml(ver.note)}"
+                                oninput="PresetRenderer.updateContentVersionNote('${presetId}', '${versionId}', '${identifier}', ${index}, this.value)">
                         </div>
 
                         <div class="content-version-actions">
@@ -2486,15 +2503,15 @@ static renderContentVersionsModalContent(preset, version, prompt) {
                             placeholder="${t('contentVersionPlaceholder')}"
                             oninput="PresetRenderer.updateContentVersion('${presetId}', '${versionId}', '${identifier}', ${index}, this.value);"
                             onfocus="showAdditionalFullscreenBtn(this);"
-                            onblur="hideAdditionalFullscreenBtn(this);">${versionContent}</textarea>
+                            onblur="hideAdditionalFullscreenBtn(this);">${ver.content}</textarea>
 
                         <div class="content-version-toolbar">
                             <button class="fullscreen-btn-base fullscreen-btn-toolbar"
-                                onclick="openFullscreenEditor('content-version-${identifier}-${index}', '${t('contentVersion')} ${index + 1}')"
+                                onclick="openFullscreenEditor('content-version-${identifier}-${index}', '${this.escapeHtml(ver.note) || t('contentVersion') + ' ' + (index + 1)}')"
                                 title="${t('fullscreenEdit')}">⛶</button>
 
                             <div class="field-stats content-version-stats" data-target="content-version-${identifier}-${index}">
-                                ${versionContent.length} ${t('chars')} / ${countTokens(versionContent)} ${t('tokens')}
+                                ${ver.content.length} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
                             </div>
                         </div>
                     </div>
@@ -2541,6 +2558,25 @@ static updateMainContentFromModal(presetId, versionId, identifier, value) {
     markAsChanged();
 }
 
+// 更新主內容備註（從模態框）
+static updateMainNoteFromModal(presetId, versionId, identifier, value) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt) return;
+
+    // 更新備註
+    prompt.contentNote = value;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
+    markAsChanged();
+}
+
 // 新增額外版本
 static addContentVersion(presetId, versionId, identifier) {
     const preset = presets.find(p => p.id === presetId);
@@ -2562,8 +2598,8 @@ static addContentVersion(presetId, versionId, identifier) {
         return;
     }
 
-    // 新增空的版本
-    prompt.contentVersions.push('');
+    // 新增空的版本（物件格式）
+    prompt.contentVersions.push({ content: '', note: '' });
 
     // 更新時間戳記
     TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
@@ -2611,14 +2647,39 @@ static updateContentVersion(presetId, versionId, identifier, index, value) {
 
     if (index < 0 || index >= prompt.contentVersions.length) return;
 
-    // 更新內容
-    prompt.contentVersions[index] = value;
+    // 正規化版本資料
+    const normalized = this.normalizeContentVersion(prompt.contentVersions[index]);
+    normalized.content = value;
+    prompt.contentVersions[index] = normalized;
 
     // 更新時間戳記
     TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
 
     // 更新統計
     updateFieldStats(`content-version-${identifier}-${index}`);
+    markAsChanged();
+}
+
+// 更新額外版本備註
+static updateContentVersionNote(presetId, versionId, identifier, index, value) {
+    const preset = presets.find(p => p.id === presetId);
+    if (!preset) return;
+
+    const version = preset.versions.find(v => v.id === versionId);
+    if (!version) return;
+
+    const prompt = version.prompts.find(p => p.identifier === identifier);
+    if (!prompt || !prompt.contentVersions) return;
+
+    if (index < 0 || index >= prompt.contentVersions.length) return;
+
+    // 正規化版本資料
+    const normalized = this.normalizeContentVersion(prompt.contentVersions[index]);
+    normalized.note = value;
+    prompt.contentVersions[index] = normalized;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('preset', presetId, versionId);
     markAsChanged();
 }
 
@@ -2635,17 +2696,22 @@ static useContentVersion(presetId, versionId, identifier, index) {
 
     if (index < 0 || index >= prompt.contentVersions.length) return;
 
-    // 保存當前主內容
+    // 保存當前主內容和備註
     const currentContent = prompt.content || '';
+    const currentNote = prompt.contentNote || '';
 
-    // 獲取選中的版本
-    const selectedVersion = prompt.contentVersions[index];
+    // 獲取選中的版本（正規化）
+    const selectedVersion = this.normalizeContentVersion(prompt.contentVersions[index]);
 
-    // 將選中的版本設為新的主內容
-    prompt.content = selectedVersion;
+    // 將選中的版本內容和備註設為新的主內容
+    prompt.content = selectedVersion.content;
+    prompt.contentNote = selectedVersion.note;
 
-    // 將原主內容存入 contentVersions（替換選中的位置）
-    prompt.contentVersions[index] = currentContent;
+    // 將原主內容和備註存入 contentVersions
+    prompt.contentVersions[index] = {
+        content: currentContent,
+        note: currentNote
+    };
 
     // 同步更新主頁面的 textarea
     const mainTextarea = document.getElementById(`preset-content-${presetId}-${versionId}-${identifier}`);

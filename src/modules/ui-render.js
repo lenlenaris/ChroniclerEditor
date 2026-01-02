@@ -990,7 +990,10 @@ static renderCustomFieldsList(sectionId, versionId) {
         value="${value}">`;
 
             const isFirstMessage = (fieldName === 'firstMessage');
-            
+            // 支援額外版本的欄位
+            const supportsContentVersions = ['description', 'personality', 'scenario', 'dialogue'].includes(fieldName) &&
+                                            (itemType === 'character' || itemType === 'userpersona');
+
             return `
                 <div class="field-group">
                     <label class="field-label">
@@ -998,6 +1001,7 @@ static renderCustomFieldsList(sectionId, versionId) {
                         ${showStats ? `<span class="field-stats" data-target="${id}">0 ${t('chars')}${isTextarea ? ' / 0 ' + t('tokens') : ''}</span>` : ''}
                         ${withFullscreen && isTextarea ? `<button class="fullscreen-btn" onclick="event.stopPropagation(); openFullscreenEditor('${id}', '${label}')" title="${t('fullscreenEdit')}">⛶</button>` : ''}
                         ${isFirstMessage ? `<button class="version-panel-btn hover-primary alternate-greetings-btn" onclick="event.stopPropagation(); openAlternateGreetingsModal('${itemId}', '${versionId}');" title="${t('manageAlternateGreetings')}">${t('alternateGreetings')}</button>` : ''}
+                        ${supportsContentVersions ? `<button class="version-panel-btn hover-primary alternate-greetings-btn" onclick="event.stopPropagation(); openFieldContentVersionsModal('${itemType}', '${itemId}', '${versionId}', '${fieldName}', '${label}');" title="${t('manageContentVersions')}">${t('contentVersions')}</button>` : ''}
                     </label>
                     ${inputElement}
                 </div>
@@ -1995,9 +1999,433 @@ function reorderCustomFieldsFromContainer(container, sectionId, versionId) {
     version.fields = newFieldsOrder;
     
     ContentRenderer.renderCustomFieldsList(sectionId, versionId);
-    
+
     TimestampManager.updateVersionTimestamp('custom', sectionId, versionId);
     markAsChanged();
+}
+
+// ===== 通用欄位內容版本管理 =====
+
+// 規範化版本數據（兼容舊格式）
+function normalizeFieldContentVersion(ver) {
+    if (typeof ver === 'string') {
+        return { content: ver, note: '' };
+    }
+    return { content: ver.content || '', note: ver.note || '' };
+}
+
+// 獲取版本資料的輔助函數
+function getFieldVersionData(itemType, itemId, versionId) {
+    if (itemType === 'character') {
+        const character = characters.find(c => c.id === itemId);
+        if (!character) return null;
+        const version = character.versions.find(v => v.id === versionId);
+        return version ? { item: character, version } : null;
+    } else if (itemType === 'userpersona') {
+        const persona = userPersonas.find(p => p.id === itemId);
+        if (!persona) return null;
+        const version = persona.versions.find(v => v.id === versionId);
+        return version ? { item: persona, version } : null;
+    }
+    return null;
+}
+
+// 獲取版本陣列的 key 名稱
+function getVersionsArrayKey(fieldName) {
+    return `${fieldName}Versions`;
+}
+
+// 打開欄位內容版本管理模態框
+function openFieldContentVersionsModal(itemType, itemId, versionId, fieldName, fieldLabel) {
+    const data = getFieldVersionData(itemType, itemId, versionId);
+    if (!data) return;
+
+    const { item, version } = data;
+    const versionsKey = getVersionsArrayKey(fieldName);
+
+    // 確保版本陣列存在
+    if (!version[versionsKey]) {
+        version[versionsKey] = [];
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'content-versions-modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="compact-modal-content content-versions-modal">
+            <div class="compact-modal-header">
+                <div class="modal-title-group">
+                    ${IconManager.file({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('manageContentVersions')} - ${fieldLabel}</h3>
+                </div>
+                <button class="close-modal" onclick="closeFieldContentVersionsModal()">×</button>
+            </div>
+
+            <div id="content-versions-container" class="content-versions-content">
+                ${renderFieldContentVersionsModalContent(itemType, item, version, fieldName, fieldLabel)}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // 點擊遮罩關閉
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeFieldContentVersionsModal();
+        }
+    });
+
+    // ESC 鍵關閉
+    const handleKeydown = (e) => {
+        if (e.key === 'Escape') {
+            closeFieldContentVersionsModal();
+        }
+    };
+    document.addEventListener('keydown', handleKeydown);
+    modal._handleKeydown = handleKeydown;
+
+    // 儲存當前編輯的上下文
+    modal._context = { itemType, itemId, versionId, fieldName, fieldLabel };
+
+    // 初始化功能
+    setTimeout(() => {
+        updateAllPageStats();
+        initAutoResize();
+        DragSortManager.enableContentVersionsDragSort(itemType, itemId, versionId, fieldName);
+    }, 100);
+}
+
+// 關閉模態框
+function closeFieldContentVersionsModal() {
+    const modal = document.getElementById('content-versions-modal');
+    if (modal) {
+        if (modal._handleKeydown) {
+            document.removeEventListener('keydown', modal._handleKeydown);
+        }
+        modal.remove();
+    }
+}
+
+// 獲取主內容備註的 key 名稱
+function getMainNoteKey(fieldName) {
+    return `${fieldName}Note`;
+}
+
+// 渲染版本列表內容
+function renderFieldContentVersionsModalContent(itemType, item, version, fieldName, fieldLabel) {
+    const versionsKey = getVersionsArrayKey(fieldName);
+    const mainNoteKey = getMainNoteKey(fieldName);
+    const rawVersions = version[versionsKey] || [];
+    const contentVersions = rawVersions.map(normalizeFieldContentVersion);
+    const itemId = item.id;
+    const versionId = version.id;
+    const currentContent = version[fieldName] || '';
+    const currentNote = version[mainNoteKey] || '';
+
+    return `
+        <div id="content-versions-list-${fieldName}">
+            <!-- 當前主內容（置頂） -->
+            <div class="content-version-item content-version-current">
+                <div class="content-version-header">
+                    <div class="content-version-title-area">
+                        <h4 class="content-version-title">${t('currentContent')}</h4>
+                        <input type="text" class="content-version-note-input"
+                            placeholder="${t('versionNotePlaceholder')}"
+                            value="${escapeHtml(currentNote)}"
+                            oninput="updateFieldMainNoteFromModal('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value)">
+                    </div>
+                </div>
+
+                <div class="field-group no-bottom-margin">
+                    <textarea class="field-input content-version-textarea"
+                        id="content-version-main-${fieldName}"
+                        placeholder="${fieldLabel}"
+                        oninput="updateFieldMainContentFromModal('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value);"
+                        onfocus="showAdditionalFullscreenBtn(this);"
+                        onblur="hideAdditionalFullscreenBtn(this);">${escapeHtml(currentContent)}</textarea>
+
+                    <div class="content-version-toolbar">
+                        <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                            onclick="openFullscreenEditor('content-version-main-${fieldName}', '${escapeHtml(currentNote) || t('currentContent')}')"
+                            title="${t('fullscreenEdit')}">⛶</button>
+
+                        <div class="field-stats content-version-stats" data-target="content-version-main-${fieldName}">
+                            ${currentContent.length} ${t('chars')} / ${countTokens(currentContent)} ${t('tokens')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 額外版本列表 -->
+            ${contentVersions.length === 0 ? `
+                <div class="content-versions-empty">
+                    ${t('noContentVersions')}
+                </div>
+            ` : contentVersions.map((ver, index) => `
+                <div class="content-version-item" data-version-index="${index}">
+                    <div class="content-version-header">
+                        <div class="content-version-title-area">
+                            <div class="drag-handle custom-field-drag-handle">
+                                ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+                            </div>
+                            <h4 class="content-version-title">${t('contentVersion')} ${index + 1}</h4>
+                            <input type="text" class="content-version-note-input"
+                                placeholder="${t('versionNotePlaceholder')}"
+                                value="${escapeHtml(ver.note)}"
+                                oninput="updateFieldContentVersionNote('${itemType}', '${itemId}', '${versionId}', '${fieldName}', ${index}, this.value)">
+                        </div>
+
+                        <div class="content-version-actions">
+                            <button class="use-version-btn"
+                                onclick="useFieldContentVersion('${itemType}', '${itemId}', '${versionId}', '${fieldName}', ${index})">
+                                ${t('useThisVersion')}
+                            </button>
+                            <button class="delete-btn"
+                                onclick="deleteFieldContentVersion('${itemType}', '${itemId}', '${versionId}', '${fieldName}', ${index})">
+                                ${IconManager.delete()}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="field-group no-bottom-margin">
+                        <textarea class="field-input content-version-textarea"
+                            id="content-version-${fieldName}-${index}"
+                            placeholder="${t('contentVersionPlaceholder')}"
+                            oninput="updateFieldContentVersion('${itemType}', '${itemId}', '${versionId}', '${fieldName}', ${index}, this.value);"
+                            onfocus="showAdditionalFullscreenBtn(this);"
+                            onblur="hideAdditionalFullscreenBtn(this);">${escapeHtml(ver.content)}</textarea>
+
+                        <div class="content-version-toolbar">
+                            <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                                onclick="openFullscreenEditor('content-version-${fieldName}-${index}', '${escapeHtml(ver.note) || t('contentVersion') + ' ' + (index + 1)}')"
+                                title="${t('fullscreenEdit')}">⛶</button>
+
+                            <div class="field-stats content-version-stats" data-target="content-version-${fieldName}-${index}">
+                                ${ver.content.length} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+
+        <!-- 新增按鈕 -->
+        <div class="content-versions-add-container">
+            <button class="loveydovey-add-btn" onclick="addFieldContentVersion('${itemType}', '${itemId}', '${versionId}', '${fieldName}')">
+                ${IconManager.plus({width: 16, height: 16})}
+                ${t('addContentVersion')}
+            </button>
+        </div>
+    `;
+}
+
+// 更新主內容（從模態框）
+function updateFieldMainContentFromModal(itemType, itemId, versionId, fieldName, value) {
+    const data = getFieldVersionData(itemType, itemId, versionId);
+    if (!data) return;
+
+    const { version } = data;
+    version[fieldName] = value;
+
+    // 同步更新主頁面的 textarea
+    const htmlId = fieldName === 'description' ? 'desc' :
+                   fieldName === 'firstMessage' ? 'firstmsg' :
+                   fieldName;
+    const mainTextarea = document.getElementById(`${htmlId}-${versionId}`);
+    if (mainTextarea && mainTextarea.value !== value) {
+        mainTextarea.value = value;
+        updateFieldStats(`${htmlId}-${versionId}`);
+    }
+
+    // 更新模態框內的統計
+    updateFieldStats(`content-version-main-${fieldName}`);
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
+    markAsChanged();
+}
+
+// 更新主內容備註（從模態框）
+function updateFieldMainNoteFromModal(itemType, itemId, versionId, fieldName, value) {
+    const data = getFieldVersionData(itemType, itemId, versionId);
+    if (!data) return;
+
+    const { version } = data;
+    const mainNoteKey = getMainNoteKey(fieldName);
+    version[mainNoteKey] = value;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
+    markAsChanged();
+}
+
+// 新增額外版本
+function addFieldContentVersion(itemType, itemId, versionId, fieldName) {
+    const data = getFieldVersionData(itemType, itemId, versionId);
+    if (!data) return;
+
+    const { item, version } = data;
+    const versionsKey = getVersionsArrayKey(fieldName);
+
+    if (!version[versionsKey]) {
+        version[versionsKey] = [];
+    }
+
+    // 檢查數量限制
+    if (version[versionsKey].length >= 10) {
+        NotificationManager.warning(t('maxContentVersionsReached'));
+        return;
+    }
+
+    // 新增空的版本（物件格式）
+    version[versionsKey].push({ content: '', note: '' });
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容
+    refreshFieldContentVersionsModal(itemType, item, version, fieldName);
+}
+
+// 刪除額外版本
+function deleteFieldContentVersion(itemType, itemId, versionId, fieldName, index) {
+    const confirmDelete = confirm(t('deleteContentVersionConfirm'));
+    if (!confirmDelete) return;
+
+    const data = getFieldVersionData(itemType, itemId, versionId);
+    if (!data) return;
+
+    const { item, version } = data;
+    const versionsKey = getVersionsArrayKey(fieldName);
+
+    if (!version[versionsKey]) return;
+
+    // 刪除指定的版本
+    version[versionsKey].splice(index, 1);
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容
+    refreshFieldContentVersionsModal(itemType, item, version, fieldName);
+}
+
+// 更新額外版本內容
+function updateFieldContentVersion(itemType, itemId, versionId, fieldName, index, value) {
+    const data = getFieldVersionData(itemType, itemId, versionId);
+    if (!data) return;
+
+    const { version } = data;
+    const versionsKey = getVersionsArrayKey(fieldName);
+
+    if (!version[versionsKey]) return;
+    if (index < 0 || index >= version[versionsKey].length) return;
+
+    // 正規化版本資料
+    const normalized = normalizeFieldContentVersion(version[versionsKey][index]);
+    normalized.content = value;
+    version[versionsKey][index] = normalized;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
+
+    // 更新統計
+    updateFieldStats(`content-version-${fieldName}-${index}`);
+    markAsChanged();
+}
+
+// 更新額外版本備註
+function updateFieldContentVersionNote(itemType, itemId, versionId, fieldName, index, value) {
+    const data = getFieldVersionData(itemType, itemId, versionId);
+    if (!data) return;
+
+    const { version } = data;
+    const versionsKey = getVersionsArrayKey(fieldName);
+
+    if (!version[versionsKey]) return;
+    if (index < 0 || index >= version[versionsKey].length) return;
+
+    // 正規化版本資料
+    const normalized = normalizeFieldContentVersion(version[versionsKey][index]);
+    normalized.note = value;
+    version[versionsKey][index] = normalized;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
+    markAsChanged();
+}
+
+// 採用此版本（切換主內容）
+function useFieldContentVersion(itemType, itemId, versionId, fieldName, index) {
+    const data = getFieldVersionData(itemType, itemId, versionId);
+    if (!data) return;
+
+    const { item, version } = data;
+    const versionsKey = getVersionsArrayKey(fieldName);
+    const mainNoteKey = getMainNoteKey(fieldName);
+
+    if (!version[versionsKey]) return;
+    if (index < 0 || index >= version[versionsKey].length) return;
+
+    // 保存當前主內容和備註
+    const currentContent = version[fieldName] || '';
+    const currentNote = version[mainNoteKey] || '';
+
+    // 獲取選中的版本（正規化）
+    const selectedVer = normalizeFieldContentVersion(version[versionsKey][index]);
+
+    // 將選中的版本內容和備註設為新的主內容
+    version[fieldName] = selectedVer.content;
+    version[mainNoteKey] = selectedVer.note;
+
+    // 將原主內容和備註存入版本陣列
+    version[versionsKey][index] = {
+        content: currentContent,
+        note: currentNote
+    };
+
+    // 同步更新主頁面的 textarea
+    const htmlId = fieldName === 'description' ? 'desc' :
+                   fieldName === 'firstMessage' ? 'firstmsg' :
+                   fieldName;
+    const mainTextarea = document.getElementById(`${htmlId}-${versionId}`);
+    if (mainTextarea) {
+        mainTextarea.value = version[fieldName];
+        updateFieldStats(`${htmlId}-${versionId}`);
+    }
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp(itemType, itemId, versionId);
+    markAsChanged();
+
+    // 顯示成功通知
+    NotificationManager.success(t('versionSwitched'));
+
+    // 重新渲染模態框內容
+    refreshFieldContentVersionsModal(itemType, item, version, fieldName);
+}
+
+// 刷新模態框內容
+function refreshFieldContentVersionsModal(itemType, item, version, fieldName) {
+    const modal = document.getElementById('content-versions-modal');
+    if (!modal || !modal._context) return;
+
+    const { fieldLabel } = modal._context;
+    const container = document.getElementById('content-versions-container');
+    if (container) {
+        container.innerHTML = renderFieldContentVersionsModalContent(itemType, item, version, fieldName, fieldLabel);
+
+        // 重新初始化功能
+        setTimeout(() => {
+            updateAllPageStats();
+            initAutoResize();
+            DragSortManager.enableContentVersionsDragSort(itemType, item.id, version.id, fieldName);
+        }, 50);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', initSidebarEventDelegation);
