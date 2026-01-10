@@ -497,6 +497,16 @@
     pointer-events: auto;
 }
 
+/* 有額外版本時的按鈕樣式 */
+.alternate-greetings-btn.has-versions {
+    background: color-mix(in srgb, var(--text-muted) 20%, transparent);
+}
+
+.alternate-greetings-btn.has-versions:hover {
+    background: var(--accent-color);
+    filter: brightness(1.1);
+}
+
 /* 版本按鈕組容器樣式 */
 .version-button-group {
     display: flex;

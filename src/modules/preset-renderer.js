@@ -290,9 +290,9 @@ ${!cannotRemove ? `
                 ${t('promptContent')}
                 <span class="field-stats wb-detail-stats" data-target="preset-content-${presetId}-${versionId}-${prompt.identifier}">${prompt.content ? prompt.content.length : 0} ${t('chars')} / ${prompt.content ? countTokens(prompt.content) : 0} ${t('tokens')}</span>
             </span>
-            <button class="version-panel-btn hover-primary alternate-greetings-btn"
+            <button class="version-panel-btn hover-primary alternate-greetings-btn${prompt.contentVersions && prompt.contentVersions.length > 0 ? ' has-versions' : ''}"
                 onclick="event.stopPropagation(); PresetRenderer.openContentVersionsModal('${presetId}', '${versionId}', '${prompt.identifier}')"
-                title="${t('manageContentVersions')}">${t('contentVersions')}</button>
+                title="${t('manageContentVersions')}">${IconManager.filePlus({width: 14, height: 14, style: prompt.contentVersions && prompt.contentVersions.length > 0 ? 'color: var(--text-muted);' : 'color: var(--text-muted);'})}</button>
         </label>
         <textarea class="field-input scrollable"
             id="preset-content-${presetId}-${versionId}-${prompt.identifier}"

@@ -696,10 +696,11 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
                                 title="${t('fullscreenEditor')}">⛶</button>
                     </span>
                     <span class="wb-detail-right-controls">
-                        <button class="version-panel-btn hover-primary alternate-greetings-btn"
+                    <span class="wb-detail-uid">(UID: ${entry.uid || 0})</span>
+                        <button class="version-panel-btn hover-primary alternate-greetings-btn${entry.contentVersions && entry.contentVersions.length > 0 ? ' has-versions' : ''}"
                                 onclick="event.stopPropagation(); openWorldBookContentVersionsModal('${worldBookId}', '${versionId}', '${entry.id}')"
-                                title="${t('manageContentVersions')}">${t('contentVersions')}</button>
-                        <span class="wb-detail-uid">(UID: ${entry.uid || 0})</span>
+                                title="${t('manageContentVersions')}">${IconManager.filePlus({width: 14, height: 14, style: entry.contentVersions && entry.contentVersions.length > 0 ? 'color: var(--text-muted);' : 'color: var(--text-muted);'})}</button>
+                        
                     </span>
                 </label>
                <textarea class="field-input scrollable wb-detail-textarea" id="worldbook-${worldBookId}-${versionId}-${entry.id}" 

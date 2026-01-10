@@ -169,7 +169,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     contentVersion: '版本',
     currentContent: '當前主內容',
     useThisVersion: '採用此版本',
-    noContentVersions: '額外版本僅供備用參考，匯出時只會包含主內容。',
+    noContentVersions: '額外版本僅供備份自用，匯出時只會包含當前主內容。',
     deleteContentVersionConfirm: '確定要刪除此版本嗎？\n\n⚠️ 刪除後無法復原！',
     versionSwitched: '已切換主內容',
     maxContentVersionsReached: '最多只能添加10個額外版本',

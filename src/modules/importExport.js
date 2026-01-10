@@ -1139,14 +1139,16 @@ const characterData = {
             };
             
             // 添加額外屬性（排除編輯器專用屬性）
-            const knownKeys = new Set([...Object.keys(baseExport), 'id']);
+            // 排除編輯器專用的額外版本相關屬性
+            const editorOnlyKeys = new Set(['id', 'contentVersions', 'contentNote']);
+            const knownKeys = new Set([...Object.keys(baseExport), ...editorOnlyKeys]);
             const extraProperties = {};
             Object.keys(entry).forEach(key => {
                 if (!knownKeys.has(key)) {
                     extraProperties[key] = entry[key];
                 }
             });
-            
+
             exportData.entries[index.toString()] = { ...baseExport, ...extraProperties };
         });
 
@@ -1745,9 +1747,13 @@ static createPresetData(preset, version) {
         group_nudge_prompt: version.group_nudge_prompt || "[Write the next reply only as {{char}}.]",
         
         stream_openai: version.stream_openai !== false,
-        
+
         // 核心：提示詞陣列（放在參數之後）
-        prompts: version.prompts || [],
+        // 清理每個 prompt，移除編輯器專用的額外版本屬性
+        prompts: (version.prompts || []).map(prompt => {
+            const { contentVersions, contentNote, ...cleanPrompt } = prompt;
+            return cleanPrompt;
+        }),
         prompt_order: version.prompt_order || [],
         
         // 第五組：進階設定

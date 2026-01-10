@@ -701,7 +701,8 @@ static renderUserPersonaBasicFields(userPersona, version) {
             isTextarea: true,
             withFullscreen: true,
             extraClass: '',
-            customStyle: 'height: 600px; resize: vertical;'
+            customStyle: 'height: 600px; resize: vertical;',
+            version: version
         })}
     `;
 }
@@ -778,13 +779,13 @@ static renderCharacterMainFields(character, version) {
         { id: 'dialogue', label: t('dialogue'), placeholder: t('dialoguePlaceholder'), fieldName: 'dialogue' },
         { id: 'firstMessage', label: t('firstMessage'), placeholder: t('firstMsgPlaceholder'), fieldName: 'firstMessage' }
     ];
-    
+
     // 渲染基本欄位
     const basicFieldsHTML = fields.map(field => {
-        const htmlId = field.id === 'description' ? 'desc' : 
-                      field.id === 'firstMessage' ? 'firstmsg' : 
+        const htmlId = field.id === 'description' ? 'desc' :
+                      field.id === 'firstMessage' ? 'firstmsg' :
                       field.id;
-        
+
         return this.createTextFieldWithStats({
             id: `${htmlId}-${version.id}`,
             label: field.label,
@@ -796,7 +797,8 @@ static renderCharacterMainFields(character, version) {
             fieldName: field.fieldName,
             isTextarea: true,
             withFullscreen: true,
-            extraClass: ''
+            extraClass: '',
+            version: version
         });
     }).join('');
 
@@ -971,22 +973,23 @@ static renderCustomFieldsList(sectionId, versionId) {
         // 統一的文字欄位渲染函數
         static createTextFieldWithStats(config) {
             const {
-                id, label, placeholder, value = '', 
+                id, label, placeholder, value = '',
                 itemType, itemId, versionId, fieldName,
                 isTextarea = true, withFullscreen = true,
-                extraClass = '', showStats = true, customStyle = ''
+                extraClass = '', showStats = true, customStyle = '',
+                version = null
             } = config;
-            
+
             const textareaClass = customStyle ? '' : 'standard-textarea';
 
-            const inputElement = isTextarea ? 
-            `<textarea class="field-input ${extraClass} ${textareaClass}" id="${id}" 
+            const inputElement = isTextarea ?
+            `<textarea class="field-input ${extraClass} ${textareaClass}" id="${id}"
                 placeholder="${placeholder}"
                 ${customStyle ? `style="${customStyle}"` : ''}
                 oninput="updateField('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value);">${value}</textarea>` :
-    `<input type="text" class="field-input ${extraClass}" id="${id}" 
+    `<input type="text" class="field-input ${extraClass}" id="${id}"
         placeholder="${placeholder}"
-        oninput="updateField('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value);" 
+        oninput="updateField('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value);"
         value="${value}">`;
 
             const isFirstMessage = (fieldName === 'firstMessage');
@@ -994,14 +997,21 @@ static renderCustomFieldsList(sectionId, versionId) {
             const supportsContentVersions = ['description', 'personality', 'scenario', 'dialogue'].includes(fieldName) &&
                                             (itemType === 'character' || itemType === 'userpersona');
 
+            // 檢查是否有額外版本
+            const versionsKey = `${fieldName}Versions`;
+            const hasExtraVersions = version && version[versionsKey] && version[versionsKey].length > 0;
+
+            // 檢查是否有替代問候語
+            const hasAlternateGreetings = version && version.alternateGreetings && version.alternateGreetings.length > 0;
+
             return `
                 <div class="field-group">
                     <label class="field-label">
                         ${label}
                         ${showStats ? `<span class="field-stats" data-target="${id}">0 ${t('chars')}${isTextarea ? ' / 0 ' + t('tokens') : ''}</span>` : ''}
                         ${withFullscreen && isTextarea ? `<button class="fullscreen-btn" onclick="event.stopPropagation(); openFullscreenEditor('${id}', '${label}')" title="${t('fullscreenEdit')}">⛶</button>` : ''}
-                        ${isFirstMessage ? `<button class="version-panel-btn hover-primary alternate-greetings-btn" onclick="event.stopPropagation(); openAlternateGreetingsModal('${itemId}', '${versionId}');" title="${t('manageAlternateGreetings')}">${t('alternateGreetings')}</button>` : ''}
-                        ${supportsContentVersions ? `<button class="version-panel-btn hover-primary alternate-greetings-btn" onclick="event.stopPropagation(); openFieldContentVersionsModal('${itemType}', '${itemId}', '${versionId}', '${fieldName}', '${label}');" title="${t('manageContentVersions')}">${t('contentVersions')}</button>` : ''}
+                        ${isFirstMessage ? `<button class="version-panel-btn hover-primary alternate-greetings-btn${hasAlternateGreetings ? ' has-versions' : ''}" onclick="event.stopPropagation(); openAlternateGreetingsModal('${itemId}', '${versionId}');" title="${t('manageAlternateGreetings')}">${t('alternateGreetings')}</button>` : ''}
+                        ${supportsContentVersions ? `<button class="version-panel-btn hover-primary alternate-greetings-btn${hasExtraVersions ? ' has-versions' : ''}" onclick="event.stopPropagation(); openFieldContentVersionsModal('${itemType}', '${itemId}', '${versionId}', '${fieldName}', '${label}');" title="${t('manageContentVersions')}">${IconManager.filePlus({width: 14, height: 14})}</button>` : ''}
                     </label>
                     ${inputElement}
                 </div>

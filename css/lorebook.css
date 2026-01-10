@@ -858,18 +858,20 @@
 
 /* 採用此版本按鈕 */
 .use-version-btn {
-    background: var(--accent-color);
-    color: white;
-    border: none;
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
     padding: 4px 12px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.85em;
-    transition: opacity 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .use-version-btn:hover {
-    opacity: 0.9;
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 /* 版本文本區域 */
