@@ -1097,35 +1097,45 @@ static generatePreviewContent(versionId) {
     
     // 按順序處理每個條目
     const contentParts = [];
-    
+    let isFirstContent = true;
+
     orderConfig.order.forEach(orderItem => {
         // 只處理啟用的條目
         if (!orderItem.enabled) return;
-        
+
         const prompt = version.prompts?.find(p => p.identifier === orderItem.identifier);
         if (!prompt) return;
-        
+
         const isMarker = prompt.marker === true;
-        
+
+        // 分隔線（非第一個條目才顯示）
+        const separator = isFirstContent ? '' : '<div class="preset-preview-separator"></div>';
+
         if (isMarker) {
             // Marker 條目顯示來源標記
-            contentParts.push(`<div class="preset-preview-source">*${t('source')}：${prompt.name}*</div>`);
+            contentParts.push(`${separator}<div class="preset-preview-source">*${t('source')}：${prompt.name}*</div>`);
+            isFirstContent = false;
         } else {
             // 一般條目顯示內容
             if (prompt.content && prompt.content.trim()) {
                 // HTML 轉義，讓 XML 標籤能正確顯示
                 const escapedContent = this.escapeHtml(prompt.content.trim());
-                contentParts.push(escapedContent);
+
+                // 為每個條目添加分隔標籤（不可選取）
+                const label = `<div class="preset-preview-label">${this.escapeHtml(prompt.name || prompt.identifier)}</div>`;
+
+                contentParts.push(`${separator}${label}<div class="preset-preview-entry">${escapedContent}</div>`);
+                isFirstContent = false;
             }
         }
     });
-    
+
     if (contentParts.length === 0) {
         return `<div class="preset-preview-source">${t('noEnabledPrompts')}</div>`;
     }
-    
-    // 將所有內容用雙換行連接（形成段落分隔）
-    return contentParts.join('\n\n');
+
+    // 直接連接所有內容（分隔線已包含在各條目中）
+    return contentParts.join('');
 }
 
 // 獲取當前 preset 數據的輔助方法

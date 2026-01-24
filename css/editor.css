@@ -970,6 +970,36 @@
     border-left: 3px solid var(--accent-color);
 }
 
+/* 預覽條目分隔線 - 不可選取 */
+.preset-preview-separator {
+    border-top: 1px dashed var(--border-color);
+    margin: 16px 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    pointer-events: none;
+}
+
+/* 預覽條目標籤 - 不可選取 */
+.preset-preview-label {
+    font-size: 0.75em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* 預覽條目內容 */
+.preset-preview-entry {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
 /* 確保編輯面板內容不被壓縮 */
 .versions-container.preview-view .version-panel > div {
     flex-shrink: 0;
