@@ -690,7 +690,7 @@ function generateEntryDetailContent(worldBookId, versionId, entry) {
                 <label class="field-label wb-detail-label-flex">
                     <span>
                         ${t('entryContentLabel')}
-                        <span class="field-stats wb-detail-stats" data-target="worldbook-${worldBookId}-${versionId}-${entry.id}">${entry.content ? entry.content.length : 0} ${t('chars')} / ${entry.content ? countTokens(entry.content) : 0} ${t('tokens')}</span>
+                        <span class="field-stats wb-detail-stats" data-target="worldbook-${worldBookId}-${versionId}-${entry.id}">${entry.content ? countCharsForStats(entry.content) : 0} ${t('chars')} / ${entry.content ? countTokens(entry.content) : 0} ${t('tokens')}</span>
 
                         <button class="fullscreen-btn wb-detail-fullscreen-btn" onclick="openFullscreenEditor('worldbook-${worldBookId}-${versionId}-${entry.id}', '${t('entryContent')}')"
                                 title="${t('fullscreenEditor')}">⛶</button>
@@ -2275,7 +2275,7 @@ function renderWorldBookContentVersionsModalContent(worldBook, version, entry) {
                             title="${t('fullscreenEdit')}">⛶</button>
 
                         <div class="field-stats content-version-stats" data-target="content-version-main-${entryId}">
-                            ${(entry.content || '').length} ${t('chars')} / ${countTokens(entry.content || '')} ${t('tokens')}
+                            ${countCharsForStats(entry.content || '')} ${t('chars')} / ${countTokens(entry.content || '')} ${t('tokens')}
                         </div>
                     </div>
                 </div>
@@ -2326,7 +2326,7 @@ function renderWorldBookContentVersionsModalContent(worldBook, version, entry) {
                                 title="${t('fullscreenEdit')}">⛶</button>
 
                             <div class="field-stats content-version-stats" data-target="content-version-${entryId}-${index}">
-                                ${ver.content.length} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
+                                ${countCharsForStats(ver.content)} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
                             </div>
                         </div>
                     </div>

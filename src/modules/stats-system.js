@@ -1,7 +1,58 @@
-// ===== å…¨åŸŸè®Šæ•¸å®£å‘Š =====
+// ===== å…¨åŸŸè®Šæ•¸å®£å'Š =====
 let tiktokenEncoding = null;
 let updateFieldStatsTimer = null;
 let updateVersionStatsTimer = null;
+
+// ===== 統計註解過濾 =====
+// 過濾掉 {{//...}} 格式的註解，這些內容不計入字數和 token 統計
+// 支援巢狀的 {{...}} 巨集（如 {{user}}、{{char}}）
+function stripStatsComments(text) {
+    if (!text) return '';
+
+    let result = '';
+    let i = 0;
+
+    while (i < text.length) {
+        // 檢查是否是註解開始 {{// 或 {{ //
+        if (text.slice(i, i + 2) === '{{') {
+            // 檢查 {{ 後面是否有 //（可能有空白）
+            let checkPos = i + 2;
+            while (checkPos < text.length && /\s/.test(text[checkPos])) checkPos++;
+
+            if (text.slice(checkPos, checkPos + 2) === '//') {
+                // 這是註解，使用括號配對找到結尾
+                let depth = 1;
+                let j = i + 2;
+
+                while (j < text.length && depth > 0) {
+                    if (text.slice(j, j + 2) === '{{') {
+                        depth++;
+                        j += 2;
+                    } else if (text.slice(j, j + 2) === '}}') {
+                        depth--;
+                        j += 2;
+                    } else {
+                        j++;
+                    }
+                }
+
+                i = j; // 跳過整個註解
+                continue;
+            }
+        }
+
+        result += text[i];
+        i++;
+    }
+
+    return result;
+}
+
+// 計算過濾後的字數（用於統計顯示）
+function countCharsForStats(text) {
+    if (!text) return 0;
+    return stripStatsComments(text).length;
+}
 
 // ===== Tiktoken ç·¨ç¢¼å™¨ï¼ˆä¿æŒåŽŸæ¨£ï¼‰=====
 function initTiktoken() {
@@ -103,24 +154,27 @@ function countTokensBasic(text) {
 
 function countTokens(text) {
     if (!text) return 0;
-    
+
+    // 過濾掉 {{//...}} 註解內容
+    const filteredText = stripStatsComments(text);
+    if (!filteredText) return 0;
+
     // 直接計算，tiktoken 對於大多數文本都足夠快
     // 只有超過 100000 字符時才使用估算（避免阻塞 UI）
-    if (text.length > 100000) {
+    if (filteredText.length > 100000) {
         // 使用更準確的估算比例：約 0.28（每 3.5 個字符約 1 個 token）
-        const estimated = Math.ceil(text.length * 0.28);
-        
+        const estimated = Math.ceil(filteredText.length * 0.28);
 
         setTimeout(() => {
-            const realTokens = originalCountTokens(text);
-            updateLargeTextTokenDisplay(text, realTokens);
+            const realTokens = originalCountTokens(filteredText);
+            updateLargeTextTokenDisplay(filteredText, realTokens);
         }, 100);
-        
+
         return estimated;
     }
-    
-    // å°æ–‡æœ¬ï¼šç›´æŽ¥è¨ˆç®—
-    return originalCountTokens(text);
+
+    // 小文本：直接計算
+    return originalCountTokens(filteredText);
 }
 
 // æ›´æ–°å¤§æ–‡æœ¬çš„Tokené¡¯ç¤º
@@ -248,10 +302,11 @@ static forceCleanCache() {
 class StatsManager {
     static calculateTextStats(text) {
         if (!text) return { chars: 0, tokens: 0 };
-        
-        const chars = text.length;
+
+        // 使用過濾後的字數（countTokens 內部已自動過濾）
+        const chars = countCharsForStats(text);
         const tokens = countTokens(text);
-        
+
         return { chars, tokens };
     }
     
@@ -392,7 +447,7 @@ function updateFieldStats(textareaId) {
         if (!textarea || !statsElement) return;
         
         const text = textarea.value;
-        const chars = text.length;
+        const chars = countCharsForStats(text);
         const tokens = countTokens(text);
         
         // æ±ºå®šæ˜¯å¦é¡¯ç¤º tokensï¼ˆæŽ’é™¤æŸäº›æ¬„ä½ï¼‰
@@ -731,9 +786,10 @@ function getQuickStatsEstimate(version, itemType) {
             break;
     }
     
-    const chars = allText.length;
+    // 使用過濾後的字數計算
+    const chars = countCharsForStats(allText);
     const estimatedTokens = Math.ceil(chars * 0.75);
-    
+
     return {
         chars,
         tokens: estimatedTokens,
@@ -763,7 +819,7 @@ function updateAllFieldStatsOnLoad() {
         // åªæ›´æ–°æœ‰å…§å®¹ä¸”æœ‰å°æ‡‰çµ±è¨ˆå…ƒç´ çš„æ¬„ä½
         if (statsElement && textarea.value.length > 0) {
             const text = textarea.value;
-            const chars = text.length;
+            const chars = countCharsForStats(text);
             const tokens = countTokens(text);
             
             // æª¢æŸ¥æ˜¯å¦ç‚ºæ„›æƒ…æ¬„ä½

@@ -1170,7 +1170,7 @@ const characterData = {
         
         // 添加統計資訊
         const allText = version.fields.map(field => field.content).filter(Boolean).join(' ');
-        const chars = allText.length;
+        const chars = countCharsForStats(allText);
         const tokens = countTokens(allText);
         content += `${t('statisticsInfo')}：\n`;
         content += `${t('charCount')}：${chars}\n`;
@@ -1183,17 +1183,17 @@ const characterData = {
     // 創建筆記Markdown內容
     static createCustomMarkdownContent(section, version) {
         let content = `# ${section.name} - ${version.name}\n\n`;
-        
+
         version.fields.forEach(field => {
             if (field.content.trim()) {
                 content += `## ${field.name}\n\n`;
                 content += `${field.content.trim()}\n\n`;
             }
         });
-        
+
         // 添加統計資訊
         const allText = version.fields.map(field => field.content).filter(Boolean).join(' ');
-        const chars = allText.length;
+        const chars = countCharsForStats(allText);
         const tokens = countTokens(allText);
         content += `---\n\n`;
         content += `### ${t('statisticsInfo')}\n\n`;
@@ -1224,7 +1224,7 @@ const characterData = {
         }
         
         // 添加統計資訊
-        const chars = version.description ? version.description.length : 0;
+        const chars = countCharsForStats(version.description || '');
         const tokens = countTokens(version.description || '');
 content += `${t('statisticsInfo')}：\n`;
 content += `${t('charCount')}：${chars}\n`;
@@ -1237,12 +1237,12 @@ content += `${t('exportTime')}：${new Date().toLocaleString()}\n`;
     // 創建玩家角色Markdown內容
     static createUserPersonaMarkdownContent(persona, version) {
         let content = `# ${persona.name}\n\n`;
-        
+
         if (version.description && version.description.trim()) {
             content += `## ${t('description')}\n\n`;
             content += `${version.description.trim()}\n\n`;
         }
-        
+
         if (version.tags && version.tags.trim()) {
             const tags = version.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
             if (tags.length > 0) {
@@ -1250,9 +1250,9 @@ content += `${t('exportTime')}：${new Date().toLocaleString()}\n`;
                 content += tags.map(tag => `- ${tag}`).join('\n') + '\n\n';
             }
         }
-        
+
         // 添加統計資訊
-        const chars = version.description ? version.description.length : 0;
+        const chars = countCharsForStats(version.description || '');
         const tokens = countTokens(version.description || '');
         content += `---\n\n`;
 content += `### ${t('statisticsInfo')}\n\n`;
@@ -1376,8 +1376,8 @@ content += `- **${t('exportTime')}**：${new Date().toLocaleString()}\n`;
             ...(version.creatorEvents || []).map(event => event.content),
             ...(version.privateStories || []).map(story => story.content) // 也要加入統計
         ].filter(Boolean).join(' ');
-        
-        const chars = allText.length;
+
+        const chars = countCharsForStats(allText);
         const tokens = countTokens(allText);
         content += `${t('statisticsInfo')}：\n`;
         content += `${t('charCount')}：${chars}\n`;
@@ -1497,8 +1497,8 @@ static createLoveyDoveyMarkdownContent(character, version) {
         ...(version.creatorEvents || []).map(event => event.content),
         ...(version.privateStories || []).map(story => story.content) // 也要加入統計
     ].filter(Boolean).join(' ');
-    
-    const chars = allText.length;
+
+    const chars = countCharsForStats(allText);
     const tokens = countTokens(allText);
     content += `---\n\n`;
     content += `### ${t('statisticsInfo')}\n\n`;
@@ -1577,8 +1577,8 @@ static createCharacterMarkdownContent(character, version) {
         version.firstMessage, version.dialogue, version.creatorNotes,
         ...(version.alternateGreetings || [])
     ].filter(Boolean).join(' ');
-    
-    const chars = allText.length;
+
+    const chars = countCharsForStats(allText);
     const tokens = countTokens(allText);
     content += `---\n\n`;
     content += `### ${t('statisticsInfo')}\n\n`;
@@ -1634,9 +1634,9 @@ static createWorldBookMarkdownContent(worldBook, version) {
     }
     
     // 統計資訊
-    const allText = version.entries ? 
+    const allText = version.entries ?
         version.entries.map(entry => entry.content).filter(Boolean).join(' ') : '';
-    const chars = allText.length;
+    const chars = countCharsForStats(allText);
     const tokens = countTokens(allText);
     content += `### ${t('statisticsInfo')}\n\n`;
     content += `- **${t('charCount')}**：${chars}\n`;

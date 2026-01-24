@@ -288,7 +288,7 @@ ${!cannotRemove ? `
         <label class="field-label wb-detail-label-flex">
             <span>
                 ${t('promptContent')}
-                <span class="field-stats wb-detail-stats" data-target="preset-content-${presetId}-${versionId}-${prompt.identifier}">${prompt.content ? prompt.content.length : 0} ${t('chars')} / ${prompt.content ? countTokens(prompt.content) : 0} ${t('tokens')}</span>
+                <span class="field-stats wb-detail-stats" data-target="preset-content-${presetId}-${versionId}-${prompt.identifier}">${prompt.content ? countCharsForStats(prompt.content) : 0} ${t('chars')} / ${prompt.content ? countTokens(prompt.content) : 0} ${t('tokens')}</span>
             </span>
             <button class="version-panel-btn hover-primary alternate-greetings-btn${prompt.contentVersions && prompt.contentVersions.length > 0 ? ' has-versions' : ''}"
                 onclick="event.stopPropagation(); PresetRenderer.openContentVersionsModal('${presetId}', '${versionId}', '${prompt.identifier}')"
@@ -2470,7 +2470,7 @@ static renderContentVersionsModalContent(preset, version, prompt) {
                             title="${t('fullscreenEdit')}">⛶</button>
 
                         <div class="field-stats content-version-stats" data-target="content-version-main-${identifier}">
-                            ${(prompt.content || '').length} ${t('chars')} / ${countTokens(prompt.content || '')} ${t('tokens')}
+                            ${countCharsForStats(prompt.content || '')} ${t('chars')} / ${countTokens(prompt.content || '')} ${t('tokens')}
                         </div>
                     </div>
                 </div>
@@ -2521,7 +2521,7 @@ static renderContentVersionsModalContent(preset, version, prompt) {
                                 title="${t('fullscreenEdit')}">⛶</button>
 
                             <div class="field-stats content-version-stats" data-target="content-version-${identifier}-${index}">
-                                ${ver.content.length} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
+                                ${countCharsForStats(ver.content)} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
                             </div>
                         </div>
                     </div>

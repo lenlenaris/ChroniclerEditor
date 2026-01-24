@@ -844,7 +844,7 @@ static renderCustomField(sectionId, versionId, field) {
                 <div class="custom-field-right-controls">
                 <button class="fullscreen-btn" onclick="openFullscreenEditor('custom-field-${field.id}', '${field.name}')" 
                             title="${t('fullscreenEdit')}">⛶</button>
-                    <span class="field-stats custom-field-stats" data-target="custom-field-${field.id}">${field.content ? field.content.length : 0} ${t('chars')} / ${field.content ? countTokens(field.content) : 0} ${t('tokens')}</span>
+                    <span class="field-stats custom-field-stats" data-target="custom-field-${field.id}">${field.content ? countCharsForStats(field.content) : 0} ${t('chars')} / ${field.content ? countTokens(field.content) : 0} ${t('tokens')}</span>
 
             <button class="delete-btn" 
                 onclick="confirmRemoveCustomField('${sectionId}', '${versionId}', '${field.id}')"
@@ -1387,7 +1387,7 @@ function renderAlternateGreetingsModalContent(character, version) {
 </button>
                             
                             <div class="field-stats alternate-greeting-stats" data-target="alternateGreeting-modal-${version.id}-${index}">
-                                ${greeting.length} ${t('chars')} / ${countTokens(greeting)} ${t('tokens')}
+                                ${countCharsForStats(greeting)} ${t('chars')} / ${countTokens(greeting)} ${t('tokens')}
                             </div>
                         </div>
                     </div>
@@ -2162,7 +2162,7 @@ function renderFieldContentVersionsModalContent(itemType, item, version, fieldNa
                             title="${t('fullscreenEdit')}">⛶</button>
 
                         <div class="field-stats content-version-stats" data-target="content-version-main-${fieldName}">
-                            ${currentContent.length} ${t('chars')} / ${countTokens(currentContent)} ${t('tokens')}
+                            ${countCharsForStats(currentContent)} ${t('chars')} / ${countTokens(currentContent)} ${t('tokens')}
                         </div>
                     </div>
                 </div>
@@ -2213,7 +2213,7 @@ function renderFieldContentVersionsModalContent(itemType, item, version, fieldNa
                                 title="${t('fullscreenEdit')}">⛶</button>
 
                             <div class="field-stats content-version-stats" data-target="content-version-${fieldName}-${index}">
-                                ${ver.content.length} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
+                                ${countCharsForStats(ver.content)} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
                             </div>
                         </div>
                     </div>

@@ -385,9 +385,9 @@ setTimeout(() => {
     if (crossTypeCompareMode) {
         // 只更新當前可見的textarea
         document.querySelectorAll('textarea[id]').forEach(textarea => {
-            if (textarea.offsetParent !== null) { 
+            if (textarea.offsetParent !== null) {
                 const text = textarea.value;
-                const chars = text.length;
+                const chars = countCharsForStats(text);
                 const tokens = countTokens(text);
                 const textareaId = textarea.id;
                 const statsElement = document.querySelector(`[data-target="${textareaId}"]`);
