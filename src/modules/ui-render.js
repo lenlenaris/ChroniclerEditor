@@ -238,9 +238,19 @@ onchange="updateVersionName('${itemType}', '${item.id}', '${version.id}', this.v
 ` : ''}
 
     ${itemType === 'worldbook' ? `
-        <button class="version-panel-btn hover-primary" 
+        <button class="version-panel-btn hover-primary"
+                onclick="expandAllWorldBookEntries('${item.id}', '${version.id}')"
+                title="${t('expandAll')}">
+            ${IconManager.expandAll({width: 14, height: 14})}
+        </button>
+        <button class="version-panel-btn hover-primary"
+                onclick="collapseAllWorldBookEntries('${item.id}', '${version.id}')"
+                title="${t('collapseAll')}">
+            ${IconManager.collapseAll({width: 14, height: 14})}
+        </button>
+        <button class="version-panel-btn hover-primary"
                 id="batch-mode-toggle-${item.id}-${version.id}"
-                onclick="toggleWorldBookBatchMode('${item.id}', '${version.id}')" 
+                onclick="toggleWorldBookBatchMode('${item.id}', '${version.id}')"
                 title="${t('worldbookBatchMode')}">
             ${IconManager.selectAll({width: 14, height: 14})}
         </button>

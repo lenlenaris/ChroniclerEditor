@@ -706,17 +706,49 @@ static expandAllPrompts(versionId) {
 
     containers.forEach(container => {
         const entryPanels = container.querySelectorAll('.preset-entry-panel');
-        
+
         entryPanels.forEach(panel => {
             const identifier = panel.dataset.promptIdentifier;
             const content = panel.querySelector(`#prompt-content-${identifier}`);
             const toggleBtn = panel.querySelector('.entry-toggle-btn');
-            
+
             if (content && toggleBtn) {
                 content.style.display = 'block';
                 toggleBtn.innerHTML = '<span class="arrow-icon arrow-down"></span>';
             }
         });
+
+        // 取得 presetId 並自動調整 textarea 高度
+        const presetId = container.dataset.presetId;
+        if (presetId) {
+            setTimeout(() => {
+                this.autoFitPresetTextareas(presetId, versionId);
+            }, 50);
+        }
+    });
+}
+
+// 自動調整預設條目的 textarea 高度以適應內容
+static autoFitPresetTextareas(presetId, versionId) {
+    const textareas = document.querySelectorAll(`textarea[id^="preset-content-${presetId}-${versionId}-"]`);
+
+    textareas.forEach(textarea => {
+        // 取得最大高度限制（70vh 轉換為像素）
+        const maxHeight = window.innerHeight * 0.7;
+        // 設定最小高度
+        const minHeight = 120;
+
+        // 暫時重置高度以取得實際內容高度
+        textarea.style.height = 'auto';
+
+        // 取得內容所需的高度
+        const scrollHeight = textarea.scrollHeight;
+
+        // 計算適當的高度：介於 minHeight 和 maxHeight 之間
+        let targetHeight = Math.max(minHeight, Math.min(scrollHeight, maxHeight));
+
+        // 設定新高度
+        textarea.style.height = targetHeight + 'px';
     });
 }
 

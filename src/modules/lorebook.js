@@ -978,6 +978,94 @@ function toggleEntryContentLazy(worldBookId, versionId, entryId, event = null) {
     saveCollapseStates();
 }
 
+// 展開所有世界書條目
+function expandAllWorldBookEntries(worldBookId, versionId) {
+    const containers = document.querySelectorAll(`.entries-container[data-world-book-id="${worldBookId}"][data-version-id="${versionId}"]`);
+
+    if (containers.length === 0) {
+        return;
+    }
+
+    containers.forEach(container => {
+        const entryPanels = container.querySelectorAll('.wb-entry-panel');
+
+        entryPanels.forEach(panel => {
+            const entryId = panel.dataset.entryId;
+            const content = document.getElementById(`entry-content-${entryId}`);
+            const toggleBtn = panel.querySelector('.entry-toggle-btn');
+
+            if (content && toggleBtn) {
+                // 檢查是否需要載入內容（懶加載）
+                if (content.innerHTML.trim() === '' || content.innerHTML.includes('<!-- Content will be loaded lazily')) {
+                    loadEntryContent(worldBookId, versionId, entryId);
+                }
+
+                content.style.display = 'block';
+                toggleBtn.innerHTML = '<span class="arrow-icon arrow-down"></span>';
+            }
+        });
+    });
+
+    // 等待 DOM 更新後自動調整 textarea 高度
+    setTimeout(() => {
+        autoFitWorldBookTextareas(worldBookId, versionId);
+    }, 100);
+
+    // 保存摺疊狀態
+    saveCollapseStates();
+}
+
+// 自動調整世界書條目的 textarea 高度以適應內容
+function autoFitWorldBookTextareas(worldBookId, versionId) {
+    const textareas = document.querySelectorAll(`textarea[id^="worldbook-${worldBookId}-${versionId}-"]`);
+
+    textareas.forEach(textarea => {
+        // 取得最大高度限制（70vh 轉換為像素）
+        const maxHeight = window.innerHeight * 0.7;
+        // 設定最小高度
+        const minHeight = 100;
+
+        // 暫時重置高度以取得實際內容高度
+        textarea.style.height = 'auto';
+
+        // 取得內容所需的高度
+        const scrollHeight = textarea.scrollHeight;
+
+        // 計算適當的高度：介於 minHeight 和 maxHeight 之間
+        let targetHeight = Math.max(minHeight, Math.min(scrollHeight, maxHeight));
+
+        // 設定新高度
+        textarea.style.height = targetHeight + 'px';
+    });
+}
+
+// 摺疊所有世界書條目
+function collapseAllWorldBookEntries(worldBookId, versionId) {
+    const containers = document.querySelectorAll(`.entries-container[data-world-book-id="${worldBookId}"][data-version-id="${versionId}"]`);
+
+    if (containers.length === 0) {
+        return;
+    }
+
+    containers.forEach(container => {
+        const entryPanels = container.querySelectorAll('.wb-entry-panel');
+
+        entryPanels.forEach(panel => {
+            const entryId = panel.dataset.entryId;
+            const content = document.getElementById(`entry-content-${entryId}`);
+            const toggleBtn = panel.querySelector('.entry-toggle-btn');
+
+            if (content && toggleBtn) {
+                content.style.display = 'none';
+                toggleBtn.innerHTML = '<span class="arrow-icon arrow-right"></span>';
+            }
+        });
+    });
+
+    // 保存摺疊狀態
+    saveCollapseStates();
+}
+
 // 載入條目詳細內容
 function loadEntryContent(worldBookId, versionId, entryId) {
     // 找到對應的條目資料
