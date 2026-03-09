@@ -1489,6 +1489,9 @@ class VersionCRUD {
         }
 
         const clonedVersion = DataOperations.cloneVersion(sourceVersion, type);
+        const sourceName = sourceItem.name || t('unnamedItem');
+        const versionName = clonedVersion.name || t('unnamedVersion');
+        clonedVersion.name = `${sourceName} - ${versionName}`;
         targetItem.versions.push(clonedVersion);
 
         if (removeFromSource) {
