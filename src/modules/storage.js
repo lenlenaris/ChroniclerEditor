@@ -100,6 +100,7 @@ async function loadData() {
             worldBooks = await characterDB.loadWorldBooks();
             userPersonas = await characterDB.loadUserPersonas();
             loveyDoveyCharacters = await characterDB.loadLoveyDoveyCharacters();
+            normalizeLoveyDoveyData(); // 向後相容：為舊數據補充版本欄位
             presets = await characterDB.loadPresets();      
             
         } else {
@@ -111,6 +112,7 @@ async function loadData() {
             const savedLoveyDoveyCharacters = localStorage.getItem('characterCreatorLoveyDoveyCharacters');
             if (savedLoveyDoveyCharacters) {
                 loveyDoveyCharacters = JSON.parse(savedLoveyDoveyCharacters);
+                normalizeLoveyDoveyData(); // 向後相容：為舊數據補充版本欄位
             }
 
             const savedCustom = localStorage.getItem('characterCreatorCustomData');
@@ -694,6 +696,49 @@ function showStorageWarning(sizeKB) {
     setTimeout(() => {
         notification.remove();
     }, 8000);
+}
+
+// 卿卿我我數據規範化函數（向後相容）
+function normalizeLoveyDoveyData() {
+    if (!loveyDoveyCharacters || loveyDoveyCharacters.length === 0) return;
+
+    // 需要版本管理的固定欄位
+    const versionedFields = [
+        'publicDescription', 'basicInfo', 'personality', 'speakingStyle',
+        'scenarioScript', 'characterDialogue', 'likes', 'dislikes'
+    ];
+
+    loveyDoveyCharacters.forEach(character => {
+        if (!character.versions) return;
+
+        character.versions.forEach(version => {
+            // 規範化固定欄位的版本
+            versionedFields.forEach(field => {
+                const versionsKey = `${field}Versions`;
+                const noteKey = `${field}Note`;
+                if (!version[versionsKey]) {
+                    version[versionsKey] = [];
+                }
+                if (version[noteKey] === undefined) {
+                    version[noteKey] = '';
+                }
+            });
+
+            // 規範化動態數組項目
+            ['additionalInfo', 'creatorEvents', 'privateStories'].forEach(arrayName => {
+                if (version[arrayName] && Array.isArray(version[arrayName])) {
+                    version[arrayName].forEach(item => {
+                        if (!item.contentVersions) {
+                            item.contentVersions = [];
+                        }
+                        if (item.contentNote === undefined) {
+                            item.contentNote = '';
+                        }
+                    });
+                }
+            });
+        });
+    });
 }
 
 const characterDB = new CharacterDB();

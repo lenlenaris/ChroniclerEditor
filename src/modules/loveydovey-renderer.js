@@ -207,7 +207,8 @@ static renderVersionContent(character, version) {
                 fieldName: 'publicDescription',
                 isTextarea: true,
                 maxLength: 700,
-                customStyle: 'height: 120px; resize: vertical;'
+                customStyle: 'height: 120px; resize: vertical;',
+                supportsContentVersions: true
             })}
         </div>
 
@@ -286,7 +287,8 @@ static renderVersionContent(character, version) {
             fieldName: 'basicInfo',
             isTextarea: true,
             maxLength: 700,
-            customStyle: 'height: 120px; resize: vertical;'
+            customStyle: 'height: 120px; resize: vertical;',
+            supportsContentVersions: true
         })}
 
         <!-- 個性摘要 -->
@@ -301,7 +303,8 @@ static renderVersionContent(character, version) {
             fieldName: 'personality',
             isTextarea: true,
             maxLength: 700,
-            customStyle: 'height: 120px; resize: vertical;'
+            customStyle: 'height: 120px; resize: vertical;',
+            supportsContentVersions: true
         })}
 
         <!-- 說話風格與習慣 -->
@@ -316,7 +319,8 @@ static renderVersionContent(character, version) {
             fieldName: 'speakingStyle',
             isTextarea: true,
             maxLength: 700,
-            customStyle: 'height: 120px; resize: vertical;'
+            customStyle: 'height: 120px; resize: vertical;',
+            supportsContentVersions: true
         })}
     `;
 }
@@ -336,7 +340,8 @@ static renderVersionContent(character, version) {
             fieldName: 'scenarioScript',
             isTextarea: true,
             maxLength: 800,
-            customStyle: 'height: 120px; resize: vertical;'
+            customStyle: 'height: 120px; resize: vertical;',
+            supportsContentVersions: true
         })}
 
         <!-- 角色對話 -->
@@ -351,7 +356,8 @@ static renderVersionContent(character, version) {
             fieldName: 'characterDialogue',
             isTextarea: true,
             maxLength: 800,
-            customStyle: 'height: 120px; resize: vertical;'
+            customStyle: 'height: 120px; resize: vertical;',
+            supportsContentVersions: true
         })}
     `;
 }
@@ -370,7 +376,8 @@ static renderDetailedSettingsFields(character, version) {
             versionId: version.id,
             fieldName: 'likes',
             isTextarea: false,
-            maxLength: 50
+            maxLength: 50,
+            supportsContentVersions: true
         })}
 
         <!-- 不喜歡 -->
@@ -384,7 +391,8 @@ static renderDetailedSettingsFields(character, version) {
             versionId: version.id,
             fieldName: 'dislikes',
             isTextarea: false,
-            maxLength: 50
+            maxLength: 50,
+            supportsContentVersions: true
         })}
 
         <!-- 附加資訊動態區域 -->
@@ -758,10 +766,11 @@ static toggleSection(sectionName, event = null) {
 // 卿卿我我專用欄位創建函數
 static createLoveyDoveyField(config) {
     const {
-        id, label, placeholder, value = '', 
+        id, label, placeholder, value = '',
         itemType, itemId, versionId, fieldName,
         isTextarea = false, maxLength = 0,
-        customStyle = '', rows = 3
+        customStyle = '', rows = 3,
+        supportsContentVersions = false
     } = config;
 
     const currentLength = (value || '').length;
@@ -775,35 +784,58 @@ static createLoveyDoveyField(config) {
     // 輸入框樣式
     const inputBorderStyle = isOverLimit ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : '';
 
+    // === 檢查是否有額外版本（用於按鈕樣式）===
+    let hasExtraVersions = false;
+    if (supportsContentVersions) {
+        const character = loveyDoveyCharacters.find(c => c.id === itemId);
+        if (character) {
+            const version = character.versions.find(v => v.id === versionId);
+            if (version) {
+                const versionsKey = `${fieldName}Versions`;
+                hasExtraVersions = version[versionsKey] && version[versionsKey].length > 0;
+            }
+        }
+    }
+
     // === 主輸入欄位 ===
-    const inputElement = isTextarea ? 
-        `<textarea 
+    const inputElement = isTextarea ?
+        `<textarea
     class="field-input"
-    id="${id}" 
+    id="${id}"
     placeholder="${placeholder}"
-    style="${isQuoteField 
-    ? 'height: 92px; min-height: 92px; max-height: 92px; resize: none; overflow-y: hidden; padding: 12px 16px; line-height: 1.5; scrollbar-width: none; -ms-overflow-style: none;' 
+    style="${isQuoteField
+    ? 'height: 92px; min-height: 92px; max-height: 92px; resize: none; overflow-y: hidden; padding: 12px 16px; line-height: 1.5; scrollbar-width: none; -ms-overflow-style: none;'
     : (customStyle || 'min-height: 200px; max-height: 70vh; resize: vertical;')} ${inputBorderStyle}"
     oninput="updateLoveyDoveyFieldWithPath('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value, ${maxLength});">${value}</textarea>`
         :
-        `<input 
-        type="text" 
-        class="field-input" 
-        id="${id}" 
+        `<input
+        type="text"
+        class="field-input"
+        id="${id}"
         placeholder="${placeholder}"
         style="${inputBorderStyle}"
         oninput="updateLoveyDoveyFieldWithPath('${itemType}', '${itemId}', '${versionId}', '${fieldName}', this.value, ${maxLength})"
         value="${value}"
     >`;
-    
+
     // === 全螢幕按鈕（只有 textarea 才顯示）===
-    const fullscreenBtn = (isTextarea && fieldName !== 'characterQuote') ? 
-        `<button 
-            class="fullscreen-btn" 
-            onclick="openFullscreenEditor('${id}', '${label}')" 
-            title="${t('fullscreenEdit')}" 
+    const fullscreenBtn = (isTextarea && fieldName !== 'characterQuote') ?
+        `<button
+            class="fullscreen-btn"
+            onclick="openFullscreenEditor('${id}', '${label}')"
+            title="${t('fullscreenEdit')}"
             style="margin-left: 8px;"
-        >⛶</button>` 
+        >⛶</button>`
+        : '';
+
+    // === 內容版本管理按鈕 ===
+    const contentVersionsBtn = supportsContentVersions ?
+        `<button class="version-panel-btn hover-primary alternate-greetings-btn${hasExtraVersions ? ' has-versions' : ''}"
+            onclick="event.stopPropagation(); openFieldContentVersionsModal('${itemType}', '${itemId}', '${versionId}', '${fieldName}', '${label.replace(/'/g, "\\'")}');"
+            title="${t('manageContentVersions')}"
+            style="margin-left: 8px;">
+            ${IconManager.filePlus({width: 14, height: 14})}
+        </button>`
         : '';
 
     // === 輸出整體 ===
@@ -812,6 +844,7 @@ static createLoveyDoveyField(config) {
             <label class="field-label">
                 ${label}
                 ${showStats ? `<span class="loveydovey-char-count" data-target="${id}" style="margin-left: 12px; font-size: 0.85em; ${statsStyle}">${currentLength} / ${maxLength} ${t('chars')}</span>` : ''}
+                ${contentVersionsBtn}
                 ${fullscreenBtn}
             </label>
             ${inputElement}
@@ -1032,9 +1065,11 @@ function addAdditionalInfo(characterId, versionId) {
     const newInfo = {
         id: generateId(),
         title: '',
-        content: ''
+        content: '',
+        contentVersions: [],
+        contentNote: ''
     };
-    
+
     version.additionalInfo.push(newInfo);
     
     // 更新時間戳記
@@ -1300,9 +1335,11 @@ function addCreatorEvent(characterId, versionId) {
         timeAndPlace: '',
         title: '',
         content: '',
+        contentVersions: [],
+        contentNote: '',
         isSecret: false
     };
-    
+
     version.creatorEvents.push(newEvent);
     
     // 更新時間戳記和標記變更
@@ -2030,25 +2067,33 @@ function generateAdditionalInfoDetailContent(characterId, versionId, info, index
 
         <!-- 內容欄位 -->
         <div style="margin-bottom: 12px;">
-            <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('additionalContent')}</label>
-            <textarea class="field-input" 
+            <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                <label style="font-size: 0.85em; color: var(--text-color);">${t('additionalContent')}</label>
+                <button class="version-panel-btn hover-primary alternate-greetings-btn${info.contentVersions && info.contentVersions.length > 0 ? ' has-versions' : ''}"
+                    onclick="event.stopPropagation(); openLoveyDoveyArrayItemContentVersionsModal('loveydovey', '${characterId}', '${versionId}', 'additionalInfo', '${info.id}', '${t('additionalContent')}');"
+                    title="${t('manageContentVersions')}"
+                    style="margin-left: 8px;">
+                    ${IconManager.filePlus({width: 14, height: 14})}
+                </button>
+            </div>
+            <textarea class="field-input"
                       id="additionalContent-${info.id}"
-                      data-info-id="${info.id}" 
+                      data-info-id="${info.id}"
                       placeholder="${t('additionalContentPlaceholder')}"
                       style="width: 100%; height: 100px; resize: vertical; ${(info.content || '').length > 500 ? 'border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);' : ''}"
                       oninput="updateAdditionalInfoFieldById('${characterId}', '${versionId}', '${info.id}', 'content', this.value, 500); autoResizeTextarea(this);"
                       onfocus="showAdditionalFullscreenBtn(this);"
                       onblur="hideAdditionalFullscreenBtn(this);">${info.content || ''}</textarea>
-            
+
             <!-- 底部工具列：全螢幕按鈕 + 字數統計 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                <button class="fullscreen-btn-base fullscreen-btn-toolbar" 
+                <button class="fullscreen-btn-base fullscreen-btn-toolbar"
                         onclick="openFullscreenEditor('additionalContent-${info.id}', '${t('additionalInfo')} ${index + 1}')"
                         title="${t('fullscreenEdit')}">
                     ⛶
                 </button>
-                
-                <div class="char-count-display" data-target="additionalContent-${info.id}" 
+
+                <div class="char-count-display" data-target="additionalContent-${info.id}"
                      style="font-size: 0.75em; ${(info.content || '').length > 500 ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'}">
                     ${(info.content || '').length}/500 ${t('chars')}
                 </div>
@@ -2166,8 +2211,16 @@ function generateCreatorEventDetailContent(characterId, versionId, event, index)
 
         <!-- 內容欄位 -->
         <div style="margin-bottom: 0px;">
-            <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('eventContent')}</label>
-            <textarea class="field-input" 
+            <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                <label style="font-size: 0.85em; color: var(--text-color);">${t('eventContent')}</label>
+                <button class="version-panel-btn hover-primary alternate-greetings-btn${event.contentVersions && event.contentVersions.length > 0 ? ' has-versions' : ''}"
+                    onclick="event.stopPropagation(); openLoveyDoveyArrayItemContentVersionsModal('loveydovey', '${characterId}', '${versionId}', 'creatorEvents', '${event.id}', '${t('eventContent')}');"
+                    title="${t('manageContentVersions')}"
+                    style="margin-left: 8px;">
+                    ${IconManager.filePlus({width: 14, height: 14})}
+                </button>
+            </div>
+            <textarea class="field-input"
                       id="eventContent-${event.id}"
                       data-event-id="${event.id}"
                       placeholder="${t('eventContentPlaceholder')}"
@@ -2175,16 +2228,16 @@ function generateCreatorEventDetailContent(characterId, versionId, event, index)
                       oninput="updateCreatorEventFieldById('${characterId}', '${versionId}', '${event.id}', 'content', this.value, 2000); autoResizeTextarea(this);"
                       onfocus="showAdditionalFullscreenBtn(this);"
                       onblur="hideAdditionalFullscreenBtn(this);">${event.content || ''}</textarea>
-            
+
             <!-- 底部工具列：全螢幕按鈕 + 字數統計 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                <button class="fullscreen-btn-base fullscreen-btn-toolbar" 
-                        onclick="openFullscreenEditor('eventContent-${event.id}', '${t('creatorEvent')} ${index + 1}')" 
+                <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                        onclick="openFullscreenEditor('eventContent-${event.id}', '${t('creatorEvent')} ${index + 1}')"
                         title="${t('fullscreenEdit')}">
                     ⛶
                 </button>
-                
-                <div class="char-count-display" data-target="eventContent-${event.id}" 
+
+                <div class="char-count-display" data-target="eventContent-${event.id}"
                      style="font-size: 0.75em; ${(event.content || '').length > 2000 ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'}">
                     ${(event.content || '').length} / 2000 ${t('chars')}
                 </div>
@@ -2240,9 +2293,11 @@ function addPrivateStory(characterId, versionId) {
         unlockPrompt: '',
         title: '',
         content: '',
+        contentVersions: [],
+        contentNote: '',
         affectionLevel: 'acquaintance' // 預設：熟人
     };
-    
+
     version.privateStories.push(newStory);
     
     // 更新時間戳記
@@ -2651,8 +2706,16 @@ function generatePrivateStoryDetailContent(characterId, versionId, story, index)
 
         <!-- 內容欄位 -->
         <div style="margin-bottom: 0px;">
-            <label style="display: block; margin-bottom: 4px; font-size: 0.85em; color: var(--text-color);">${t('eventContent')}</label>
-            <textarea class="field-input" 
+            <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                <label style="font-size: 0.85em; color: var(--text-color);">${t('eventContent')}</label>
+                <button class="version-panel-btn hover-primary alternate-greetings-btn${story.contentVersions && story.contentVersions.length > 0 ? ' has-versions' : ''}"
+                    onclick="event.stopPropagation(); openLoveyDoveyArrayItemContentVersionsModal('loveydovey', '${characterId}', '${versionId}', 'privateStories', '${story.id}', '${t('eventContent')}');"
+                    title="${t('manageContentVersions')}"
+                    style="margin-left: 8px;">
+                    ${IconManager.filePlus({width: 14, height: 14})}
+                </button>
+            </div>
+            <textarea class="field-input"
                       id="storyContent-${story.id}"
                       data-story-id="${story.id}"
                       placeholder="${t('eventContentPlaceholder')}"
@@ -2660,16 +2723,16 @@ function generatePrivateStoryDetailContent(characterId, versionId, story, index)
                       oninput="updatePrivateStoryFieldById('${characterId}', '${versionId}', '${story.id}', 'content', this.value, 2000); autoResizeTextarea(this);"
                       onfocus="showAdditionalFullscreenBtn(this);"
                       onblur="hideAdditionalFullscreenBtn(this);">${story.content || ''}</textarea>
-            
+
             <!-- 底部工具列：全螢幕按鈕 + 字數統計 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                <button class="fullscreen-btn-base fullscreen-btn-toolbar" 
-                        onclick="openFullscreenEditor('storyContent-${story.id}', '${t('privateStory')} ${index + 1}')" 
+                <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                        onclick="openFullscreenEditor('storyContent-${story.id}', '${t('privateStory')} ${index + 1}')"
                         title="${t('fullscreenEdit')}">
                     ⛶
                 </button>
-                
-                <div class="char-count-display" data-target="storyContent-${story.id}" 
+
+                <div class="char-count-display" data-target="storyContent-${story.id}"
                      style="font-size: 0.75em; ${(story.content || '').length > 2000 ? 'color: #e74c3c; font-weight: bold;' : 'color: var(--text-muted);'}">
                     ${(story.content || '').length} / 2000 ${t('chars')}
                 </div>
@@ -2758,4 +2821,430 @@ function updatePrivateStoryNumbers(version, versionId = null) {
             titleCollapsed.textContent = `${icon} ${t('privateStory')} ${index + 1}：${currentTitle}`;
         }
     });
+}
+
+// ===== 動態數組項目內容版本管理 =====
+
+// 規範化版本數據（兼容舊格式）
+function normalizeLoveyDoveyContentVersion(ver) {
+    if (typeof ver === 'string') {
+        return { content: ver, note: '' };
+    }
+    return { content: ver.content || '', note: ver.note || '' };
+}
+
+// 打開動態數組項目的內容版本管理模態框
+function openLoveyDoveyArrayItemContentVersionsModal(itemType, characterId, versionId, arrayName, arrayItemId, fieldLabel) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version[arrayName]) return;
+
+    const arrayItem = version[arrayName].find(item => item.id === arrayItemId);
+    if (!arrayItem) return;
+
+    // 確保 contentVersions 陣列存在
+    if (!arrayItem.contentVersions) {
+        arrayItem.contentVersions = [];
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'content-versions-modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="compact-modal-content content-versions-modal">
+            <div class="compact-modal-header">
+                <div class="modal-title-group">
+                    ${IconManager.file({width: 18, height: 18})}
+                    <h3 class="compact-modal-title">${t('manageContentVersions')}</h3>
+                </div>
+                <button class="close-modal" onclick="closeLoveyDoveyArrayItemContentVersionsModal()">×</button>
+            </div>
+
+            <div id="content-versions-container" class="content-versions-content">
+                ${renderLoveyDoveyArrayItemContentVersionsModalContent(character, version, arrayName, arrayItem, fieldLabel)}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // 點擊遮罩關閉
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeLoveyDoveyArrayItemContentVersionsModal();
+        }
+    });
+
+    // ESC 鍵關閉
+    const handleKeydown = (e) => {
+        if (e.key === 'Escape') {
+            closeLoveyDoveyArrayItemContentVersionsModal();
+        }
+    };
+    document.addEventListener('keydown', handleKeydown);
+    modal._handleKeydown = handleKeydown;
+
+    // 儲存當前編輯的上下文
+    modal._context = { characterId, versionId, arrayName, arrayItemId, fieldLabel };
+
+    // 初始化功能
+    setTimeout(() => {
+        updateAllPageStats();
+        initAutoResize();
+        DragSortManager.enableContentVersionsDragSort('loveydovey', characterId, versionId, `${arrayName}.${arrayItemId}`);
+    }, 100);
+}
+
+// 關閉模態框
+function closeLoveyDoveyArrayItemContentVersionsModal() {
+    const modal = document.getElementById('content-versions-modal');
+    if (modal) {
+        if (modal._handleKeydown) {
+            document.removeEventListener('keydown', modal._handleKeydown);
+        }
+        modal.remove();
+    }
+}
+
+// 渲染版本列表內容
+function renderLoveyDoveyArrayItemContentVersionsModalContent(character, version, arrayName, arrayItem, fieldLabel) {
+    const rawVersions = arrayItem.contentVersions || [];
+    const contentVersions = rawVersions.map(normalizeLoveyDoveyContentVersion);
+    const characterId = character.id;
+    const versionId = version.id;
+    const arrayItemId = arrayItem.id;
+    const currentNote = arrayItem.contentNote || '';
+
+    return `
+        <div id="content-versions-list-${arrayItemId}">
+            <!-- 當前主內容（置頂） -->
+            <div class="content-version-item content-version-current">
+                <div class="content-version-header">
+                    <div class="content-version-title-area">
+                        <h4 class="content-version-title">${t('currentContent')}</h4>
+                        <input type="text" class="content-version-note-input"
+                            placeholder="${t('versionNotePlaceholder')}"
+                            value="${escapeHtml(currentNote)}"
+                            oninput="updateLoveyDoveyArrayItemMainNoteFromModal('${characterId}', '${versionId}', '${arrayName}', '${arrayItemId}', this.value)">
+                    </div>
+                </div>
+
+                <div class="field-group no-bottom-margin">
+                    <textarea class="field-input content-version-textarea"
+                        id="content-version-main-${arrayItemId}"
+                        placeholder="${fieldLabel}"
+                        oninput="updateLoveyDoveyArrayItemMainContentFromModal('${characterId}', '${versionId}', '${arrayName}', '${arrayItemId}', this.value);"
+                        onfocus="showAdditionalFullscreenBtn(this);"
+                        onblur="hideAdditionalFullscreenBtn(this);">${escapeHtml(arrayItem.content || '')}</textarea>
+
+                    <div class="content-version-toolbar">
+                        <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                            onclick="openFullscreenEditor('content-version-main-${arrayItemId}', '${escapeHtml(currentNote) || t('currentContent')}')"
+                            title="${t('fullscreenEdit')}">⛶</button>
+
+                        <div class="field-stats content-version-stats" data-target="content-version-main-${arrayItemId}">
+                            ${countCharsForStats(arrayItem.content || '')} ${t('chars')} / ${countTokens(arrayItem.content || '')} ${t('tokens')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 額外版本列表 -->
+            ${contentVersions.length === 0 ? `
+                <div class="content-versions-empty">
+                    ${t('noContentVersions')}
+                </div>
+            ` : contentVersions.map((ver, index) => `
+                <div class="content-version-item" data-version-index="${index}">
+                    <div class="content-version-header">
+                        <div class="content-version-title-area">
+                            <div class="drag-handle custom-field-drag-handle">
+                                ${IconManager.gripVertical({width: 12, height: 12, style: 'display: block;'})}
+                            </div>
+                            <h4 class="content-version-title">${t('contentVersion')} ${index + 1}</h4>
+                            <input type="text" class="content-version-note-input"
+                                placeholder="${t('versionNotePlaceholder')}"
+                                value="${escapeHtml(ver.note)}"
+                                oninput="updateLoveyDoveyArrayItemContentVersionNote('${characterId}', '${versionId}', '${arrayName}', '${arrayItemId}', ${index}, this.value)">
+                        </div>
+
+                        <div class="content-version-actions">
+                            <button class="use-version-btn"
+                                onclick="useLoveyDoveyArrayItemContentVersion('${characterId}', '${versionId}', '${arrayName}', '${arrayItemId}', ${index})">
+                                ${t('useThisVersion')}
+                            </button>
+                            <button class="delete-btn"
+                                onclick="deleteLoveyDoveyArrayItemContentVersion('${characterId}', '${versionId}', '${arrayName}', '${arrayItemId}', ${index})">
+                                ${IconManager.delete()}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="field-group no-bottom-margin">
+                        <textarea class="field-input content-version-textarea"
+                            id="content-version-${arrayItemId}-${index}"
+                            placeholder="${t('contentVersionPlaceholder')}"
+                            oninput="updateLoveyDoveyArrayItemContentVersion('${characterId}', '${versionId}', '${arrayName}', '${arrayItemId}', ${index}, this.value);"
+                            onfocus="showAdditionalFullscreenBtn(this);"
+                            onblur="hideAdditionalFullscreenBtn(this);">${escapeHtml(ver.content)}</textarea>
+
+                        <div class="content-version-toolbar">
+                            <button class="fullscreen-btn-base fullscreen-btn-toolbar"
+                                onclick="openFullscreenEditor('content-version-${arrayItemId}-${index}', '${escapeHtml(ver.note) || t('contentVersion') + ' ' + (index + 1)}')"
+                                title="${t('fullscreenEdit')}">⛶</button>
+
+                            <div class="field-stats content-version-stats" data-target="content-version-${arrayItemId}-${index}">
+                                ${countCharsForStats(ver.content)} ${t('chars')} / ${countTokens(ver.content)} ${t('tokens')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+
+        <!-- 新增按鈕 -->
+        <div class="content-versions-add-container">
+            <button class="loveydovey-add-btn" onclick="addLoveyDoveyArrayItemContentVersion('${characterId}', '${versionId}', '${arrayName}', '${arrayItemId}')">
+                ${IconManager.plus({width: 16, height: 16})}
+                ${t('addContentVersion')}
+            </button>
+        </div>
+    `;
+}
+
+// 刷新模態框內容
+function refreshLoveyDoveyArrayItemContentVersionsModal(character, version, arrayName, arrayItem, fieldLabel) {
+    const container = document.getElementById('content-versions-container');
+    if (container) {
+        container.innerHTML = renderLoveyDoveyArrayItemContentVersionsModalContent(character, version, arrayName, arrayItem, fieldLabel);
+        setTimeout(() => {
+            updateAllPageStats();
+            initAutoResize();
+            DragSortManager.enableContentVersionsDragSort('loveydovey', character.id, version.id, `${arrayName}.${arrayItem.id}`);
+        }, 50);
+    }
+}
+
+// 更新主內容（從模態框）
+function updateLoveyDoveyArrayItemMainContentFromModal(characterId, versionId, arrayName, arrayItemId, value) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version[arrayName]) return;
+
+    const arrayItem = version[arrayName].find(item => item.id === arrayItemId);
+    if (!arrayItem) return;
+
+    arrayItem.content = value;
+
+    // 同步更新主頁面的 textarea
+    let mainTextareaId = '';
+    if (arrayName === 'additionalInfo') {
+        mainTextareaId = `additionalContent-${arrayItemId}`;
+    } else if (arrayName === 'creatorEvents') {
+        mainTextareaId = `eventContent-${arrayItemId}`;
+    } else if (arrayName === 'privateStories') {
+        mainTextareaId = `storyContent-${arrayItemId}`;
+    }
+
+    const mainTextarea = document.getElementById(mainTextareaId);
+    if (mainTextarea && mainTextarea.value !== value) {
+        mainTextarea.value = value;
+    }
+
+    // 更新模態框內的統計
+    updateFieldStats(`content-version-main-${arrayItemId}`);
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+}
+
+// 更新主內容備註（從模態框）
+function updateLoveyDoveyArrayItemMainNoteFromModal(characterId, versionId, arrayName, arrayItemId, value) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version[arrayName]) return;
+
+    const arrayItem = version[arrayName].find(item => item.id === arrayItemId);
+    if (!arrayItem) return;
+
+    arrayItem.contentNote = value;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+}
+
+// 新增額外版本
+function addLoveyDoveyArrayItemContentVersion(characterId, versionId, arrayName, arrayItemId) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version[arrayName]) return;
+
+    const arrayItem = version[arrayName].find(item => item.id === arrayItemId);
+    if (!arrayItem) return;
+
+    if (!arrayItem.contentVersions) {
+        arrayItem.contentVersions = [];
+    }
+
+    // 檢查數量限制
+    if (arrayItem.contentVersions.length >= 10) {
+        NotificationManager.warning(t('maxContentVersionsReached'));
+        return;
+    }
+
+    // 新增空的版本（物件格式）
+    arrayItem.contentVersions.push({ content: '', note: '' });
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容
+    const modal = document.getElementById('content-versions-modal');
+    if (modal && modal._context) {
+        refreshLoveyDoveyArrayItemContentVersionsModal(character, version, arrayName, arrayItem, modal._context.fieldLabel);
+    }
+}
+
+// 刪除額外版本
+function deleteLoveyDoveyArrayItemContentVersion(characterId, versionId, arrayName, arrayItemId, index) {
+    const confirmDelete = confirm(t('deleteContentVersionConfirm'));
+    if (!confirmDelete) return;
+
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version[arrayName]) return;
+
+    const arrayItem = version[arrayName].find(item => item.id === arrayItemId);
+    if (!arrayItem || !arrayItem.contentVersions) return;
+
+    // 刪除指定的版本
+    arrayItem.contentVersions.splice(index, 1);
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容
+    const modal = document.getElementById('content-versions-modal');
+    if (modal && modal._context) {
+        refreshLoveyDoveyArrayItemContentVersionsModal(character, version, arrayName, arrayItem, modal._context.fieldLabel);
+    }
+}
+
+// 更新額外版本內容
+function updateLoveyDoveyArrayItemContentVersion(characterId, versionId, arrayName, arrayItemId, index, value) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version[arrayName]) return;
+
+    const arrayItem = version[arrayName].find(item => item.id === arrayItemId);
+    if (!arrayItem || !arrayItem.contentVersions) return;
+
+    if (index < 0 || index >= arrayItem.contentVersions.length) return;
+
+    // 正規化版本資料
+    const normalized = normalizeLoveyDoveyContentVersion(arrayItem.contentVersions[index]);
+    normalized.content = value;
+    arrayItem.contentVersions[index] = normalized;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+
+    // 更新統計
+    updateFieldStats(`content-version-${arrayItemId}-${index}`);
+    markAsChanged();
+}
+
+// 更新額外版本備註
+function updateLoveyDoveyArrayItemContentVersionNote(characterId, versionId, arrayName, arrayItemId, index, value) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version[arrayName]) return;
+
+    const arrayItem = version[arrayName].find(item => item.id === arrayItemId);
+    if (!arrayItem || !arrayItem.contentVersions) return;
+
+    if (index < 0 || index >= arrayItem.contentVersions.length) return;
+
+    // 正規化版本資料
+    const normalized = normalizeLoveyDoveyContentVersion(arrayItem.contentVersions[index]);
+    normalized.note = value;
+    arrayItem.contentVersions[index] = normalized;
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+}
+
+// 採用此版本（切換主內容）
+function useLoveyDoveyArrayItemContentVersion(characterId, versionId, arrayName, arrayItemId, index) {
+    const character = loveyDoveyCharacters.find(c => c.id === characterId);
+    if (!character) return;
+
+    const version = character.versions.find(v => v.id === versionId);
+    if (!version || !version[arrayName]) return;
+
+    const arrayItem = version[arrayName].find(item => item.id === arrayItemId);
+    if (!arrayItem || !arrayItem.contentVersions) return;
+
+    if (index < 0 || index >= arrayItem.contentVersions.length) return;
+
+    // 保存當前主內容和備註
+    const currentContent = arrayItem.content || '';
+    const currentNote = arrayItem.contentNote || '';
+
+    // 獲取選中的版本（正規化）
+    const selectedVer = normalizeLoveyDoveyContentVersion(arrayItem.contentVersions[index]);
+
+    // 將選中的版本設為新的主內容和備註
+    arrayItem.content = selectedVer.content;
+    arrayItem.contentNote = selectedVer.note;
+
+    // 將原主內容和備註存入 contentVersions
+    arrayItem.contentVersions[index] = { content: currentContent, note: currentNote };
+
+    // 同步更新主頁面的 textarea
+    let mainTextareaId = '';
+    if (arrayName === 'additionalInfo') {
+        mainTextareaId = `additionalContent-${arrayItemId}`;
+    } else if (arrayName === 'creatorEvents') {
+        mainTextareaId = `eventContent-${arrayItemId}`;
+    } else if (arrayName === 'privateStories') {
+        mainTextareaId = `storyContent-${arrayItemId}`;
+    }
+
+    const mainTextarea = document.getElementById(mainTextareaId);
+    if (mainTextarea) {
+        mainTextarea.value = arrayItem.content;
+    }
+
+    // 更新時間戳記
+    TimestampManager.updateVersionTimestamp('loveydovey', characterId, versionId);
+    markAsChanged();
+
+    // 重新渲染模態框內容
+    const modal = document.getElementById('content-versions-modal');
+    if (modal && modal._context) {
+        refreshLoveyDoveyArrayItemContentVersionsModal(character, version, arrayName, arrayItem, modal._context.fieldLabel);
+    }
+
+    NotificationManager.success(t('versionSwitched'));
 }

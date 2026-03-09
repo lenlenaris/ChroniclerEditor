@@ -617,6 +617,25 @@ window.ChroniclerTranslations['zh-TW'] = {
     delete: '刪除版本',
     unnamedVersion: '未命名版本',
 
+    // 版本移動與拆分
+    moveToItem: '移至其他項目',
+    splitAsItem: '拆為獨立項目',
+    moveToItemTitle: '移動版本至其他項目',
+    splitAsItemTitle: '拆為獨立項目',
+    moveToItemDesc: '將此版本複製或移動到同類型的其他項目中，成為該項目的一個版本。',
+    splitAsItemDesc: '將此版本拆出，建立為獨立的新項目。',
+    selectTargetItem: '選擇目標項目',
+    copyToTarget: '複製到目標',
+    moveToTarget: '移動到目標',
+    copyAsNewItem: '複製為新項目',
+    moveAsNewItem: '移出為新項目',
+    noOtherItems: '沒有其他同類型的項目可供選擇',
+    moveVersionSuccess: '已成功移動版本',
+    copyVersionSuccess: '已成功複製版本',
+    splitVersionSuccess: '已成功拆為獨立項目',
+    moveLastVersionWarning: '這是此項目的最後一個版本，移動後將刪除原項目「$1」。確定要繼續嗎？',
+    newItemName: '新項目名稱',
+
     // 對比功能
     selectVersionsToCompare: '選擇要對比的頁面',
     selectTwoVersions: '選擇2個頁面進行對比',

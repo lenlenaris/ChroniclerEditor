@@ -937,6 +937,27 @@ static minus(options = {}) {
         </svg>`;
     }
 
+    // 移入其他項目圖示（Lucide folder-input）
+    static mergeInto(options = {}) {
+        const { width = 16, height = 16, strokeWidth = 2, className = '', style = '' } = options;
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <path d="M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1"/>
+            <path d="M2 13h10"/>
+            <path d="m9 16 3-3-3-3"/>
+        </svg>`;
+    }
+
+    // 拆為獨立項目圖示（Lucide file-output）
+    static splitOut(options = {}) {
+        const { width = 16, height = 16, strokeWidth = 2, className = '', style = '' } = options;
+        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" class="${className}" style="${style}">
+            <path d="M4.226 20.925A2 2 0 0 0 6 22h12a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v3.127"/>
+            <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
+            <path d="m5 11-3 3"/>
+            <path d="m5 17-3-3h10"/>
+        </svg>`;
+    }
+
     // 笑臉圖示（用於玩家角色）
     static smile(options = {}) {
         const {

@@ -341,7 +341,7 @@ class DataOperations {
                         ...baseStructure.versions[0],
                         createdAt: TimestampManager.createTimestamp(),
                         updatedAt: TimestampManager.createTimestamp(),
-                        
+
                         // 第一大區：個人資料
                         profileImage: '',
                         characterName: '',
@@ -349,24 +349,40 @@ class DataOperations {
                         occupation: '',
                         characterQuote: '',
                         publicDescription: '',
+                        publicDescriptionVersions: [],
+                        publicDescriptionNote: '',
                         characterLinkUrl: '',
                         tags: '',
-                        
+
                         // 第二大區：角色基本設定
                         gender: 'unset',
                         basicInfo: '',
+                        basicInfoVersions: [],
+                        basicInfoNote: '',
                         personality: '',
+                        personalityVersions: [],
+                        personalityNote: '',
                         speakingStyle: '',
-                        
+                        speakingStyleVersions: [],
+                        speakingStyleNote: '',
+
                         // 第三大區：第一次聊天場景
                         scenarioScript: '',
+                        scenarioScriptVersions: [],
+                        scenarioScriptNote: '',
                         characterDialogue: '',
-                        
+                        characterDialogueVersions: [],
+                        characterDialogueNote: '',
+
                         // 第四大區：角色詳細設定
                         likes: '',
+                        likesVersions: [],
+                        likesNote: '',
                         dislikes: '',
+                        dislikesVersions: [],
+                        dislikesNote: '',
                         additionalInfo: [],
-                        
+
                         // 第五大區：創作者事件
                         creatorEvents: [],
                         privateStories: []
@@ -618,6 +634,9 @@ class DataOperations {
                 case 'loveydovey':
                 return {
                     ...baseVersion,
+                    createdAt: TimestampManager.createTimestamp(),
+                    updatedAt: TimestampManager.createTimestamp(),
+
                     // 第一大區：個人資料
                     profileImage: '',
                     characterName: '',
@@ -625,23 +644,40 @@ class DataOperations {
                     occupation: '',
                     characterQuote: '',
                     publicDescription: '',
+                    publicDescriptionVersions: [],
+                    publicDescriptionNote: '',
+                    characterLinkUrl: '',
                     tags: '',
-                    
+
                     // 第二大區：角色基本設定
                     gender: 'unset',
                     basicInfo: '',
+                    basicInfoVersions: [],
+                    basicInfoNote: '',
                     personality: '',
+                    personalityVersions: [],
+                    personalityNote: '',
                     speakingStyle: '',
-                    
+                    speakingStyleVersions: [],
+                    speakingStyleNote: '',
+
                     // 第三大區：第一次聊天場景
                     scenarioScript: '',
+                    scenarioScriptVersions: [],
+                    scenarioScriptNote: '',
                     characterDialogue: '',
-                    
+                    characterDialogueVersions: [],
+                    characterDialogueNote: '',
+
                     // 第四大區：角色詳細設定
                     likes: '',
+                    likesVersions: [],
+                    likesNote: '',
                     dislikes: '',
+                    dislikesVersions: [],
+                    dislikesNote: '',
                     additionalInfo: [],
-                    
+
                     // 第五大區：創作者事件
                     creatorEvents: [],
                     privateStories: []
@@ -874,6 +910,9 @@ class DataOperations {
             case 'loveydovey':
                 return {
                     ...baseClone,
+                    createdAt: TimestampManager.createTimestamp(),
+                    updatedAt: TimestampManager.createTimestamp(),
+
                     // 第一大區：個人資料
                     profileImage: originalVersion.profileImage || '',
                     characterName: originalVersion.characterName || '',
@@ -881,23 +920,40 @@ class DataOperations {
                     occupation: originalVersion.occupation || '',
                     characterQuote: originalVersion.characterQuote || '',
                     publicDescription: originalVersion.publicDescription || '',
+                    publicDescriptionVersions: JSON.parse(JSON.stringify(originalVersion.publicDescriptionVersions || [])),
+                    publicDescriptionNote: originalVersion.publicDescriptionNote || '',
+                    characterLinkUrl: originalVersion.characterLinkUrl || '',
                     tags: originalVersion.tags || '',
-                    
+
                     // 第二大區：角色基本設定
                     gender: originalVersion.gender || 'unset',
                     basicInfo: originalVersion.basicInfo || '',
+                    basicInfoVersions: JSON.parse(JSON.stringify(originalVersion.basicInfoVersions || [])),
+                    basicInfoNote: originalVersion.basicInfoNote || '',
                     personality: originalVersion.personality || '',
+                    personalityVersions: JSON.parse(JSON.stringify(originalVersion.personalityVersions || [])),
+                    personalityNote: originalVersion.personalityNote || '',
                     speakingStyle: originalVersion.speakingStyle || '',
-                    
+                    speakingStyleVersions: JSON.parse(JSON.stringify(originalVersion.speakingStyleVersions || [])),
+                    speakingStyleNote: originalVersion.speakingStyleNote || '',
+
                     // 第三大區：第一次聊天場景
                     scenarioScript: originalVersion.scenarioScript || '',
+                    scenarioScriptVersions: JSON.parse(JSON.stringify(originalVersion.scenarioScriptVersions || [])),
+                    scenarioScriptNote: originalVersion.scenarioScriptNote || '',
                     characterDialogue: originalVersion.characterDialogue || '',
-                    
+                    characterDialogueVersions: JSON.parse(JSON.stringify(originalVersion.characterDialogueVersions || [])),
+                    characterDialogueNote: originalVersion.characterDialogueNote || '',
+
                     // 第四大區：角色詳細設定
                     likes: originalVersion.likes || '',
+                    likesVersions: JSON.parse(JSON.stringify(originalVersion.likesVersions || [])),
+                    likesNote: originalVersion.likesNote || '',
                     dislikes: originalVersion.dislikes || '',
+                    dislikesVersions: JSON.parse(JSON.stringify(originalVersion.dislikesVersions || [])),
+                    dislikesNote: originalVersion.dislikesNote || '',
                     additionalInfo: JSON.parse(JSON.stringify(originalVersion.additionalInfo || [])),
-                    
+
                     // 第五大區：創作者事件
                     creatorEvents: JSON.parse(JSON.stringify(originalVersion.creatorEvents || [])),
                     privateStories: JSON.parse(JSON.stringify(originalVersion.privateStories || []))
@@ -1269,27 +1325,306 @@ class VersionCRUD {
             alert(t('keepOneVersion'));
             return false;
         }
-        
+
         const version = item.versions.find(v => v.id === versionId);
         const confirmDelete = confirm(t('deleteVersionConfirm', version?.name || t('unnamedVersion')));
-        
+
         if (confirmDelete) {
             const index = item.versions.findIndex(v => v.id === versionId);
             if (index > -1) {
                 item.versions.splice(index, 1);
             }
-            
+
             const currentVersionId = ItemManager.getCurrentVersionId();
             if (currentVersionId === versionId) {
                 ItemManager.setCurrentItem(type, itemId, item.versions[0].id);
             }
-            
+
             renderAll();
             saveData();
             return true;
         }
-        
+
         return false;
+    }
+
+    // ===== 版本移動與拆分功能 =====
+
+    static openMoveToItemModal(type, itemId, versionId) {
+        const allItems = DataOperations.getItems(type);
+        const otherItems = allItems.filter(i => i.id !== itemId && !i.isFolder);
+
+        if (otherItems.length === 0) {
+            alert(t('noOtherItems'));
+            return;
+        }
+
+        const sourceItem = allItems.find(i => i.id === itemId);
+        const sourceVersion = sourceItem?.versions.find(v => v.id === versionId);
+
+        let optionsHTML = otherItems.map(item => `
+            <div class="move-option" data-item-id="${item.id}"
+                 style="padding: 10px 12px; cursor: pointer; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s;"
+                 onmouseenter="this.style.background='var(--bg-color)'"
+                 onmouseleave="if(!this.classList.contains('selected'))this.style.background=''"
+            >
+                <span style="font-weight: 500;">${item.name || t('unnamedItem')}</span>
+                <span style="color: var(--text-muted); font-size: 0.85em;">${item.versions.length} ver.</span>
+            </div>
+        `).join('');
+
+        const content = `
+            <div class="compact-modal-content" style="max-width: 520px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;">
+                <div class="compact-modal-header" style="justify-content: space-between;">
+                    <div class="custom-field-right-controls">
+                        ${IconManager.mergeInto({width: 18, height: 18})}
+                        <h3 class="compact-modal-title">${t('moveToItemTitle')}</h3>
+                    </div>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
+                </div>
+
+                <div style="flex: 1; overflow-y: auto; padding: 0 4px;">
+                    <p class="compact-modal-desc" style="text-align: left; margin-bottom: 12px;">
+                        ${t('moveToItemDesc')}
+                    </p>
+
+                    <input type="text"
+                           id="move-to-item-search"
+                           class="field-input msize-input"
+                           placeholder="${t('searchItems')}"
+                           style="margin-bottom: 12px; font-size: 0.9em; padding: 12px 16px;">
+
+                    <div id="move-to-item-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: var(--surface-color); padding: 8px;">
+                        ${optionsHTML}
+                    </div>
+
+                    <div id="move-to-item-selected" style="margin-top: 12px; padding: 12px; background: var(--surface-color); border-radius: 6px; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9em; min-height: 48px; display: flex; align-items: center;">
+                        ${t('selectTargetItem')}
+                    </div>
+                </div>
+
+                <div class="compact-modal-footer" style="justify-content: center; margin-top: 16px; gap: 8px;">
+                    <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">
+                        ${t('cancel')}
+                    </button>
+                    <button id="copy-to-target-btn" class="overview-btn btn-primary" disabled>
+                        ${t('copyToTarget')}
+                    </button>
+                    <button id="move-to-target-btn" class="overview-btn btn-primary" disabled>
+                        ${t('moveToTarget')}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        ModalManager.create({ title: '', content: content, footer: '', maxWidth: '520px' });
+
+        let selectedTargetId = null;
+
+        setTimeout(() => {
+            const searchInput = document.getElementById('move-to-item-search');
+            const listContainer = document.getElementById('move-to-item-list');
+            const selectedDisplay = document.getElementById('move-to-item-selected');
+            const copyBtn = document.getElementById('copy-to-target-btn');
+            const moveBtn = document.getElementById('move-to-target-btn');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase();
+                    listContainer.querySelectorAll('.move-option').forEach(opt => {
+                        const name = opt.querySelector('span').textContent.toLowerCase();
+                        opt.style.display = name.includes(query) ? '' : 'none';
+                    });
+                });
+            }
+
+            listContainer.querySelectorAll('.move-option').forEach(opt => {
+                opt.addEventListener('click', function() {
+                    listContainer.querySelectorAll('.move-option').forEach(o => {
+                        o.classList.remove('selected');
+                        o.style.background = '';
+                        o.style.outline = '';
+                    });
+                    this.classList.add('selected');
+                    this.style.background = 'var(--bg-color)';
+                    this.style.outline = '2px solid var(--accent-color)';
+                    selectedTargetId = this.dataset.itemId;
+                    const targetName = this.querySelector('span').textContent;
+                    selectedDisplay.innerHTML = `<strong>${t('selectedTarget')}:</strong>&nbsp;${targetName}`;
+                    selectedDisplay.style.color = 'var(--text-color)';
+                    copyBtn.disabled = false;
+                    moveBtn.disabled = false;
+                });
+            });
+
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    if (!selectedTargetId) return;
+                    VersionCRUD.executeMoveToItem(type, itemId, versionId, selectedTargetId, false);
+                    copyBtn.closest('.modal').remove();
+                });
+            }
+            if (moveBtn) {
+                moveBtn.addEventListener('click', () => {
+                    if (!selectedTargetId) return;
+                    VersionCRUD.executeMoveToItem(type, itemId, versionId, selectedTargetId, true);
+                    moveBtn.closest('.modal').remove();
+                });
+            }
+        }, 50);
+    }
+
+    static executeMoveToItem(type, sourceItemId, versionId, targetItemId, removeFromSource) {
+        const allItems = DataOperations.getItems(type);
+        const sourceItem = allItems.find(i => i.id === sourceItemId);
+        const targetItem = allItems.find(i => i.id === targetItemId);
+        if (!sourceItem || !targetItem) return;
+
+        const sourceVersion = sourceItem.versions.find(v => v.id === versionId);
+        if (!sourceVersion) return;
+
+        const isLastVersion = removeFromSource && sourceItem.versions.length <= 1;
+        if (isLastVersion) {
+            if (!confirm(t('moveLastVersionWarning', sourceItem.name || t('unnamedItem')))) return;
+        }
+
+        const clonedVersion = DataOperations.cloneVersion(sourceVersion, type);
+        targetItem.versions.push(clonedVersion);
+
+        if (removeFromSource) {
+            if (isLastVersion) {
+                const index = allItems.findIndex(i => i.id === sourceItemId);
+                if (index > -1) allItems.splice(index, 1);
+                ItemManager.setCurrentItem(type, targetItemId, clonedVersion.id);
+            } else {
+                const vIndex = sourceItem.versions.findIndex(v => v.id === versionId);
+                if (vIndex > -1) sourceItem.versions.splice(vIndex, 1);
+
+                const currentVersionId = ItemManager.getCurrentVersionId();
+                if (currentVersionId === versionId) {
+                    ItemManager.setCurrentItem(type, sourceItemId, sourceItem.versions[0].id);
+                }
+                if (sourceItem.updatedAt) sourceItem.updatedAt = TimestampManager.createTimestamp();
+            }
+            alert(t('moveVersionSuccess'));
+        } else {
+            if (sourceItem.updatedAt) sourceItem.updatedAt = TimestampManager.createTimestamp();
+            alert(t('copyVersionSuccess'));
+        }
+
+        if (targetItem.updatedAt) targetItem.updatedAt = TimestampManager.createTimestamp();
+
+        renderAll();
+        updateMobileBreadcrumb();
+        markAsChanged();
+        saveData();
+    }
+
+    static openSplitAsItemModal(type, itemId, versionId) {
+        const allItems = DataOperations.getItems(type);
+        const sourceItem = allItems.find(i => i.id === itemId);
+        const sourceVersion = sourceItem?.versions.find(v => v.id === versionId);
+        if (!sourceItem || !sourceVersion) return;
+
+        const defaultName = `${sourceItem.name || t('unnamedItem')} - ${sourceVersion.name || t('unnamedVersion')}`;
+
+        const content = `
+            <div class="compact-modal-content" style="max-width: 480px;">
+                <div class="compact-modal-header" style="justify-content: space-between;">
+                    <div class="custom-field-right-controls">
+                        ${IconManager.splitOut({width: 18, height: 18})}
+                        <h3 class="compact-modal-title">${t('splitAsItemTitle')}</h3>
+                    </div>
+                    <button class="close-modal" onclick="this.closest('.modal').remove()">×</button>
+                </div>
+
+                <p class="compact-modal-desc" style="text-align: left; margin-bottom: 16px;">
+                    ${t('splitAsItemDesc')}
+                </p>
+
+                <div class="field-group" style="margin-bottom: 16px;">
+                    <label class="field-label">${t('newItemName')}</label>
+                    <input type="text" id="split-new-item-name" class="field-input"
+                           value="${defaultName.replace(/"/g, '&quot;')}"
+                           style="font-size: 0.95em; padding: 10px 14px;">
+                </div>
+
+                <div class="compact-modal-footer" style="justify-content: center; gap: 8px;">
+                    <button class="overview-btn hover-primary" onclick="this.closest('.modal').remove()">
+                        ${t('cancel')}
+                    </button>
+                    <button id="copy-as-new-btn" class="overview-btn btn-primary">
+                        ${t('copyAsNewItem')}
+                    </button>
+                    <button id="move-as-new-btn" class="overview-btn btn-primary">
+                        ${t('moveAsNewItem')}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        ModalManager.create({ title: '', content: content, footer: '', maxWidth: '480px' });
+
+        setTimeout(() => {
+            const nameInput = document.getElementById('split-new-item-name');
+            const copyBtn = document.getElementById('copy-as-new-btn');
+            const moveBtn = document.getElementById('move-as-new-btn');
+
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const newName = nameInput.value.trim() || defaultName;
+                    VersionCRUD.executeSplitAsItem(type, itemId, versionId, newName, false);
+                    copyBtn.closest('.modal').remove();
+                });
+            }
+            if (moveBtn) {
+                moveBtn.addEventListener('click', () => {
+                    const newName = nameInput.value.trim() || defaultName;
+                    VersionCRUD.executeSplitAsItem(type, itemId, versionId, newName, true);
+                    moveBtn.closest('.modal').remove();
+                });
+            }
+        }, 50);
+    }
+
+    static executeSplitAsItem(type, sourceItemId, versionId, newItemName, removeFromSource) {
+        const allItems = DataOperations.getItems(type);
+        const sourceItem = allItems.find(i => i.id === sourceItemId);
+        if (!sourceItem) return;
+
+        const sourceVersion = sourceItem.versions.find(v => v.id === versionId);
+        if (!sourceVersion) return;
+
+        const isLastVersion = removeFromSource && sourceItem.versions.length <= 1;
+        if (isLastVersion) {
+            if (!confirm(t('moveLastVersionWarning', sourceItem.name || t('unnamedItem')))) return;
+        }
+
+        const newItem = DataOperations.createNewItem(type, allItems.length);
+        newItem.name = newItemName;
+
+        const clonedVersion = DataOperations.cloneVersion(sourceVersion, type);
+        newItem.versions = [clonedVersion];
+
+        allItems.push(newItem);
+
+        if (removeFromSource) {
+            if (isLastVersion) {
+                const index = allItems.findIndex(i => i.id === sourceItemId);
+                if (index > -1) allItems.splice(index, 1);
+            } else {
+                const vIndex = sourceItem.versions.findIndex(v => v.id === versionId);
+                if (vIndex > -1) sourceItem.versions.splice(vIndex, 1);
+            }
+        }
+
+        ItemManager.setCurrentItem(type, newItem.id, clonedVersion.id);
+        alert(t('splitVersionSuccess'));
+
+        renderAll();
+        updateMobileBreadcrumb();
+        markAsChanged();
+        saveData();
     }
 }
 

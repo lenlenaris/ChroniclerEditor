@@ -1426,6 +1426,32 @@ static handleContentVersionsReorder(type, itemId, versionId, entryId, oldIndex, 
         if (!version || !version[versionsKey]) return;
 
         contentVersions = version[versionsKey];
+    } else if (type === 'loveydovey') {
+        // 卿卿我我的版本處理
+        item = loveyDoveyCharacters.find(c => c.id === itemId);
+        if (!item) return;
+
+        version = item.versions.find(v => v.id === versionId);
+        if (!version) return;
+
+        // 判斷是固定欄位還是動態數組項目
+        if (entryId.includes('.')) {
+            // 動態數組項目的版本 (格式: arrayName.arrayItemId)
+            const [arrayName, arrayItemId] = entryId.split('.');
+            if (!version[arrayName]) return;
+
+            entry = version[arrayName].find(item => item.id === arrayItemId);
+            if (!entry || !entry.contentVersions) return;
+
+            contentVersions = entry.contentVersions;
+        } else {
+            // 固定欄位的版本
+            const fieldName = entryId;
+            const versionsKey = `${fieldName}Versions`;
+
+            if (!version[versionsKey]) return;
+            contentVersions = version[versionsKey];
+        }
     } else {
         return;
     }
@@ -1445,6 +1471,19 @@ static handleContentVersionsReorder(type, itemId, versionId, entryId, oldIndex, 
         PresetRenderer.refreshContentVersionsModal(item, version, entry);
     } else if (type === 'character' || type === 'userpersona') {
         refreshFieldContentVersionsModal(type, item, version, entryId);
+    } else if (type === 'loveydovey') {
+        if (entryId.includes('.')) {
+            // 動態數組項目
+            const [arrayName, arrayItemId] = entryId.split('.');
+            const arrayItem = version[arrayName].find(item => item.id === arrayItemId);
+            const modal = document.getElementById('content-versions-modal');
+            if (modal && modal._context && arrayItem) {
+                refreshLoveyDoveyArrayItemContentVersionsModal(item, version, arrayName, arrayItem, modal._context.fieldLabel);
+            }
+        } else {
+            // 固定欄位
+            refreshFieldContentVersionsModal(type, item, version, entryId);
+        }
     }
 }
 }

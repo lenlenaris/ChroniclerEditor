@@ -1032,13 +1032,23 @@ static renderCustomFieldsList(sectionId, versionId) {
     static createVersionButtonGroup(itemType, itemId, versionId, showDelete = true) {
         return `
             <div class="version-button-group">
-                <button class="version-panel-btn hover-primary" 
+                <button class="version-panel-btn hover-primary"
                         onclick="VersionCRUD.copy('${itemType}', '${itemId}', '${versionId}')"
                         title="${t('copy')}">
                     ${IconManager.copy({width: 14, height: 14})}
                 </button>
+                <button class="version-panel-btn hover-primary"
+                        onclick="VersionCRUD.openMoveToItemModal('${itemType}', '${itemId}', '${versionId}')"
+                        title="${t('moveToItem')}">
+                    ${IconManager.mergeInto({width: 14, height: 14})}
+                </button>
+                <button class="version-panel-btn hover-primary"
+                        onclick="VersionCRUD.openSplitAsItemModal('${itemType}', '${itemId}', '${versionId}')"
+                        title="${t('splitAsItem')}">
+                    ${IconManager.splitOut({width: 14, height: 14})}
+                </button>
                 ${showDelete ? `
-                    <button class="version-panel-btn hover-primary" 
+                    <button class="version-panel-btn hover-primary"
                             onclick="VersionCRUD.remove('${itemType}', '${itemId}', '${versionId}')"
                             title="${t('delete')}">
                         ${IconManager.delete({width: 14, height: 14})}
@@ -2046,6 +2056,11 @@ function getFieldVersionData(itemType, itemId, versionId) {
         if (!persona) return null;
         const version = persona.versions.find(v => v.id === versionId);
         return version ? { item: persona, version } : null;
+    } else if (itemType === 'loveydovey') {
+        const character = loveyDoveyCharacters.find(c => c.id === itemId);
+        if (!character) return null;
+        const version = character.versions.find(v => v.id === versionId);
+        return version ? { item: character, version } : null;
     }
     return null;
 }

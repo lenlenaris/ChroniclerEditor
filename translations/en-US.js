@@ -614,6 +614,25 @@ window.ChroniclerTranslations['en-US'] = {
     copy: 'Duplicate Version',
     delete: 'Delete',
     unnamedVersion: 'Unnamed Version',
+
+    // Version Move & Split
+    moveToItem: 'Move to Another Item',
+    splitAsItem: 'Split as Separate Item',
+    moveToItemTitle: 'Move Version to Another Item',
+    splitAsItemTitle: 'Split as Separate Item',
+    moveToItemDesc: 'Copy or move this version to another item of the same type.',
+    splitAsItemDesc: 'Split this version out as an independent new item.',
+    selectTargetItem: 'Select Target Item',
+    copyToTarget: 'Copy to Target',
+    moveToTarget: 'Move to Target',
+    copyAsNewItem: 'Copy as New Item',
+    moveAsNewItem: 'Move as New Item',
+    noOtherItems: 'No other items of the same type available',
+    moveVersionSuccess: 'Version moved successfully',
+    copyVersionSuccess: 'Version copied successfully',
+    splitVersionSuccess: 'Successfully split as separate item',
+    moveLastVersionWarning: 'This is the last version of this item. Moving it will delete the original item "$1". Are you sure you want to continue?',
+    newItemName: 'New Item Name',
     
     // Compare Functionality
     selectVersionsToCompare: 'Select Versions to Compare',
