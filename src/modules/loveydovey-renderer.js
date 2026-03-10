@@ -115,8 +115,8 @@ static renderVersionContent(character, version) {
         <div style="display: flex; gap: 24px; align-items: flex-start; margin-bottom: var(--spacing-lg); flex-wrap: wrap;">
             <!-- 頭像 -->
             <div class="avatar-section">
-                <div class="avatar-preview loveydovey-avatar ${version.profileImage ? '' : 'avatar-upload-placeholder'}" 
-     onclick="triggerLoveyDoveyImageUpload('${character.id}', '${version.id}')"
+                <div class="avatar-preview loveydovey-avatar ${version.profileImage ? '' : 'avatar-upload-placeholder'}"
+     onclick="showAvatarSourceMenu(event, '${character.id}', '${version.id}', 'loveydovey', '1:1')"
      ondragenter="showAvatarDragOverlay(event, this)"
      ondragover="event.preventDefault(); event.stopPropagation();"
      ondragleave="handleAvatarDragLeave(event, this)"
@@ -888,6 +888,9 @@ async function handleLoveyDoveyImageUpload(itemId, versionId, file = null) {
     
 // 使用裁切器
 ImageCropper.show(file, '1:1', async (croppedDataUrl) => {
+    // 自動儲存到圖片庫
+    ImageLibraryManager.addImageSilently(croppedDataUrl, '1:1');
+
     updateField('loveydovey', itemId, versionId, 'profileImage', croppedDataUrl);
     
     // 雙屏模式下避免整頁重渲染
@@ -2072,7 +2075,7 @@ function generateAdditionalInfoDetailContent(characterId, versionId, info, index
                 <button class="version-panel-btn hover-primary alternate-greetings-btn${info.contentVersions && info.contentVersions.length > 0 ? ' has-versions' : ''}"
                     onclick="event.stopPropagation(); openLoveyDoveyArrayItemContentVersionsModal('loveydovey', '${characterId}', '${versionId}', 'additionalInfo', '${info.id}', '${t('additionalContent')}');"
                     title="${t('manageContentVersions')}"
-                    style="margin-left: 8px;">
+                    style="margin-left: auto;">
                     ${IconManager.filePlus({width: 14, height: 14})}
                 </button>
             </div>
@@ -2216,7 +2219,7 @@ function generateCreatorEventDetailContent(characterId, versionId, event, index)
                 <button class="version-panel-btn hover-primary alternate-greetings-btn${event.contentVersions && event.contentVersions.length > 0 ? ' has-versions' : ''}"
                     onclick="event.stopPropagation(); openLoveyDoveyArrayItemContentVersionsModal('loveydovey', '${characterId}', '${versionId}', 'creatorEvents', '${event.id}', '${t('eventContent')}');"
                     title="${t('manageContentVersions')}"
-                    style="margin-left: 8px;">
+                    style="margin-left: auto;">
                     ${IconManager.filePlus({width: 14, height: 14})}
                 </button>
             </div>
@@ -2711,7 +2714,7 @@ function generatePrivateStoryDetailContent(characterId, versionId, story, index)
                 <button class="version-panel-btn hover-primary alternate-greetings-btn${story.contentVersions && story.contentVersions.length > 0 ? ' has-versions' : ''}"
                     onclick="event.stopPropagation(); openLoveyDoveyArrayItemContentVersionsModal('loveydovey', '${characterId}', '${versionId}', 'privateStories', '${story.id}', '${t('eventContent')}');"
                     title="${t('manageContentVersions')}"
-                    style="margin-left: 8px;">
+                    style="margin-left: auto;">
                     ${IconManager.filePlus({width: 14, height: 14})}
                 </button>
             </div>

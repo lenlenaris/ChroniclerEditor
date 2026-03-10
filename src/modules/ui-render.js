@@ -610,8 +610,8 @@ static renderCharacterVersionContent(character, version) {
     <div class="character-version-content">
         <div class="character-basic-info">
             <div class="avatar-section">
-                <div class="avatar-preview ${version.avatar ? '' : 'avatar-upload-placeholder'}" 
-     onclick="triggerImageUpload('${character.id}', '${version.id}')" 
+                <div class="avatar-preview ${version.avatar ? '' : 'avatar-upload-placeholder'}"
+     onclick="showAvatarSourceMenu(event, '${character.id}', '${version.id}', 'character', '2:3')"
      ondragenter="showAvatarDragOverlay(event, this)"
      ondragover="event.preventDefault(); event.stopPropagation();"
      ondragleave="handleAvatarDragLeave(event, this)"
@@ -647,8 +647,8 @@ static renderUserPersonaVersionContent(userPersona, version) {
         <div class="user-persona-content" style="display: flex; flex-direction: column; align-items: center; gap: 24px;">
             <!-- 頭像區域 - 置中顯示 -->
             <div class="avatar-section" style="display: flex; flex-direction: column; align-items: center;">
-               <div class="avatar-preview ${version.avatar ? '' : 'avatar-upload-placeholder'}" 
-     onclick="triggerImageUpload('${userPersona.id}', '${version.id}')" 
+               <div class="avatar-preview ${version.avatar ? '' : 'avatar-upload-placeholder'}"
+     onclick="showAvatarSourceMenu(event, '${userPersona.id}', '${version.id}', 'userpersona', '2:3')"
      ondragenter="showAvatarDragOverlay(event, this)"
      ondragover="event.preventDefault(); event.stopPropagation();"
      ondragleave="handleAvatarDragLeave(event, this)"

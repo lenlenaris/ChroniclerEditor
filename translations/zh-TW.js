@@ -560,6 +560,7 @@ window.ChroniclerTranslations['zh-TW'] = {
     enabledPrompts: '個啟用條目',
     previewDisabledInCompare: '對比模式下無法使用預覽',
     itemsPresets: '$1 個預設',
+    itemsImageLibrary: '$1 張圖片庫圖片',
     presetControlsDescription: '預覽模式：組合已啟用條目的內容並進行預覽。',
     hiddenPrompts: '隱藏的提示詞',
     selectPromptToAdd: '選擇提示詞',
@@ -1134,6 +1135,32 @@ window.ChroniclerTranslations['zh-TW'] = {
     hideReplace: '收起取代',
     matchesFound: '處',
     replaceCount: '取代 $1 處',
-    replaceTip: '若只想取代單筆文字，請點擊搜尋結果前往該欄位，再使用全螢幕編輯器的搜尋取代功能。'
+    replaceTip: '若只想取代單筆文字，請點擊搜尋結果前往該欄位，再使用全螢幕編輯器的搜尋取代功能。',
+
+    // ========================================
+    // 圖片庫
+    // ========================================
+    imageLibrary: '圖片庫',
+    uploadToLibrary: '上傳到圖片庫',
+    fromLibrary: '從圖片庫選取',
+    uploadFromDevice: '從裝置上傳',
+    deleteImage: '刪除圖片',
+    imageInUse: '此圖片正在被以下項目使用：',
+    confirmDeleteImage: '確定要刪除這張圖片嗎？',
+    confirmDeleteImageInUse: '此圖片正在被 $1 個項目使用，確定要刪除嗎？（不會影響已使用此圖片的項目）',
+    noImagesInLibrary: '圖片庫是空的',
+    noImagesInLibraryDesc: '上傳頭像時會自動儲存到圖片庫，或直接上傳圖片到此處。',
+    filterAll: '全部',
+    filterSquare: '1:1',
+    filterPortrait: '2:3',
+    chooseAspectRatio: '選擇裁切比例',
+    selectImage: '選取圖片',
+    renameImage: '重新命名',
+    imageCount: '$1 張圖片',
+    imageLibraryTitle: '圖片庫',
+    imageDeleteSuccess: '圖片已刪除',
+    imageRenameSuccess: '圖片已重新命名',
+    enterImageName: '請輸入圖片名稱',
+    ratioMismatchCrop: '比例不同，需要重新裁切'
 
 };

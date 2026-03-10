@@ -559,6 +559,7 @@ window.ChroniclerTranslations['en-US'] = {
     enabledPrompts: 'enabled prompts',
     previewDisabledInCompare: 'Preview is disabled in compare mode',
     itemsPresets: '$1 Presets',
+    itemsImageLibrary: '$1 Library Images',
     presetControlsDescription: 'Preview Mode: View all enabled entries combined.',
     hiddenPrompts: 'Hidden Prompts',
     selectPromptToAdd: 'Select a prompt',
@@ -1130,6 +1131,32 @@ window.ChroniclerTranslations['en-US'] = {
     hideReplace: 'Hide Replace',
     matchesFound: 'matches',
     replaceCount: 'Replace $1',
-    replaceTip: 'To replace specific occurrences only, click a result to go to that field and use the fullscreen editor\'s search & replace.'
+    replaceTip: 'To replace specific occurrences only, click a result to go to that field and use the fullscreen editor\'s search & replace.',
+
+    // ========================================
+    // Image Library
+    // ========================================
+    imageLibrary: 'Image Library',
+    uploadToLibrary: 'Upload to Library',
+    fromLibrary: 'From Library',
+    uploadFromDevice: 'Upload from Device',
+    deleteImage: 'Delete Image',
+    imageInUse: 'This image is currently used by:',
+    confirmDeleteImage: 'Are you sure you want to delete this image?',
+    confirmDeleteImageInUse: 'This image is used by $1 item(s). Are you sure you want to delete it? (Existing items will not be affected)',
+    noImagesInLibrary: 'Image library is empty',
+    noImagesInLibraryDesc: 'Images are automatically saved when you upload avatars, or upload directly here.',
+    filterAll: 'All',
+    filterSquare: '1:1',
+    filterPortrait: '2:3',
+    chooseAspectRatio: 'Choose Aspect Ratio',
+    selectImage: 'Select Image',
+    renameImage: 'Rename',
+    imageCount: '$1 images',
+    imageLibraryTitle: 'Image Library',
+    imageDeleteSuccess: 'Image deleted',
+    imageRenameSuccess: 'Image renamed',
+    enterImageName: 'Enter image name',
+    ratioMismatchCrop: 'Different ratio, re-cropping required'
 
 };

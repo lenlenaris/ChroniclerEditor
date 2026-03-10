@@ -296,6 +296,7 @@ static exportAllData() {
         userPersonas: userPersonas,
         loveyDoveyCharacters: loveyDoveyCharacters,
         presets: presets,
+        imageLibrary: ImageLibraryManager.images || [],
 
         folders: folders,
         
@@ -2504,6 +2505,7 @@ setTimeout(() => {
             if (data.userPersonas?.length) dataItems.push(t('itemsUserPersonas', data.userPersonas.length));
             if (data.loveyDoveyCharacters?.length) dataItems.push(t('itemsLoveyDoveyCharacters', data.loveyDoveyCharacters.length));
             if (data.presets?.length) dataItems.push(t('itemsPresets', data.presets.length));
+            if (data.imageLibrary?.length) dataItems.push(t('itemsImageLibrary', data.imageLibrary.length));
 
             const settingsItems = [];
             if (data.settings?.customThemes) settingsItems.push(t('customThemes'));
@@ -2523,8 +2525,17 @@ setTimeout(() => {
                 worldBooks = data.worldBooks || [];
                 userPersonas = data.userPersonas || []; 
                 loveyDoveyCharacters = data.loveyDoveyCharacters || [];
-                presets = data.presets || []; 
-                
+                presets = data.presets || [];
+
+                // 恢復圖片庫
+                if (data.imageLibrary?.length) {
+                    ImageLibraryManager.images = data.imageLibrary;
+                    await characterDB.saveImageLibrary(data.imageLibrary);
+                } else {
+                    ImageLibraryManager.images = [];
+                    await characterDB.saveImageLibrary([]);
+                }
+
                 // 第二階段：恢復所有設定
                 if (data.settings) {
                     if (data.settings.customThemes) {
@@ -2981,8 +2992,9 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
             worldBooks = [];
             userPersonas = []; 
             loveyDoveyCharacters = [];
-            presets = []; 
-            
+            presets = [];
+            ImageLibraryManager.images = [];
+
             // 第二階段：重置所有狀態變數
             currentCharacterId = null;
             currentVersionId = null;
@@ -3015,6 +3027,10 @@ static addPresetVersionToExisting(existingPreset, data, presetName) {
                 // 檢查 presets store 是否存在
                 if (characterDB.db.objectStoreNames.contains('presets')) {
                     storeNames.push('presets');
+                }
+                // 檢查 imageLibrary store 是否存在
+                if (characterDB.db.objectStoreNames.contains('imageLibrary')) {
+                    storeNames.push('imageLibrary');
                 }
                 
                 const transaction = characterDB.db.transaction(storeNames, 'readwrite');

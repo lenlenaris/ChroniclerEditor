@@ -148,6 +148,7 @@ class ImageCropper {
     static show(file, aspectRatio, onConfirm) {
         const modal = document.createElement('div');
         modal.className = 'modal';
+        modal.id = 'image-cropper-modal';
         modal.style.display = 'block';
         
         const ratioInfo = this.getAspectRatioInfo(aspectRatio);
@@ -206,6 +207,8 @@ class ImageCropper {
         `;
         
         document.body.appendChild(modal);
+        // 確保裁切器在所有其他 modal 之上
+        modal.style.zIndex = '10003';
         this.initializeCropper(file, aspectRatio, onConfirm);
     }
 
@@ -444,21 +447,34 @@ static setupInitialCropArea() {
      */
     static async confirm() {
         const cropper = this.currentCropper;
-        const quality = document.querySelector('input[name="crop-quality"]:checked').value;
-        const ratioInfo = this.getAspectRatioInfo(cropper.aspectRatio);
-        const targetSize = quality === 'hd' ? ratioInfo.hdSize : ratioInfo.standardSize;
-        
-        // 執行裁切
-        const croppedBlob = await this.cropImage(targetSize);
-        
-        // 直接轉為 DataURL，不經過 ImageOptimizer
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            cropper.onConfirm(e.target.result);
-        };
-        reader.readAsDataURL(croppedBlob);
-        
-        this.close();
+        if (!cropper) return;
+
+        try {
+            const quality = document.querySelector('input[name="crop-quality"]:checked').value;
+            const ratioInfo = this.getAspectRatioInfo(cropper.aspectRatio);
+            const targetSize = quality === 'hd' ? ratioInfo.hdSize : ratioInfo.standardSize;
+
+            // 執行裁切
+            const croppedBlob = await this.cropImage(targetSize);
+            if (!croppedBlob) {
+                this.close();
+                return;
+            }
+
+            // 先關閉裁切器，再觸發回調
+            const onConfirm = cropper.onConfirm;
+            this.close();
+
+            // 轉為 DataURL 並觸發回調
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                onConfirm(e.target.result);
+            };
+            reader.readAsDataURL(croppedBlob);
+        } catch (error) {
+            console.error('裁切確認失敗:', error);
+            this.close();
+        }
     }
 
  /**
@@ -851,8 +867,8 @@ static handleDrag(e) {
         if (this.currentCropper && this.currentCropper.cleanup) {
             this.currentCropper.cleanup();
         }
-        
-        const modal = document.querySelector('.modal');
+
+        const modal = document.getElementById('image-cropper-modal');
         if (modal) {
             modal.remove();
         }
@@ -1220,10 +1236,13 @@ async function handleImageUpload(itemId, versionId, file) {
     
     // 使用裁切器
     ImageCropper.show(file, aspectRatio, async (croppedDataUrl) => {
-        
+
+        // 自動儲存到圖片庫
+        ImageLibraryManager.addImageSilently(croppedDataUrl, aspectRatio);
+
         // 立即轉換為 Blob URL
         const blobUrl = BlobManager.getBlobUrl(croppedDataUrl);
-        
+
         // 更新數據
         updateField(itemType, itemId, versionId, 'avatar', croppedDataUrl);
         

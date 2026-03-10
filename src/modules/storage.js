@@ -218,7 +218,7 @@ async function loadData() {
     constructor() {
         this.db = null;
         this.dbName = 'CharacterCreatorDB';
-        this.version = 8;
+        this.version = 10;
         this.isSupported = 'indexedDB' in window;
     }
 
@@ -284,6 +284,12 @@ async function loadData() {
 
                 if (!db.objectStoreNames.contains('settings')) {
                     db.createObjectStore('settings', { keyPath: 'key' });
+                }
+
+                if (!db.objectStoreNames.contains('imageLibrary')) {
+                    const imageLibraryStore = db.createObjectStore('imageLibrary', { keyPath: 'id' });
+                    imageLibraryStore.createIndex('hash', 'hash', { unique: false });
+                    imageLibraryStore.createIndex('createdAt', 'createdAt', { unique: false });
                 }
             };
         });
@@ -521,6 +527,77 @@ async detectPrivateMode() {
         } catch (error) {
             console.error('IndexedDB 載入預設失敗:', error);
             return this.fallbackLoad('characterCreatorPresets');
+        }
+    }
+
+    // 圖片庫 CRUD
+    async saveImageToLibrary(imageData) {
+        if (!this.db) return false;
+        try {
+            const transaction = this.db.transaction(['imageLibrary'], 'readwrite');
+            const store = transaction.objectStore('imageLibrary');
+            await this.addToStore(store, imageData);
+            return true;
+        } catch (error) {
+            console.error('儲存圖片到圖片庫失敗:', error);
+            return false;
+        }
+    }
+
+    async loadImageLibrary() {
+        if (!this.db) return [];
+        try {
+            const transaction = this.db.transaction(['imageLibrary'], 'readonly');
+            const store = transaction.objectStore('imageLibrary');
+            return await this.getAllFromStore(store) || [];
+        } catch (error) {
+            console.error('載入圖片庫失敗:', error);
+            return [];
+        }
+    }
+
+    async deleteImageFromLibrary(id) {
+        if (!this.db) return false;
+        try {
+            const transaction = this.db.transaction(['imageLibrary'], 'readwrite');
+            const store = transaction.objectStore('imageLibrary');
+            return new Promise((resolve, reject) => {
+                const request = store.delete(id);
+                request.onsuccess = () => resolve(true);
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('刪除圖片庫圖片失敗:', error);
+            return false;
+        }
+    }
+
+    async saveImageLibrary(imagesData) {
+        if (!this.db) return false;
+        try {
+            const transaction = this.db.transaction(['imageLibrary'], 'readwrite');
+            const store = transaction.objectStore('imageLibrary');
+            await this.clearStore(store);
+            for (const image of imagesData) {
+                await this.addToStore(store, image);
+            }
+            return true;
+        } catch (error) {
+            console.error('批量儲存圖片庫失敗:', error);
+            return false;
+        }
+    }
+
+    async updateImageInLibrary(imageData) {
+        if (!this.db) return false;
+        try {
+            const transaction = this.db.transaction(['imageLibrary'], 'readwrite');
+            const store = transaction.objectStore('imageLibrary');
+            await this.addToStore(store, imageData);
+            return true;
+        } catch (error) {
+            console.error('更新圖片庫圖片失敗:', error);
+            return false;
         }
     }
 

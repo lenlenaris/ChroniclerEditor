@@ -306,6 +306,7 @@ class GoogleCloudSync {
                 userPersonas: userPersonas,
                 loveyDoveyCharacters: loveyDoveyCharacters,
                 presets: presets,
+                imageLibrary: ImageLibraryManager.images || [],
                 folders: folders,
                 settings: {
                     customThemes: localStorage.getItem('characterCreator_customThemes'),
@@ -535,6 +536,15 @@ class GoogleCloudSync {
             userPersonas = data.userPersonas || [];
             loveyDoveyCharacters = data.loveyDoveyCharacters || [];
             presets = data.presets || [];
+
+            // 恢復圖片庫
+            if (data.imageLibrary?.length) {
+                ImageLibraryManager.images = data.imageLibrary;
+                await characterDB.saveImageLibrary(data.imageLibrary);
+            } else {
+                ImageLibraryManager.images = [];
+                await characterDB.saveImageLibrary([]);
+            }
 
             if (data.settings) {
                 if (data.settings.customThemes) {

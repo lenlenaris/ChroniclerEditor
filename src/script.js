@@ -4424,6 +4424,10 @@ function updateSidebarTranslations() {
     const loveyDoveySection = document.querySelector('#loveydovey-icon').closest('.sidebar-section');
     const loveyDoveyTitle = loveyDoveySection?.querySelector('.sidebar-section-title');
     if (loveyDoveyTitle) loveyDoveyTitle.textContent = t('loveydovey');
+
+    // 圖片庫區塊
+    const imageLibraryTitle = document.querySelector('.image-library-title');
+    if (imageLibraryTitle) imageLibraryTitle.textContent = t('imageLibrary');
 }
 
 // ===== 23. 自定義欄位處理函數 =====
@@ -4653,7 +4657,8 @@ async function initApp() {
     OtherSettings.applyLoveyDoveyVisibility(OtherSettings.settings.showLoveyDovey);
     await initTranslations();
     await loadData();
-    
+    await ImageLibraryManager.init();
+
     renderBasicUI();
     setupBrowserCloseWarning();
     
