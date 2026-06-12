@@ -330,7 +330,8 @@ class ContentSearchManager {
             [t('plotSetting')]: 'scenario',
             [t('dialogue')]: 'dialogue',
             [t('firstMessageField')]: 'firstMessage',
-            [t('creatorNotes')]: 'creatorNotes'
+            [t('creatorNotes')]: 'creatorNotes',
+            [t('characterNote')]: 'characterNote'
         };
 
         const field = fieldMap[result.fieldName];
@@ -613,7 +614,8 @@ class ContentSearchManager {
                     [t('plotSetting')]: version.scenario,
                     [t('dialogue')]: version.dialogue,
                     [t('firstMessageField')]: version.firstMessage,
-                    [t('creatorNotes')]: version.creatorNotes
+                    [t('creatorNotes')]: version.creatorNotes,
+                    [t('characterNote')]: version.characterNote
                 };
 
                 Object.entries(fields).forEach(([fieldName, content]) => {
@@ -1140,7 +1142,8 @@ function scrollToSearchResult(type, fieldName, searchText) {
         [t('dialogue')]: 'textarea[placeholder*="' + t('dialoguePlaceholder') + '"]',
         [t('firstMessageField')]: 'textarea[placeholder*="' + t('firstMessagePlaceholder') + '"]',
         [t('creatorNotes')]: 'textarea[placeholder*="' + t('creatorNotesPlaceholder') + '"]',
-        
+        [t('characterNote')]: 'textarea[placeholder*="' + t('characterNotePlaceholder') + '"]',
+
         // 玩家角色欄位
         [t('description')]: 'textarea[placeholder*="' + t('userPersonaPlaceholder') + '"]',
         

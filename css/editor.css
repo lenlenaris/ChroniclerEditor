@@ -423,6 +423,42 @@
     box-sizing: border-box;
 }
 
+/* 角色備註（Character's Note）：文字框在左、控制項直放在右 */
+.character-note-body {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.character-note-textarea {
+    flex: 1;
+    min-width: 0;
+}
+
+.character-note-controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.character-note-control {
+    display: flex;
+    flex-direction: column;
+}
+
+.character-note-control .field-label {
+    margin-bottom: 3px;
+    font-size: 0.8em;
+}
+
+.character-note-control .field-input {
+    width: 120px;
+    padding: 6px 10px;
+    font-size: 0.85em;
+}
+
 /* 自定義欄位頂部控制列 */
 .custom-field-header {
     display: flex;

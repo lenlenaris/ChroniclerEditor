@@ -326,11 +326,12 @@ class StatsManager {
         switch (type) {
             case 'character':
                 allText = [
-                    version.description, 
-                    version.personality, 
-                    version.scenario, 
-                    version.dialogue, 
-                    version.firstMessage
+                    version.description,
+                    version.personality,
+                    version.scenario,
+                    version.dialogue,
+                    version.firstMessage,
+                    version.characterNote
                 ].filter(Boolean).join('');
                 break;
 
@@ -726,11 +727,12 @@ function getQuickStatsEstimate(version, itemType) {
     switch (itemType) {
         case 'character':
             allText = [
-                version.description, 
-                version.personality, 
-                version.scenario, 
-                version.dialogue, 
-                version.firstMessage
+                version.description,
+                version.personality,
+                version.scenario,
+                version.dialogue,
+                version.firstMessage,
+                version.characterNote
             ].filter(Boolean).join('');
             break;
         case 'worldbook':

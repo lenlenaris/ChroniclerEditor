@@ -151,7 +151,16 @@ window.ChroniclerTranslations['zh-TW'] = {
     scenario: '場景設想',
     dialogue: '對話範例',
     firstMessage: '初始訊息',
-    
+
+    // 角色備註（Character's Note）
+    characterNote: '角色備註',
+    characterNotePlaceholder: '在聊天中以固定深度插入的提示詞內容（Character\'s Note）',
+    characterNoteDepth: '@ 深度',
+    characterNoteRole: '插入角色',
+    roleSystem: '系統',
+    roleUser: '使用者',
+    roleAssistant: 'AI 助理',
+
     // 額外問候語
     alternateGreetings: '額外問候語',
     alternateGreeting: '額外問候語',

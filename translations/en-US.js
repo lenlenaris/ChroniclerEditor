@@ -150,7 +150,16 @@ window.ChroniclerTranslations['en-US'] = {
     scenario: 'Scenario',
     dialogue: 'Examples of Dialogue',
     firstMessage: 'First Message',
-    
+
+    // Character's Note
+    characterNote: 'Character\'s Note',
+    characterNotePlaceholder: 'Text to be inserted into the chat at a fixed depth (Character\'s Note)...',
+    characterNoteDepth: '@ Depth',
+    characterNoteRole: 'Role',
+    roleSystem: 'System',
+    roleUser: 'User',
+    roleAssistant: 'Assistant',
+
     // Alternate Greetings
     alternateGreetings: 'Alternate Greetings',
     alternateGreeting: 'Alternate Greeting',

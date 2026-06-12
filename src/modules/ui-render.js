@@ -790,13 +790,14 @@ static renderCharacterMainFields(character, version) {
         { id: 'firstMessage', label: t('firstMessage'), placeholder: t('firstMsgPlaceholder'), fieldName: 'firstMessage' }
     ];
 
-    // 渲染基本欄位
-    const basicFieldsHTML = fields.map(field => {
+    // 渲染基本欄位（以欄位名稱為 key，方便插入角色備註）
+    const fieldHTMLMap = {};
+    fields.forEach(field => {
         const htmlId = field.id === 'description' ? 'desc' :
                       field.id === 'firstMessage' ? 'firstmsg' :
                       field.id;
 
-        return this.createTextFieldWithStats({
+        fieldHTMLMap[field.fieldName] = this.createTextFieldWithStats({
             id: `${htmlId}-${version.id}`,
             label: field.label,
             placeholder: field.placeholder,
@@ -810,9 +811,51 @@ static renderCharacterMainFields(character, version) {
             extraClass: '',
             version: version
         });
-    }).join('');
+    });
 
-return basicFieldsHTML;
+    // 角色備註（Character's Note）：文字框在左，@ 深度 / 插入角色直放在右
+    const noteRole = version.characterNoteRole || 'system';
+    const noteId = `charNote-${version.id}`;
+    const characterNoteHTML = `
+        <div class="field-group">
+            <label class="field-label">
+                ${t('characterNote')}
+                <span class="field-stats" data-target="${noteId}">0 ${t('chars')} / 0 ${t('tokens')}</span>
+                <button class="fullscreen-btn" onclick="event.stopPropagation(); openFullscreenEditor('${noteId}', '${t('characterNote')}')" title="${t('fullscreenEdit')}">⛶</button>
+            </label>
+            <div class="character-note-body">
+                <textarea class="field-input standard-textarea character-note-textarea" id="${noteId}"
+                    placeholder="${t('characterNotePlaceholder')}"
+                    oninput="updateField('character', '${character.id}', '${version.id}', 'characterNote', this.value);">${version.characterNote || ''}</textarea>
+                <div class="character-note-controls">
+                    <div class="character-note-control">
+                        <label class="field-label">${t('characterNoteDepth')}</label>
+                        <input type="number" class="field-input" id="charNoteDepth-${version.id}"
+                            min="0" max="999" step="1"
+                            value="${Number.isFinite(version.characterNoteDepth) ? version.characterNoteDepth : 4}"
+                            oninput="updateField('character', '${character.id}', '${version.id}', 'characterNoteDepth', this.value);">
+                    </div>
+                    <div class="character-note-control">
+                        <label class="field-label">${t('characterNoteRole')}</label>
+                        <select class="field-input" id="charNoteRole-${version.id}"
+                            onchange="updateField('character', '${character.id}', '${version.id}', 'characterNoteRole', this.value);">
+                            <option value="system" ${noteRole === 'system' ? 'selected' : ''}>${t('roleSystem')}</option>
+                            <option value="user" ${noteRole === 'user' ? 'selected' : ''}>${t('roleUser')}</option>
+                            <option value="assistant" ${noteRole === 'assistant' ? 'selected' : ''}>${t('roleAssistant')}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 順序：角色描述 → 個性 → 場景 → 對話範例 → 角色備註 → 初始訊息
+    return fieldHTMLMap.description
+        + fieldHTMLMap.personality
+        + fieldHTMLMap.scenario
+        + fieldHTMLMap.dialogue
+        + characterNoteHTML
+        + fieldHTMLMap.firstMessage;
 }
 
         

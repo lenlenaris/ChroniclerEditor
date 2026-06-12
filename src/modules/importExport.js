@@ -1046,9 +1046,9 @@ const characterData = {
             fav: false,
             world: "",
             depth_prompt: {
-                prompt: "",
-                depth: 4,
-                role: "system"
+                prompt: version.characterNote || "",
+                depth: Number.isFinite(version.characterNoteDepth) ? version.characterNoteDepth : 4,
+                role: version.characterNoteRole || "system"
             }
         },
         group_only_greetings: []
@@ -2016,6 +2016,8 @@ class ImportManager {
             counter++;
         }
         
+        const depthPrompt = data.data?.extensions?.depth_prompt || data.extensions?.depth_prompt || {};
+        const importedDepth = parseInt(depthPrompt.depth, 10);
         const newVersion = {
             id: generateId(),
             name: finalVersionName,
@@ -2023,6 +2025,9 @@ class ImportManager {
             creator: data.data?.creator || data.creator || '',
             charVersion: data.data?.character_version || data.character_version || '',
             creatorNotes: data.data?.creator_notes || data.creatorcomment || '',
+            characterNote: depthPrompt.prompt || '',
+            characterNoteDepth: Number.isFinite(importedDepth) && importedDepth >= 0 ? importedDepth : 4,
+            characterNoteRole: depthPrompt.role || 'system',
             tags: Array.isArray(data.tags) ? data.tags.join(', ') : (data.data?.tags ? data.data.tags.join(', ') : ''),
             description: data.data?.description || data.description || '',
             personality: data.data?.personality || data.personality || '',
@@ -2056,12 +2061,14 @@ class ImportManager {
         let characterName = originalName;
         const existingNames = characters.map(c => c.name);
         let counter = 1;
-        
+
         while (existingNames.includes(characterName)) {
             characterName = `${originalName} (${counter})`;
             counter++;
         }
-        
+
+        const depthPrompt = data.data?.extensions?.depth_prompt || data.extensions?.depth_prompt || {};
+        const importedDepth = parseInt(depthPrompt.depth, 10);
         const character = {
             id: generateId(),
             name: characterName,
@@ -2072,6 +2079,9 @@ versions: [{
     creator: data.data?.creator || data.creator || '',
     charVersion: data.data?.character_version || data.character_version || '',
     creatorNotes: data.data?.creator_notes || data.creatorcomment || '',
+    characterNote: depthPrompt.prompt || '',
+    characterNoteDepth: Number.isFinite(importedDepth) && importedDepth >= 0 ? importedDepth : 4,
+    characterNoteRole: depthPrompt.role || 'system',
     tags: Array.isArray(data.tags) ? data.tags.join(', ') : (data.data?.tags ? data.data.tags.join(', ') : ''),
     description: data.data?.description || data.description || '',
     personality: data.data?.personality || data.personality || '',

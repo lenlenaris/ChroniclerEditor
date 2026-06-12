@@ -324,6 +324,9 @@ class DataOperations {
                         creator: '',
                         charVersion: '',
                         creatorNotes: '',
+                        characterNote: '',
+                        characterNoteDepth: 4,
+                        characterNoteRole: 'system',
                         tags: '',
                         createdAt: TimestampManager.createTimestamp(),
                         updatedAt: TimestampManager.createTimestamp()
@@ -624,6 +627,9 @@ class DataOperations {
                     creator: '',
                     charVersion: '',
                     creatorNotes: '',
+                    characterNote: '',
+                    characterNoteDepth: 4,
+                    characterNoteRole: 'system',
                     tags: '',
                     boundWorldBookId: null,
                     boundWorldBookVersionId: null, 
@@ -902,6 +908,9 @@ class DataOperations {
                     creator: originalVersion.creator || '',
                     charVersion: originalVersion.charVersion || '',
                     creatorNotes: originalVersion.creatorNotes || '',
+                    characterNote: originalVersion.characterNote || '',
+                    characterNoteDepth: Number.isFinite(originalVersion.characterNoteDepth) ? originalVersion.characterNoteDepth : 4,
+                    characterNoteRole: originalVersion.characterNoteRole || 'system',
                     tags: originalVersion.tags || '',
                     alternateGreetings: originalVersion.alternateGreetings ? [...originalVersion.alternateGreetings] : []
 
@@ -4308,6 +4317,9 @@ function updateField(itemType, itemId, versionId, field, value, source = 'input'
     if (field === 'tags') {
         const normalizedTags = TagManager.normalizeToArray(value);
         version[field] = TagManager.normalizeToString(normalizedTags);
+    } else if (field === 'characterNoteDepth') {
+        const depth = parseInt(value, 10);
+        version[field] = Number.isFinite(depth) && depth >= 0 ? depth : 4;
     } else if (field === 'key' || field === 'keysecondary') {
         version[field] = value.split(',').map(k => k.trim()).filter(k => k);
     } else if (field.startsWith('customField-')) {
